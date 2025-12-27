@@ -1,12 +1,16 @@
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { fileURLToPath } from 'node:url'
+import fs from 'node:fs'
 import path from 'node:path'
+import { SUPPORTED_EXTENSIONS } from '../shared/constants'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 process.env.APP_ROOT = path.join(__dirname, '..')
 const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL
+
+const songsPath = path.join(app.getPath('documents'), 'Disband', 'Songs')
 
 let win: BrowserWindow | null = null
 
@@ -38,3 +42,27 @@ app.whenReady().then(createWindow)
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
 })
+
+// --- IPC Handlers --- //
+// Reveal Songs folder in user's file explorer
+ipcMain.on('open-songs-folder', () => {
+  if (!fs.existsSync(songsPath)) {
+    fs.mkdirSync(songsPath, { recursive: true })
+  }
+  
+  shell.openPath(songsPath)
+})
+
+// Return list of .gp* files in Songs folder
+ipcMain.handle('get-songs', async () => {
+  if (!fs.existsSync(songsPath)) {
+    fs.mkdirSync(songsPath, { recursive: true });
+    return [];
+  }
+
+  const files = fs.readdirSync(songsPath);
+  return files.filter(file => {
+    const ext = path.extname(file).toLowerCase();
+    return SUPPORTED_EXTENSIONS.includes(ext as any);
+  });
+});

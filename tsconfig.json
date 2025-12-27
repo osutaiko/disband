@@ -26,6 +26,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "electron"],
+  "include": ["src", "electron", "shared/constants.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
