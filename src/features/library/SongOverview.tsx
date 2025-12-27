@@ -13,7 +13,7 @@ const SongOverview = () => {
   const selectedSong = useLibraryStore((state) => state.selectedSong);
 
   return (
-    <section className="h-min border-b flex flex-col p-4 gap-4 bg-card/30">
+    <section className="h-min border-b flex flex-col p-4 gap-4">
       {/* Header */}
       <div className="flex items-center justify-between shrink-0">
         <h2 className="p-2">Song Overview</h2>
@@ -28,7 +28,7 @@ const SongOverview = () => {
             <p className="text-[15px] truncate">
               {selectedSong}
             </p>
-            <p className="text-p-muted flex items-center gap-1">
+            <p className="text-grayed flex items-center gap-1">
               <User size={12} /> Artist Name
             </p>
           </div>
@@ -43,12 +43,12 @@ const SongOverview = () => {
             <MetaItem label="Difficulty" value="?" />
           </div>
 
-          <p className="text-p-muted flex items-center gap-1">
+          <p className="text-grayed flex items-center gap-1">
             <Calendar size={12} /> Revision: 2024-05-12
           </p>
         </div>
       ) : (
-        <p className="text-p-muted">No song selected</p>
+        <p className="p-2 text-grayed">No song selected</p>
       )}
     </section>
   );

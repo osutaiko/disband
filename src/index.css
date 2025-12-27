@@ -122,7 +122,7 @@
   }
 
   h1 {
-    @apply uppercase text-2xl tracking-[0.25em] font-bold text-foreground/90;
+    @apply uppercase text-2xl tracking-[0.1em] font-bold text-foreground/90;
   }
 
   h2 {
@@ -135,7 +135,7 @@
 }
 
 @layer components {
-  .text-p-muted {
-    @apply text-muted-foreground/60;
+  .text-grayed {
+    @apply text-muted-foreground;
   }
 }
