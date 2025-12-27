@@ -10,12 +10,16 @@ function createWindow() {
   win = new BrowserWindow({
     width: 1280,
     height: 720,
+    show: false,
+    autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname$1, "preload.mjs"),
       contextIsolation: true,
       nodeIntegration: false
     }
   });
+  win.maximize();
+  win.show();
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL);
   } else {

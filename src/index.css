@@ -118,6 +118,18 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground uppercase tracking-[0.15em] font-medium antialiased;
+  }
+
+  h1 {
+    @apply text-2xl tracking-[0.25em] font-bold text-foreground/90;
+  }
+
+  h2 {
+    @apply text-sm tracking-[0.15em] font-semibold text-muted-foreground;
+  }
+
+  p {
+    @apply text-[12px] tracking-[0.1em] leading-relaxed normal-case text-foreground/80;
   }
 }
