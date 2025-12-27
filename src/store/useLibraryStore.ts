@@ -5,6 +5,7 @@ interface SongMetadata {
   artist: string;
   album: string;
   tempo: number;
+  tracks: { index: number; name: string }[];
 }
 
 interface LibraryState {

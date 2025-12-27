@@ -48,11 +48,15 @@ export const useAlphaTab = (
             // --- Event Listeners --- //
             api.scoreLoaded.on((score) => {
               setMetadata({
-                title: score.title,
-                artist: score.artist,
-                album: score.album,
-                tempo: score.tempo
-              });
+              title: score.title,
+              artist: score.artist,
+              album: score.album,
+              tempo: score.tempo,
+              tracks: score.tracks.map(track => ({
+                index: track.index,
+                name: track.name,
+              }))
+            });
             });
             api.renderFinished.on(() => {
               setIsLoading(false);

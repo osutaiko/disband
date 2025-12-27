@@ -11,6 +11,7 @@ const MetaItem = ({ label, value }: { label: string; value: string }) => (
 
 const SongOverview = () => {
   const selectedSong = useLibraryStore((state) => state.selectedSong);
+  const metadata = useLibraryStore((state) => state.metadata);
 
   return (
     <section className="h-min border-b flex flex-col p-4 gap-4">
@@ -26,21 +27,17 @@ const SongOverview = () => {
         <div className="flex flex-col gap-4 p-2">
           <div className="flex flex-col gap-1">
             <p className="text-[15px] truncate">
-              {selectedSong}
+              {metadata?.title}
             </p>
             <p className="text-grayed flex items-center gap-1">
-              <User size={12} /> Artist Name
+              <User size={12} /> {metadata?.artist}
             </p>
           </div>
 
           {/* Metadata Grid */}
-          <div className="grid grid-cols-3 gap-y-3">
+          <div className="grid grid-cols-2 gap-y-3">
             <MetaItem label="Format" value={"." + selectedSong.split('.').pop()?.toUpperCase() || "GP"} />
-            <MetaItem label="Key" value="C Major" />
-            <MetaItem label="Tempo" value="120 BPM" />
-            <MetaItem label="Bars" value="666" />
-            <MetaItem label="Length" value="3:10" />
-            <MetaItem label="Difficulty" value="?" />
+            <MetaItem label="Tempo" value={metadata?.tempo} />
           </div>
 
           <p className="text-grayed flex items-center gap-1">
