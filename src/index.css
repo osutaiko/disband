@@ -130,12 +130,12 @@
   }
 
   p {
-    @apply text-[12px] tracking-[0.1em] leading-relaxed normal-case text-foreground/80;
+    @apply text-[12px] leading-relaxed normal-case text-foreground/80;
   }
 }
 
 @layer components {
   .text-p-muted {
-    @apply text-muted-foreground/40;
+    @apply text-muted-foreground/60;
   }
 }

@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
+import { useLibraryStore } from "@/store/useLibraryStore";
+
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FolderOpen, RotateCw, Music } from "lucide-react";
+import { FolderOpen, RotateCw } from "lucide-react";
 
 const SongSelector = () => {
   const [songs, setSongs] = useState<string[]>([]);
+  const selectedSong = useLibraryStore((state) => state.selectedSong);
+  const setSelectedSong = useLibraryStore((state) => state.setSelectedSong);
 
   const fetchSongs = async () => {
     const fileList = await window.electron.getSongs();
@@ -33,15 +37,18 @@ const SongSelector = () => {
         </div>
       </div>
 
+      {/* TODO: Search/filter functionality */}
+
       {/* Song Catalog */}
       <ScrollArea className="flex-1">
-        <div className="flex flex-col w-70 min-h-full">
+        <div className="flex flex-col w-68 min-h-full">
           {songs.length > 0 ? (
             songs.map((song) => (
               <Button
                 key={song}
-                variant="ghost"
+                variant={selectedSong === song ? "default" : "ghost"}
                 className="px-2 w-full"
+                onClick={() => setSelectedSong(song)}
               >
                 <div className="flex items-center w-full">
                   <span className="text-[11px] truncate">
