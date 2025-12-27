@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useLibraryStore } from "@/store/useLibraryStore";
 
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { ChevronRight, FolderOpen, RotateCw } from "lucide-react";
 
 const SongSelector = () => {
@@ -30,10 +30,10 @@ const SongSelector = () => {
       <div className="flex items-center justify-between shrink-0">
         <h2 className="p-2">Song Selector</h2>
         <div className="flex gap-1">
-          <Button variant="ghost" size="icon" onClick={handleOpenFolder}>
+          <Button variant="ghost" size="icon" onClick={handleOpenFolder} title="Open Songs Folder">
             <FolderOpen />
           </Button>
-          <Button variant="ghost" size="icon" onClick={handleRefresh}>
+          <Button variant="ghost" size="icon" onClick={handleRefresh} title="Refresh Song List from Disk">
             <RotateCw />
           </Button>
         </div>
@@ -58,6 +58,7 @@ const SongSelector = () => {
                 variant={selectedSong === song ? "default" : "ghost"}
                 className="px-2 flex-1 justify-start overflow-hidden"
                 onClick={() => {if (selectedSong !== song) setConfirming(song)}}
+                title={song}
               >
                 <span className="text-[11px] truncate">{song}</span>
               </Button>
@@ -79,6 +80,9 @@ const SongSelector = () => {
             </div>
           ))}
         </div>
+        <ScrollBar
+  orientation="vertical"
+/>
       </ScrollArea>
     </section>
   );
