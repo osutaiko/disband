@@ -8,8 +8,8 @@ const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
 let win = null;
 function createWindow() {
   win = new BrowserWindow({
-    width: 1280,
-    height: 720,
+    minWidth: 1080,
+    minHeight: 720,
     show: false,
     autoHideMenuBar: true,
     webPreferences: {
