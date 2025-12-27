@@ -3,10 +3,12 @@ import { useLibraryStore } from "@/store/useLibraryStore";
 
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FolderOpen, RotateCw } from "lucide-react";
+import { ChevronRight, FolderOpen, RotateCw } from "lucide-react";
 
 const SongSelector = () => {
   const [songs, setSongs] = useState<string[]>([]);
+  const [confirming, setConfirming] = useState<string | null>(null);
+
   const selectedSong = useLibraryStore((state) => state.selectedSong);
   const setSelectedSong = useLibraryStore((state) => state.setSelectedSong);
 
@@ -42,26 +44,40 @@ const SongSelector = () => {
       {/* Song Catalog */}
       <ScrollArea className="flex-1">
         <div className="flex flex-col w-68 min-h-full">
-          {songs.length > 0 ? (
-            songs.map((song) => (
+          {songs.map((song) => (
+            <div key={song} className="flex items-center gap-1 group"
+              // Reset confirming state if user clicks outside the song item
+              // Clever workaround exploiting onBlur
+              onBlur={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                  setConfirming(null);
+                }
+              }}
+            >
               <Button
-                key={song}
                 variant={selectedSong === song ? "default" : "ghost"}
-                className="px-2 w-full"
-                onClick={() => setSelectedSong(song)}
+                className="px-2 flex-1 justify-start overflow-hidden"
+                onClick={() => {if (selectedSong !== song) setConfirming(song)}}
               >
-                <div className="flex items-center w-full">
-                  <span className="text-[11px] truncate">
-                    {song}
-                  </span>
-                </div>
+                <span className="text-[11px] truncate">{song}</span>
               </Button>
-            ))
-          ) : (
-            <div className="flex-1 flex flex-col items-center py-20">
-              <p className="text-p-muted">No songs found</p>
+
+              {/* Confirmation Button (appears when the song item is clicked) */}
+              {confirming === song && (
+                <Button 
+                  size="icon" 
+                  variant="secondary" 
+                  className="shrink-0 animate-in fade-in zoom-in duration-200"
+                  onClick={() => {
+                    setSelectedSong(song);
+                    setConfirming(null);
+                  }}
+                >
+                  <ChevronRight size={16} />
+                </Button>
+              )}
             </div>
-          )}
+          ))}
         </div>
       </ScrollArea>
     </section>

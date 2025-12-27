@@ -25,7 +25,7 @@ const SongOverview = () => {
       {selectedSong ? (
         <div className="flex flex-col gap-4 p-2">
           <div className="flex flex-col gap-1">
-            <p className="text-[15px]">
+            <p className="text-[15px] truncate">
               {selectedSong}
             </p>
             <p className="text-p-muted flex items-center gap-1">
