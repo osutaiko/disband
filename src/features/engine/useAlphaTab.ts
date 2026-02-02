@@ -17,7 +17,6 @@ export const useAlphaTab = (
       setIsLoading(true);
       try {
         // Fetch binary data via Electron
-        // Uint8 type required
         const data = await window.electron.getSongData(selectedSong);
         const uint8Data = new Uint8Array(data);
 
@@ -34,12 +33,10 @@ export const useAlphaTab = (
           try {
             const settings: Partial<Settings> = {
               core: {
-                worker: false,
                 fontDirectory: "https://cdn.jsdelivr.net/npm/@coderline/alphatab@latest/dist/font/"
               },
               display: {
-                layoutMode: "page",
-                stretchForce: true,
+                scale: 0.75,
               },
             };
 

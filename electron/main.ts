@@ -63,12 +63,12 @@ ipcMain.handle('get-songs', async () => {
   const files = fs.readdirSync(SONGS_PATH);
   return files.filter(file => {
     const ext = path.extname(file).toLowerCase();
-    return SUPPORTED_EXTENSIONS.includes(ext as any);
+    return SUPPORTED_EXTENSIONS.includes(ext);
   });
 });
 
 // Parse and return binary data for a song file
-ipcMain.handle('get-song-data', async (event, filename: string) => {
+ipcMain.handle('get-song-data', async (_, filename: string) => {
   const filePath = path.join(SONGS_PATH, filename);
   const buffer = await fs.promises.readFile(filePath);
   return buffer;

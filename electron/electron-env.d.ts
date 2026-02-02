@@ -21,7 +21,16 @@ declare namespace NodeJS {
   }
 }
 
+export interface IElectronAPI {
+  openSongsFolder: () => void;
+  getSongs: () => Promise<string[]>;
+  getSongData: (filename: string) => Promise<Uint8Array>;
+}
+
 // Used in Renderer process, expose in `preload.ts`
-interface Window {
-  ipcRenderer: import('electron').IpcRenderer
+declare global {
+  interface Window {
+    ipcRenderer: import('electron').IpcRenderer;
+    electron: IElectronAPI;
+  }
 }

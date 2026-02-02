@@ -1,11 +1,11 @@
 import { useLibraryStore } from "@/store/useLibraryStore";
 import { Button } from "@/components/ui/button";
-import { Info, Music, Calendar, User } from "lucide-react";
+import { Info, Calendar, User } from "lucide-react";
 
-const MetaItem = ({ label, value }: { label: string; value: string }) => (
+const MetaItem = ({ label, value }: { label: string; value: any }) => (
   <div className="flex flex-col gap-0.5">
     <p className="text-[9px]">{label}</p>
-    <p className="font-mono">{value}</p>
+    <p className="font-mono">{value || "N/A"}</p>
   </div>
 );
 

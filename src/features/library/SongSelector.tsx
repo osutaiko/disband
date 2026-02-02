@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useLibraryStore } from "@/store/useLibraryStore";
 
 import { Button } from "@/components/ui/button";
@@ -12,17 +12,17 @@ const SongSelector = () => {
   const selectedSong = useLibraryStore((state) => state.selectedSong);
   const setSelectedSong = useLibraryStore((state) => state.setSelectedSong);
 
-  const fetchSongs = async () => {
+  const fetchSongs = useCallback(async () => {
     const fileList = await window.electron.getSongs();
     setSongs(fileList);
-  };
+  }, []);
 
   const handleOpenFolder = () => window.electron.openSongsFolder();
-  const handleRefresh = () => fetchSongs();
+  const handleRefresh = useCallback(() => fetchSongs(), [fetchSongs]);
 
   useEffect(() => {
     handleRefresh();
-  }, []);
+  }, [handleRefresh]);
 
   return (
     <section className="flex flex-col h-full overflow-hidden p-4 gap-4">
