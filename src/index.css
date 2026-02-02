@@ -138,4 +138,16 @@
   .text-grayed {
     @apply text-muted-foreground;
   }
+
+  .at-cursor-bar {
+    @apply bg-muted-foreground opacity-10 rounded-sm;
+  }
+
+  .at-cursor-beat {
+    @apply bg-red-500 opacity-30;
+  }
+
+  .at-highlight {
+    @apply bg-red-500 opacity-30;
+  }
 }

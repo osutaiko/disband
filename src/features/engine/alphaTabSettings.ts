@@ -7,10 +7,15 @@ export const alphaTabSettings: Partial<Settings> = {
   },
   display: {
     layoutMode: "page",
-    barsPerRow: 4,
     scale: 0.75,
     rhythm: {
       enableAll: true,
     },
+  },
+  player: {
+    enablePlayer: true,
+    enableCursor: true,
+    soundFont: "/soundfonts/sonivox.sf2", 
+    enableUserInteraction: true,
   },
 }

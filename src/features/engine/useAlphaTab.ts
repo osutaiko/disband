@@ -11,6 +11,8 @@ export const useAlphaTab = (
   const [isLoading, setIsLoading] = useState(false);
   const apiRef = useRef<AlphaTabApi | null>(null);
   const setMetadata = useLibraryStore((state) => state.setMetadata);
+  const setIsPlaying = useLibraryStore((state) => state.setIsPlaying);
+  const setApi = useLibraryStore((state) => state.setApi);
 
   useEffect(() => {
     if (!containerRef.current || !selectedSong) return;
@@ -26,31 +28,47 @@ export const useAlphaTab = (
         if (apiRef.current) {
           apiRef.current.destroy();
           apiRef.current = null;
+          setApi(null);
         }
 
-        // Small delay to allow DOM/ScrollArea to settle
+        // Small delay to allow DOM to settle
         setTimeout(() => {
           if (!containerRef.current) return;
 
-          try {
-            const api = new AlphaTabApi(containerRef.current, alphaTabSettings);
+          const api = new AlphaTabApi(containerRef.current, alphaTabSettings);
+          apiRef.current = api;
+          setApi(api);
 
+          try {
             // --- Event Listeners --- //
             api.scoreLoaded.on((score) => {
               setMetadata({
-              title: score.title,
-              artist: score.artist,
-              album: score.album,
-              tempo: score.tempo,
-              tracks: score.tracks.map(track => ({
-                index: track.index,
-                name: track.name,
-              }))
-            });
+                title: score.title,
+                artist: score.artist,
+                album: score.album,
+                tempo: score.tempo,
+                tracks: score.tracks.map(track => ({
+                  index: track.index,
+                  name: track.name,
+                })),
+              });
             });
             api.renderFinished.on(() => {
               setIsLoading(false);
             });
+
+            api.playerReady.on(() => {
+              setApi(api);
+              useLibraryStore.getState().setEndTime(api.endTime);
+            });
+            api.playerStateChanged.on((args) => {
+              // 0 = stopped, 1 = playing, 2 = paused
+              setIsPlaying(args.state === 1);
+            });
+            api.playerPositionChanged.on((args) => {
+              useLibraryStore.getState().setCurrentTime(args.currentTime);
+            });
+
             api.error.on((e) => {
               console.error("AlphaTab API error:", e);
               setIsLoading(false);
@@ -58,7 +76,6 @@ export const useAlphaTab = (
 
             // Load data
             api.load(uint8Data);
-            apiRef.current = api;
           } catch (e) {
             console.error("AlphaTab init failed:", e);
             setIsLoading(false);
@@ -76,9 +93,10 @@ export const useAlphaTab = (
       if (apiRef.current) {
         apiRef.current.destroy();
         apiRef.current = null;
+        setApi(null);
       }
     };
-  }, [selectedSong, setMetadata, containerRef]);
+  }, [selectedSong, setMetadata, setApi, setIsPlaying, containerRef]);
 
   return { isLoading };
 };
