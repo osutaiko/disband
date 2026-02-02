@@ -8,11 +8,10 @@ export const useAlphaTab = (
   containerRef: React.RefObject<HTMLDivElement | null>,
   selectedSong: string | null
 ) => {
+  const { setApi, setMetadata, setIsPlaying, setCurrentTime, setEndTime } = useLibraryStore();
+
   const [isLoading, setIsLoading] = useState(false);
   const apiRef = useRef<AlphaTabApi | null>(null);
-  const setMetadata = useLibraryStore((state) => state.setMetadata);
-  const setIsPlaying = useLibraryStore((state) => state.setIsPlaying);
-  const setApi = useLibraryStore((state) => state.setApi);
 
   useEffect(() => {
     if (!containerRef.current || !selectedSong) return;
@@ -59,14 +58,14 @@ export const useAlphaTab = (
 
             api.playerReady.on(() => {
               setApi(api);
-              useLibraryStore.getState().setEndTime(api.endTime);
+              setEndTime(api.endTime);
             });
             api.playerStateChanged.on((args) => {
               // 0 = stopped, 1 = playing, 2 = paused
               setIsPlaying(args.state === 1);
             });
             api.playerPositionChanged.on((args) => {
-              useLibraryStore.getState().setCurrentTime(args.currentTime);
+              setCurrentTime(args.currentTime);
             });
 
             api.error.on((e) => {

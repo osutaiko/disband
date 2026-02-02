@@ -5,7 +5,8 @@ import { useAlphaTab } from "./useAlphaTab";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const TabView = () => {
-  const selectedSong = useLibraryStore((state) => state.selectedSong);
+  const { selectedSong } = useLibraryStore();
+  
   const containerRef = useRef<HTMLDivElement>(null);
   const { isLoading } = useAlphaTab(containerRef, selectedSong);
 
