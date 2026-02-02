@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { AlphaTabApi, Settings } from "@coderline/alphatab";
+import { AlphaTabApi } from "@coderline/alphatab";
 import { useLibraryStore } from "@/store/useLibraryStore";
+
+import { alphaTabSettings } from "./alphaTabSettings";
 
 export const useAlphaTab = (
   containerRef: React.RefObject<HTMLDivElement | null>,
@@ -31,16 +33,7 @@ export const useAlphaTab = (
           if (!containerRef.current) return;
 
           try {
-            const settings: Partial<Settings> = {
-              core: {
-                fontDirectory: "https://cdn.jsdelivr.net/npm/@coderline/alphatab@latest/dist/font/"
-              },
-              display: {
-                scale: 0.75,
-              },
-            };
-
-            const api = new AlphaTabApi(containerRef.current, settings);
+            const api = new AlphaTabApi(containerRef.current, alphaTabSettings);
 
             // --- Event Listeners --- //
             api.scoreLoaded.on((score) => {
