@@ -7,7 +7,7 @@ export const alphaTabSettings: Partial<Settings> = {
   },
   display: {
     layoutMode: "page",
-    scale: 0.75,
+    scale: 1.0,
     rhythm: {
       enableAll: true,
     },
