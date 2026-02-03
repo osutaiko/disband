@@ -1,10 +1,44 @@
 import { useLibraryStore } from "@/store/useLibraryStore";
 
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Slider } from "@/components/ui/slider";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { View, VolumeX } from "lucide-react";
+import { useState } from "react";
 
 const TrackMenu = () => {
-  const { tracks, selectedTrackId, setSelectedTrackId } = useLibraryStore();
+  const { api, tracks, selectedTrackId, setSelectedTrackId } = useLibraryStore();
+  const [mutedTracks, setMutedTracks] = useState<number[]>([]);
+  const [soloTracks, setSoloTracks] = useState<number[]>([]);
+
+  const handleVolumeChange = (track: any, values: number[]) => {
+    if (!api) return;
+    api.changeTrackVolume([track], values[0] / 100);
+  };
+
+  const handleMuteToggle = (track: any) => {
+    if (!api) return;
+    const isMuted = mutedTracks.includes(track.index);
+    api.changeTrackMute([track], !isMuted);
+    setMutedTracks(prev => 
+      isMuted ? prev.filter(id => id !== track.index) : [...prev, track.index]
+    );
+  };
+
+  const handleSoloToggle = (track: any) => {
+    if (!api) return;
+    const isSoloed = soloTracks.includes(track.index);
+    api.changeTrackSolo([track], !isSoloed);
+    setSoloTracks(prev => 
+      isSoloed ? prev.filter(id => id !== track.index) : [...prev, track.index]
+    );
+  };
 
   return (
     <section className="h-1/2 border-b flex flex-col p-6 gap-4">
@@ -12,24 +46,64 @@ const TrackMenu = () => {
       <ScrollArea className="flex-1">
         <div className="flex flex-col w-64 gap-1 min-h-full">
           {tracks?.map((track) => {
+            const isSelected = selectedTrackId === track.index;
+            const isMuted = mutedTracks.includes(track.index);
+            const isSoloed = soloTracks.includes(track.index);
+            const trackVol = track.playbackInfo?.volume ?? 1;
+
             return (
               <div key={track.index} className="flex items-center gap-1 group">
-                <Button
-                  variant={selectedTrackId === track.index ? "default" : "outline"}
-                  className="px-2 flex-1 justify-start overflow-hidden"
-                  onClick={() => {setSelectedTrackId(track.index)}}
-                  title={track.name}
-                  asChild
+                <Card
+                  className="w-full rounded-sm"
                 >
-                  <span className="text-[11px] truncate">{track.name}</span>
-                </Button>
+                  <CardHeader className="p-2 pb-1 flex flex-row items-center justify-between gap-2">
+                    <CardTitle title={track.name} className={`text-[11px] truncate ${isSelected ? "font-bold" : ""}`}>{track.name}</CardTitle>
+                    <Button
+                      title="Show Track Score"
+                      size="icon" 
+                      variant={`${isSelected ? "default" : "secondary"}`}
+                      className={`w-6 h-6 flex-0 aspect-square`}
+                      onClick={() => setSelectedTrackId(track.index)}
+                    >
+                      <View />
+                    </Button>
+                  </CardHeader>
+                  <CardContent className="p-2 pt-0 flex flex-row gap-4 items-center">
+                    <Slider 
+                      title="Track Volume"
+                      defaultValue={[trackVol * 100]} 
+                      max={100} 
+                      step={1} 
+                      disabled={isMuted}
+                      onValueChange={(vals) => handleVolumeChange(track, vals)}
+                    />
+                    <div className="flex flex-row gap-1">
+                      <Button
+                        title={isMuted ? "Unmute Track" : "Mute Track"}
+                        size="icon"
+                        variant={isMuted ? "destructive" : "secondary"}
+                        className={`w-6 h-6 flex-0 aspect-square ${isMuted ? "text-white" : "text-black"} text-xs`}
+                        onClick={() => handleMuteToggle(track)}
+                      >
+                        M
+                      </Button>
+                      <Button
+                        title={isSoloed ? "Unsolo Track" : "Solo Track"}
+                        size="icon"
+                        variant={isSoloed ? "destructive" : "secondary"}
+                        className={`w-6 h-6 flex-0 aspect-square ${isSoloed ? "text-white" : "text-black"} text-xs`}
+                        onClick={() => handleSoloToggle(track)}
+                      >
+                        S
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             );
           })}
         </div>
       </ScrollArea>
-      
-      
     </section>
   );
 };
