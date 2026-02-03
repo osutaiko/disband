@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { View, VolumeX } from "lucide-react";
+import { View } from "lucide-react";
 import { useState } from "react";
 
 const TrackMenu = () => {
@@ -33,11 +33,22 @@ const TrackMenu = () => {
 
   const handleSoloToggle = (track: any) => {
     if (!api) return;
-    const isSoloed = soloTracks.includes(track.index);
-    api.changeTrackSolo([track], !isSoloed);
-    setSoloTracks(prev => 
-      isSoloed ? prev.filter(id => id !== track.index) : [...prev, track.index]
-    );
+    const isCurrentlySoloed = soloTracks.includes(track.index);
+
+    if (isCurrentlySoloed) {
+      api.changeTrackSolo([track], false);
+      setSoloTracks([]);
+    } else {
+      // Unmute track
+      if (mutedTracks.includes(track.index)) {
+        api.changeTrackMute([track], false);
+        setMutedTracks(prev => prev.filter(id => id !== track.index));
+      }
+
+      // Exclusive solo
+      api.changeTrackSolo([track], true);
+      setSoloTracks([track.index]);
+    }
   };
 
   return (
