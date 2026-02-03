@@ -80,13 +80,15 @@ const TrackMenu = () => {
                     </Button>
                   </CardHeader>
                   <CardContent className="px-3 pt-0 pb-2 flex flex-row gap-4 items-center">
-                    <div className="flex flex-row w-full gap-2 items-center">
+                    <div 
+                      title="Track Volume"
+                      className="flex flex-row w-full gap-2 items-center"
+                    >
                       {isMuted ? 
                         <VolumeX size={16} className="text-muted-foreground" /> :
                         <Volume2 size={16} />
                       }
                       <Slider 
-                        title="Track Volume"
                         defaultValue={[trackVol * 100]} 
                         max={100} 
                         step={1} 

@@ -40,28 +40,24 @@ const PlaybackControls = () => {
 
       {/* Playback Buttons */}
       <div className="flex flex-row gap-1 justify-center">
-        <Button variant="outline" size="icon" onClick={handleGotoStart} className="rounded-full">
+        <Button title="Go to Start" variant="outline" size="icon" onClick={handleGotoStart} className="rounded-full">
           <ChevronFirst />
         </Button>
-        <Button size="lg" onClick={handlePlayPause} className="rounded-full">
+        <Button title={isPlaying ? "Pause" : "Play"} size="lg" onClick={handlePlayPause} className="rounded-full">
           {isPlaying ? <Pause className="fill-current" /> : <Play className="fill-current" />}
         </Button>
-        <Button variant="outline" size="icon" onClick={handleGotoEnd} className="rounded-full">
+        <Button title="Go to End" variant="outline" size="icon" onClick={handleGotoEnd} className="rounded-full">
           <ChevronLast />
         </Button>
       </div>
 
       {/* Time/Bar Display */}
       <div className="grid grid-cols-2 gap-4 font-mono">
-        <div className="flex flex-row justify-center gap-2 bg-muted rounded-md p-2">
-          <p>{formatTime(currentTime)}</p>
-          <p>/</p>
-          <p>{formatTime(endTime)}</p>
+        <div title="Time" className="flex flex-row justify-center gap-2 bg-muted rounded-md p-2">
+          <p>{formatTime(currentTime)} / {formatTime(endTime)}</p>
         </div>
-        <div className="flex flex-row justify-center gap-2 bg-muted rounded-md p-2">
-          <p>{0}</p>
-          <p>/</p>
-          <p>{100}</p>
+        <div title="Bar" className="flex flex-row justify-center gap-2 bg-muted rounded-md p-2">
+          <p>Bar {0} / {100}</p>
         </div>
       </div>
     </section>
