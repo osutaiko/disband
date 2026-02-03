@@ -65,9 +65,9 @@ const TrackMenu = () => {
             return (
               <div key={track.index} className="flex items-center gap-1 group">
                 <Card
-                  className="w-full rounded-sm"
+                  className="w-full rounded-sm shadow-none"
                 >
-                  <CardHeader className="p-2 pb-1 flex flex-row items-center justify-between gap-2">
+                  <CardHeader className="px-3 pt-2 pb-1 flex flex-row items-center justify-between gap-2">
                     <CardTitle title={track.name} className={`text-[11px] truncate ${isSelected ? "font-bold" : ""}`}>{track.name}</CardTitle>
                     <Button
                       title="Show Track Score"
@@ -79,7 +79,7 @@ const TrackMenu = () => {
                       <View />
                     </Button>
                   </CardHeader>
-                  <CardContent className="p-2 pt-0 flex flex-row gap-4 items-center">
+                  <CardContent className="px-3 pt-0 pb-2 flex flex-row gap-4 items-center">
                     <div className="flex flex-row w-full gap-2 items-center">
                       {isMuted ? 
                         <VolumeX size={16} className="text-muted-foreground" /> :

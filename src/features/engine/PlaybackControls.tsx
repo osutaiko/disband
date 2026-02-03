@@ -40,31 +40,30 @@ const PlaybackControls = () => {
 
       {/* Playback Buttons */}
       <div className="flex flex-row gap-1 justify-center">
-        <Button size="icon" onClick={handleGotoStart}>
+        <Button variant="outline" size="icon" onClick={handleGotoStart} className="rounded-full">
           <ChevronFirst />
         </Button>
-        <Button size="icon" onClick={handlePlayPause}>
+        <Button size="lg" onClick={handlePlayPause} className="rounded-full">
           {isPlaying ? <Pause className="fill-current" /> : <Play className="fill-current" />}
         </Button>
-        <Button size="icon" onClick={handleGotoEnd}>
+        <Button variant="outline" size="icon" onClick={handleGotoEnd} className="rounded-full">
           <ChevronLast />
         </Button>
       </div>
 
       {/* Time/Bar Display */}
       <div className="grid grid-cols-2 gap-4 font-mono">
-        <div className="flex flex-row justify-center gap-2">
+        <div className="flex flex-row justify-center gap-2 bg-muted rounded-md p-2">
           <p>{formatTime(currentTime)}</p>
           <p>/</p>
           <p>{formatTime(endTime)}</p>
         </div>
-        {/* <div className="flex flex-row justify-center gap-2">
-          <p>{formatTime(currentBar)}</p>
+        <div className="flex flex-row justify-center gap-2 bg-muted rounded-md p-2">
+          <p>{0}</p>
           <p>/</p>
-          <p>{formatTime(endBar)}</p>
-        </div> */}
+          <p>{100}</p>
+        </div>
       </div>
-      
     </section>
   );
 };
