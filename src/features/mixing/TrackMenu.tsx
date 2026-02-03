@@ -9,13 +9,27 @@ import {
 } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { View, Volume, Volume1, Volume2, VolumeX } from "lucide-react";
+import { RotateCw, View, Volume2, VolumeX } from "lucide-react";
 import { useState } from "react";
 
 const TrackMenu = () => {
   const { api, tracks, selectedTrackId, setSelectedTrackId } = useLibraryStore();
   const [mutedTracks, setMutedTracks] = useState<number[]>([]);
   const [soloTracks, setSoloTracks] = useState<number[]>([]);
+
+  const handleReset = () => {
+    if (!api || !tracks) return;
+
+    // Reset track volumes
+    tracks.forEach((track) => {
+      api.changeTrackVolume([track], track.playbackInfo?.volume ?? 1.0);
+      api.changeTrackMute([track], false);
+      api.changeTrackSolo([track], false);
+    });
+
+    setMutedTracks([]);
+    setSoloTracks([]);
+  };
 
   const handleVolumeChange = (track: any, values: number[]) => {
     if (!api) return;
@@ -53,7 +67,16 @@ const TrackMenu = () => {
 
   return (
     <section className="h-1/2 border-b flex flex-col p-6 gap-4">
-      <h2>Tracks</h2>
+      {/* Header */}
+      <div className="flex items-center justify-between shrink-0">
+        <h2 className="p-2">Tracks</h2>
+        <div className="flex gap-1">
+          <Button variant="ghost" size="icon" onClick={handleReset} title="Reset Track Settings">
+            <RotateCw />
+          </Button>
+        </div>
+      </div>
+
       <ScrollArea className="flex-1">
         <div className="flex flex-col w-64 gap-1 min-h-full">
           {tracks?.map((track) => {
