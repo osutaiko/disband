@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { View } from "lucide-react";
+import { View, Volume, Volume1, Volume2, VolumeX } from "lucide-react";
 import { useState } from "react";
 
 const TrackMenu = () => {
@@ -80,14 +80,20 @@ const TrackMenu = () => {
                     </Button>
                   </CardHeader>
                   <CardContent className="p-2 pt-0 flex flex-row gap-4 items-center">
-                    <Slider 
-                      title="Track Volume"
-                      defaultValue={[trackVol * 100]} 
-                      max={100} 
-                      step={1} 
-                      disabled={isMuted}
-                      onValueChange={(vals) => handleVolumeChange(track, vals)}
-                    />
+                    <div className="flex flex-row w-full gap-2 items-center">
+                      {isMuted ? 
+                        <VolumeX size={16} className="text-muted-foreground" /> :
+                        <Volume2 size={16} />
+                      }
+                      <Slider 
+                        title="Track Volume"
+                        defaultValue={[trackVol * 100]} 
+                        max={100} 
+                        step={1} 
+                        disabled={isMuted}
+                        onValueChange={(vals) => handleVolumeChange(track, vals)}
+                      />
+                    </div>
                     <div className="flex flex-row gap-1">
                       <Button
                         title={isMuted ? "Unmute Track" : "Mute Track"}
