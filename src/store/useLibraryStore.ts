@@ -5,7 +5,11 @@ interface SongMetadata {
   artist: string;
   album: string;
   tempo: number;
-  tracks: { index: number; name: string }[];
+}
+
+interface Track {
+  index: number;
+  name: string;
 }
 
 interface LibraryState {
@@ -14,9 +18,14 @@ interface LibraryState {
 
   selectedSong: string | null;
   setSelectedSong: (song: string | null) => void;
+  clearSelection: () => void;
   metadata: SongMetadata | null;
   setMetadata: (metadata: SongMetadata | null) => void;
-  clearSelection: () => void;
+
+  tracks: Track[] | null;
+  setTracks: (tracks: Track[] | null) => void;
+  selectedTrackId: number | null;
+  setSelectedTrackId: (id: number | null) => void;
 
   isPlaying: boolean;
   setIsPlaying: (playing: boolean) => void;
@@ -33,9 +42,14 @@ export const useLibraryStore = create<LibraryState>((set) => ({
 
   selectedSong: null,
   setSelectedSong: (song) => set({ selectedSong: song }),
+  clearSelection: () => set({ selectedSong: null }),
   metadata: null,
   setMetadata: (metadata) => set({ metadata }),
-  clearSelection: () => set({ selectedSong: null }),
+  
+  tracks: null,
+  setTracks: (tracks) => set({ tracks }),
+  selectedTrackId: null,
+  setSelectedTrackId: (id) => set({ selectedTrackId: id }),
 
   isPlaying: false,
   setIsPlaying: (isPlaying) => set({ isPlaying }),

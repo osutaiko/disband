@@ -6,11 +6,9 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { ChevronRight, FolderOpen, RotateCw } from "lucide-react";
 
 const SongSelector = () => {
+  const { selectedSong, setSelectedSong } = useLibraryStore();
   const [songs, setSongs] = useState<string[]>([]);
   const [confirming, setConfirming] = useState<string | null>(null);
-
-  const selectedSong = useLibraryStore((state) => state.selectedSong);
-  const setSelectedSong = useLibraryStore((state) => state.setSelectedSong);
 
   const fetchSongs = useCallback(async () => {
     const fileList = await window.electron.getSongs();

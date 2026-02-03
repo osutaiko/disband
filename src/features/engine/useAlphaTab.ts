@@ -8,7 +8,7 @@ export const useAlphaTab = (
   containerRef: React.RefObject<HTMLDivElement | null>,
   selectedSong: string | null
 ) => {
-  const { setApi, setMetadata, setIsPlaying, setCurrentTime, setEndTime } = useLibraryStore();
+  const { api, setApi, setMetadata, setIsPlaying, setTracks, setCurrentTime, setEndTime, selectedTrackId, setSelectedTrackId } = useLibraryStore();
 
   const [isLoading, setIsLoading] = useState(false);
   const apiRef = useRef<AlphaTabApi | null>(null);
@@ -46,11 +46,12 @@ export const useAlphaTab = (
                 artist: score.artist,
                 album: score.album,
                 tempo: score.tempo,
-                tracks: score.tracks.map(track => ({
-                  index: track.index,
-                  name: track.name,
-                })),
               });
+              setTracks(score.tracks);
+              const trackExists = score.tracks.some(t => t.index === selectedTrackId);
+              if (!trackExists && score.tracks.length > 0) {
+                setSelectedTrackId(score.tracks[0].index); 
+              }
             });
             api.renderFinished.on(() => {
               setIsLoading(false);
@@ -96,6 +97,15 @@ export const useAlphaTab = (
       }
     };
   }, [selectedSong, setMetadata, setApi, setIsPlaying, containerRef]);
+
+  useEffect(() => {
+    if (apiRef.current && apiRef.current.score && selectedTrackId !== null) {
+      const track = apiRef.current.score.tracks.find(t => t.index === selectedTrackId);
+      if (track) {
+        apiRef.current.renderTracks([track]);
+      }
+    }
+  }, [apiRef.current, selectedTrackId]);
 
   return { isLoading };
 };
