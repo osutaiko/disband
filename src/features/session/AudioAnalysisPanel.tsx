@@ -1,5 +1,17 @@
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
+const NoteMarker = ({
+  timestamp,
+  duration,
+  pxPerMillis,
+}: {
+  timestamp: number;
+  duration: number;
+  pxPerMillis: number;
+}) => {
+
+}
+
 const AudioAnalysisPanel = () => {
   return (
     <section className="h-min border-t p-6">
