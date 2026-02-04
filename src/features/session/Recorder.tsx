@@ -1,9 +1,6 @@
-import { useState } from "react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 const Recorder = () => {
-  const [zoom, setZoom] = useState<number>(1);
-
   return (
     <section className="h-min border-t p-6">
       <ScrollArea>

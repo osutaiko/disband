@@ -8,7 +8,7 @@ export const useAlphaTab = (
   containerRef: React.RefObject<HTMLDivElement | null>,
   selectedSong: string | null
 ) => {
-  const { api, setApi, setMetadata, setIsPlaying, setTracks, setCurrentTime, setEndTime, selectedTrackId, setSelectedTrackId } = useLibraryStore();
+  const { setApi, setMetadata, setIsPlaying, setTracks, setCurrentTime, setEndTime, selectedTrackId, setSelectedTrackId } = useLibraryStore();
 
   const [isLoading, setIsLoading] = useState(false);
   const apiRef = useRef<AlphaTabApi | null>(null);

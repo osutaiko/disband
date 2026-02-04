@@ -2,7 +2,7 @@ import { useLibraryStore } from "@/store/useLibraryStore";
 import { Button } from "@/components/ui/button";
 import PanelHeader from "@/components/ui/PanelHeader";
 
-import { ChevronFirst, Play, Pause, ChevronLast, RotateCw } from "lucide-react";
+import { ChevronFirst, Play, Pause, ChevronLast } from "lucide-react";
 
 const PlaybackControls = () => {
   const { api, isPlaying, setIsPlaying, currentTime, setCurrentTime, endTime } = useLibraryStore();
