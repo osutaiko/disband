@@ -85,7 +85,7 @@ const TrackMenu = () => {
             const trackVol = track.playbackInfo?.volume ?? 1;
 
             return (
-              <div key={track.index} className="flex items-center gap-1 group">
+              <div key={track.index} className="flex items-center gap-1 group w-68">
                 <Card
                   className="w-full rounded-sm shadow-none"
                 >
