@@ -10,7 +10,7 @@ const MetaItem = ({ label, value }: { label: string; value: any }) => (
   </div>
 );
 
-const SongOverview = () => {
+const SongOverviewPanel = () => {
   const selectedSong = useLibraryStore((state) => state.selectedSong);
   const metadata = useLibraryStore((state) => state.metadata);
 
@@ -49,4 +49,4 @@ const SongOverview = () => {
   );
 };
 
-export default SongOverview;
+export default SongOverviewPanel;

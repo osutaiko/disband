@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Slider } from "@/components/ui/slider";
 import { ZoomIn, ZoomOut } from "lucide-react";
 
-const TabView = () => {
+const TabViewPanel = () => {
   const ZOOM_MIN = 0.25;
   const ZOOM_MAX = 2.0;
 
@@ -96,4 +96,4 @@ const TabView = () => {
   );
 };
 
-export default TabView;
+export default TabViewPanel;

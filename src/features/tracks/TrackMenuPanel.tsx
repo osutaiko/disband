@@ -14,7 +14,7 @@ import PanelHeader from "@/components/ui/PanelHeader";
 import { RotateCw, View, Volume2, VolumeX } from "lucide-react";
 import { useState } from "react";
 
-const TrackMenu = () => {
+const TrackMenuPanel = () => {
   const { api, tracks, selectedTrackId, setSelectedTrackId } = useLibraryStore();
   const [mutedTracks, setMutedTracks] = useState<number[]>([]);
   const [soloTracks, setSoloTracks] = useState<number[]>([]);
@@ -149,4 +149,4 @@ const TrackMenu = () => {
   );
 };
 
-export default TrackMenu;
+export default TrackMenuPanel;

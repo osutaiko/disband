@@ -1,11 +1,11 @@
-import SongOverview from "@/features/library/SongOverview"
-import SongSelector from "@/features/library/SongSelector"
+import SongOverview from "@/features/library/SongOverviewPanel"
+import SongSelector from "@/features/library/SongSelectorPanel"
 
-import TabView from "@/features/engine/TabView"
-import Recorder from "@/features/session/Recorder"  
+import TabView from "@/features/engine/TabViewPanel"
+import Recorder from "@/features/session/AudioAnalysisPanel"  
 
-import PlaybackControls from "@/features/engine/PlaybackControls"
-import TrackMenu from "@/features/mixing/TrackMenu"
+import PlaybackControls from "@/features/engine/PlaybackControlsPanel"
+import TrackMenu from "@/features/tracks/TrackMenuPanel"
 import OptionsPanel from "@/features/configuration/OptionsPanel"
 
 const Shell = () => {

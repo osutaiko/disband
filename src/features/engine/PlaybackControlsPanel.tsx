@@ -4,7 +4,7 @@ import PanelHeader from "@/components/ui/PanelHeader";
 
 import { ChevronFirst, Play, Pause, ChevronLast } from "lucide-react";
 
-const PlaybackControls = () => {
+const PlaybackControlsPanel = () => {
   const { api, isPlaying, setIsPlaying, currentTime, setCurrentTime, endTime } = useLibraryStore();
 
   const formatTime = (time: number) => {
@@ -66,4 +66,4 @@ const PlaybackControls = () => {
   );
 };
 
-export default PlaybackControls;
+export default PlaybackControlsPanel;

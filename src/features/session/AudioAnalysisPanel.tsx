@@ -1,6 +1,6 @@
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
-const Recorder = () => {
+const AudioAnalysisPanel = () => {
   return (
     <section className="h-min border-t p-6">
       <ScrollArea>
@@ -18,4 +18,4 @@ const Recorder = () => {
   )
 };
 
-export default Recorder;
+export default AudioAnalysisPanel;

@@ -6,7 +6,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { ChevronRight, FolderOpen, RotateCw } from "lucide-react";
 import PanelHeader from "@/components/ui/PanelHeader";
 
-const SongSelector = () => {
+const SongSelectorPanel = () => {
   const { selectedSong, setSelectedSong } = useLibraryStore();
   const [songs, setSongs] = useState<string[]>([]);
   const [confirming, setConfirming] = useState<string | null>(null);
@@ -83,12 +83,10 @@ const SongSelector = () => {
             </div>
           ))}
         </div>
-        <ScrollBar
-  orientation="vertical"
-/>
+        <ScrollBar orientation="vertical" />
       </ScrollArea>
     </section>
   );
 };
 
-export default SongSelector;
+export default SongSelectorPanel;
