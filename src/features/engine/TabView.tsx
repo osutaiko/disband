@@ -14,7 +14,7 @@ const TabView = () => {
   const [zoom, setZoom] = useState<number>(1.0);
   
   const containerRef = useRef<HTMLDivElement>(null);
-  const { isLoading } = useAlphaTab(containerRef, selectedSong);
+  const { isTabLoading } = useAlphaTab(containerRef, selectedSong);
 
   const applyZoom = (newZoom: number) => {
     if (!api) return;
@@ -55,7 +55,7 @@ const TabView = () => {
         </div>
       )}
 
-      {selectedSong && isLoading && (
+      {selectedSong && isTabLoading && (
         <div className="absolute inset-0 z-50 flex items-center justify-center">
           <h2 className="text-lg font-medium animate-pulse">Preparing your Tab...</h2>
         </div>
@@ -69,14 +69,14 @@ const TabView = () => {
               ref={containerRef} 
               className="w-full max-w-[1000px]"
               // Must keep mounted but hidden
-              style={{ visibility: isLoading ? "hidden" : "visible" }}
+              style={{ visibility: isTabLoading ? "hidden" : "visible" }}
             />
           </div>
         </ScrollArea>
       )}
 
       {/* Zoom Controls */}
-      {selectedSong && !isLoading && (
+      {selectedSong && !isTabLoading && (
         <div className="absolute bottom-6 right-6 z-50 flex items-center gap-3 bg-background border px-4 py-2 rounded-full shadow-md opacity-50 hover:opacity-100 transition-opacity duration-300">
           <ZoomOut size={16} className="text-muted-foreground" />
           <Slider

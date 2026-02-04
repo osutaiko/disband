@@ -10,14 +10,22 @@ export const useAlphaTab = (
 ) => {
   const { setApi, setMetadata, setIsPlaying, setTracks, setCurrentTime, setEndTime, selectedTrackId, setSelectedTrackId } = useLibraryStore();
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isTabLoading, setIsTabLoading] = useState(false);
+  const [isSynthLoading, setIsSynthLoading] = useState(false);
   const apiRef = useRef<AlphaTabApi | null>(null);
+
+  const onError = () => {
+    setIsTabLoading(false);
+    setIsSynthLoading(false);
+  };
 
   useEffect(() => {
     if (!containerRef.current || !selectedSong) return;
 
     const initAlphaTab = async () => {
-      setIsLoading(true);
+      setIsTabLoading(true);
+      setIsSynthLoading(true);
+    
       try {
         // Fetch binary data via Electron
         const data = await window.electron.getSongData(selectedSong);
@@ -54,13 +62,14 @@ export const useAlphaTab = (
               }
             });
             api.renderFinished.on(() => {
-              setIsLoading(false);
+              setIsTabLoading(false);
             });
 
             api.playerReady.on(() => {
               setApi(api);
               setEndTime(api.endTime);
             });
+
             api.playerStateChanged.on((args) => {
               // 0 = stopped, 1 = playing, 2 = paused
               setIsPlaying(args.state === 1);
@@ -71,19 +80,19 @@ export const useAlphaTab = (
 
             api.error.on((e) => {
               console.error("AlphaTab API error:", e);
-              setIsLoading(false);
+              onError();
             });
 
             // Load data
             api.load(uint8Data);
           } catch (e) {
             console.error("AlphaTab init failed:", e);
-            setIsLoading(false);
+            onError();
           }
         }, 150);
       } catch (e) {
         console.error("AlphaTab data fetch error:", e);
-        setIsLoading(false);
+        onError();
       }
     };
 
@@ -107,5 +116,8 @@ export const useAlphaTab = (
     }
   }, [apiRef.current, selectedTrackId]);
 
-  return { isLoading };
+  return {
+    isTabLoading,
+    isSynthLoading,
+  };
 };
