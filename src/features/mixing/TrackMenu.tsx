@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import PanelHeader from "@/components/ui/PanelHeader";
+
 import { RotateCw, View, Volume2, VolumeX } from "lucide-react";
 import { useState } from "react";
 
@@ -66,16 +68,13 @@ const TrackMenu = () => {
   };
 
   return (
-    <section className="h-1/2 border-b flex flex-col p-6 gap-4">
+    <section className="h-1/2 border-b flex flex-col p-4 gap-4">
       {/* Header */}
-      <div className="flex items-center justify-between shrink-0">
-        <h2 className="p-2">Tracks</h2>
-        <div className="flex gap-1">
-          <Button variant="ghost" size="icon" onClick={handleReset} title="Reset Track Settings">
-            <RotateCw />
-          </Button>
-        </div>
-      </div>
+      <PanelHeader title="Tracks"
+        buttons={[
+          { title: "Reset Track Settings", icon: <RotateCw />, onClick: handleReset }
+        ]}
+      />
 
       <ScrollArea className="flex-1">
         <div className="flex flex-col w-64 gap-1 min-h-full">
@@ -93,7 +92,7 @@ const TrackMenu = () => {
                   <CardHeader className="px-3 pt-2 pb-1 flex flex-row items-center justify-between gap-2">
                     <CardTitle title={track.name} className={`text-[11px] truncate ${isSelected ? "font-bold" : ""}`}>{track.name}</CardTitle>
                     <Button
-                      title="Show Track Score"
+                      title={isSelected ? "Currently Displayed" : "Show Track Score"}
                       size="icon" 
                       variant={`${isSelected ? "default" : "secondary"}`}
                       className={`w-6 h-6 flex-0 aspect-square`}

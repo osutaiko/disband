@@ -1,6 +1,7 @@
 import { useLibraryStore } from "@/store/useLibraryStore";
-import { Button } from "@/components/ui/button";
-import { Info, Calendar, User } from "lucide-react";
+import PanelHeader from "@/components/ui/PanelHeader";
+
+import { Calendar, User } from "lucide-react";
 
 const MetaItem = ({ label, value }: { label: string; value: any }) => (
   <div className="flex flex-col gap-0.5">
@@ -16,12 +17,9 @@ const SongOverview = () => {
   return (
     <section className="h-min border-b flex flex-col p-4 gap-4">
       {/* Header */}
-      <div className="flex items-center justify-between shrink-0">
-        <h2 className="p-2">Song Overview</h2>
-        <Button variant="ghost" size="icon">
-          <Info />
-        </Button>
-      </div>
+      <PanelHeader
+        title="Song Overview"
+      />
 
       {selectedSong ? (
         <div className="flex flex-col gap-4 p-2">

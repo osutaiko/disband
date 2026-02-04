@@ -34,6 +34,9 @@ interface LibraryState {
   setCurrentTime: (current: number) => void;
   endTime: number;
   setEndTime: (end: number) => void;
+
+  isRecording: boolean;
+  setIsRecording: (recording: boolean) => void;
 }
 
 export const useLibraryStore = create<LibraryState>((set) => ({
@@ -58,4 +61,7 @@ export const useLibraryStore = create<LibraryState>((set) => ({
   setCurrentTime: (current) => set({ currentTime: current }),
   endTime: 0,
   setEndTime: (end) => set({ endTime: end }),
+
+  isRecording: false,
+  setIsRecording: (isRecording) => set({ isRecording }),
 }));

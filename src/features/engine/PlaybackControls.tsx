@@ -1,7 +1,8 @@
 import { useLibraryStore } from "@/store/useLibraryStore";
 import { Button } from "@/components/ui/button";
+import PanelHeader from "@/components/ui/PanelHeader";
 
-import { ChevronFirst, Play, Pause, ChevronLast } from "lucide-react";
+import { ChevronFirst, Play, Pause, ChevronLast, RotateCw } from "lucide-react";
 
 const PlaybackControls = () => {
   const { api, isPlaying, setIsPlaying, currentTime, setCurrentTime, endTime } = useLibraryStore();
@@ -35,11 +36,12 @@ const PlaybackControls = () => {
   }
   
   return (
-    <section className="h-min border-b flex flex-col p-6 gap-4">
-      <h2>Playback Controls</h2>
+    <section className="h-min border-b flex flex-col p-4 gap-4">
+      {/* Header */}
+      <PanelHeader title="Playback Controls" />
 
       {/* Playback Buttons */}
-      <div className="flex flex-row gap-1 justify-center">
+      <div className="flex flex-row gap-1 justify-center p-2">
         <Button title="Go to Start" variant="outline" size="icon" onClick={handleGotoStart} className="rounded-full">
           <ChevronFirst />
         </Button>
@@ -52,7 +54,7 @@ const PlaybackControls = () => {
       </div>
 
       {/* Time/Bar Display */}
-      <div className="grid grid-cols-2 gap-4 font-mono">
+      <div className="grid grid-cols-2 gap-4 font-mono p-2">
         <div title="Time" className="flex flex-row justify-center gap-2 bg-muted rounded-md p-2">
           <p>{formatTime(currentTime)} / {formatTime(endTime)}</p>
         </div>

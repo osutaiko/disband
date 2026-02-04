@@ -4,6 +4,7 @@ import { useLibraryStore } from "@/store/useLibraryStore";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { ChevronRight, FolderOpen, RotateCw } from "lucide-react";
+import PanelHeader from "@/components/ui/PanelHeader";
 
 const SongSelector = () => {
   const { selectedSong, setSelectedSong } = useLibraryStore();
@@ -25,17 +26,21 @@ const SongSelector = () => {
   return (
     <section className="flex flex-col h-full overflow-hidden p-4 gap-4">
       {/* Header */}
-      <div className="flex items-center justify-between shrink-0">
-        <h2 className="p-2">Song Selector</h2>
-        <div className="flex gap-1">
-          <Button variant="ghost" size="icon" onClick={handleOpenFolder} title="Open Songs Folder">
-            <FolderOpen />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={handleRefresh} title="Refresh Song List from Disk">
-            <RotateCw />
-          </Button>
-        </div>
-      </div>
+      <PanelHeader
+        title="Song Selector"
+        buttons={[
+          {
+            title: "Open Songs Folder",
+            icon: <FolderOpen />,
+            onClick: handleOpenFolder
+          },
+          {
+            title: "Refresh Song List",
+            icon: <RotateCw />,
+            onClick: handleRefresh
+          }
+        ]}
+      />
 
       {/* TODO: Search/filter functionality */}
 
