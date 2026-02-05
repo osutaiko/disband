@@ -11,12 +11,10 @@ export const useAlphaTab = (
   const { setApi, setMetadata, setIsPlaying, setTracks, setCurrentTime, setEndTime, selectedTrackId, setSelectedTrackId } = useLibraryStore();
 
   const [isTabLoading, setIsTabLoading] = useState(false);
-  const [isSynthLoading, setIsSynthLoading] = useState(false);
   const apiRef = useRef<AlphaTabApi | null>(null);
 
   const onError = () => {
     setIsTabLoading(false);
-    setIsSynthLoading(false);
   };
 
   useEffect(() => {
@@ -24,7 +22,6 @@ export const useAlphaTab = (
 
     const initAlphaTab = async () => {
       setIsTabLoading(true);
-      setIsSynthLoading(true);
     
       try {
         // Fetch binary data via Electron
@@ -118,6 +115,5 @@ export const useAlphaTab = (
 
   return {
     isTabLoading,
-    isSynthLoading,
   };
 };
