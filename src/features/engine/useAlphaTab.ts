@@ -8,17 +8,18 @@ export const useAlphaTab = (
   containerRef: React.RefObject<HTMLDivElement | null>,
   selectedSong: string | null
 ) => {
-  const { setApi, setMetadata, setIsPlaying, setTracks, setCurrentTime, setEndTime, selectedTrackId, setSelectedTrackId } = useLibraryStore();
+  const { setApi, setMetadata, setIsPlaying, setTracks, setEndTime, selectedTrackId, setSelectedTrackId } = useLibraryStore();
 
   const [isTabLoading, setIsTabLoading] = useState(false);
   const apiRef = useRef<AlphaTabApi | null>(null);
+  const currentTimeRef = useRef(0);
 
   const onError = () => {
     setIsTabLoading(false);
   };
 
   useEffect(() => {
-    if (!containerRef.current || !selectedSong) return;
+    if (!containerRef || !containerRef.current || !selectedSong) return;
 
     const initAlphaTab = async () => {
       setIsTabLoading(true);
@@ -72,15 +73,8 @@ export const useAlphaTab = (
               setIsPlaying(args.state === 1);
             });
 
-            let lastPlayerPositionUpdate = 0;
             api.playerPositionChanged.on((args) => {
-              const now = performance.now();
-
-              // 20 FPS throttle
-              if (now - lastPlayerPositionUpdate > 50) {
-                lastPlayerPositionUpdate = now;
-                setCurrentTime(args.currentTime);
-              }
+              currentTimeRef.current = args.currentTime;
             });
 
             api.error.on((e) => {
@@ -123,5 +117,6 @@ export const useAlphaTab = (
 
   return {
     isTabLoading,
+    currentTimeRef,
   };
 };

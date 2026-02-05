@@ -1,20 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { useLibraryStore } from "@/store/useLibraryStore";
-import { useAlphaTab } from "./useAlphaTab";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Slider } from "@/components/ui/slider";
 import { ZoomIn, ZoomOut } from "lucide-react";
 
-const TabViewPanel = () => {
+const TabViewPanel = ({ containerRef, isTabLoading }) => {
   const ZOOM_MIN = 0.25;
   const ZOOM_MAX = 2.0;
 
   const { api, selectedSong, selectedTrackId } = useLibraryStore();
   const [zoom, setZoom] = useState<number>(1.0);
-  
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { isTabLoading } = useAlphaTab(containerRef, selectedSong);
 
   const applyZoom = (newZoom: number) => {
     if (!api) return;

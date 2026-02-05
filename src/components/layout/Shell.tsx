@@ -1,14 +1,22 @@
-import SongOverviewPanel from "@/features/library/SongOverviewPanel"
-import SongSelectorPanel from "@/features/library/SongSelectorPanel"
+import { useRef } from "react";
+import { useLibraryStore } from "@/store/useLibraryStore";
+import { useAlphaTab } from "@/features/engine/useAlphaTab";
 
-import TabViewPanel from "@/features/engine/TabViewPanel"
-import AudioAnalysisPanel from "@/features/session/AudioAnalysisPanel"  
+import SongOverviewPanel from "@/features/library/SongOverviewPanel";
+import SongSelectorPanel from "@/features/library/SongSelectorPanel";
 
-import PlaybackControlsPanel from "@/features/engine/PlaybackControlsPanel"
-import TrackMenuPanel from "@/features/tracks/TrackMenuPanel"
-import OptionsPanelPanel from "@/features/configuration/OptionsPanel"
+import TabViewPanel from "@/features/engine/TabViewPanel";
+import AudioAnalysisPanel from "@/features/session/AudioAnalysisPanel";  
+
+import PlaybackControlsPanel from "@/features/engine/PlaybackControlsPanel";
+import TrackMenuPanel from "@/features/tracks/TrackMenuPanel";
+import OptionsPanelPanel from "@/features/configuration/OptionsPanel";
 
 const Shell = () => {
+  const { selectedSong } = useLibraryStore();
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const { isTabLoading, currentTimeRef } = useAlphaTab(containerRef, selectedSong);
+
   return (
     <div className="flex h-screen w-full overflow-hidden select-none">
       
@@ -20,8 +28,13 @@ const Shell = () => {
 
       {/* Center Panel (Tab & Recorder View) */}
       <main className="flex-1 flex flex-col">
-        <TabViewPanel />
-        <AudioAnalysisPanel />
+        <TabViewPanel
+          containerRef={containerRef}
+          isTabLoading={isTabLoading}
+        />
+        <AudioAnalysisPanel
+          currentTimeRef={currentTimeRef}
+        />
       </main>
 
       {/* Right Panel Group */}

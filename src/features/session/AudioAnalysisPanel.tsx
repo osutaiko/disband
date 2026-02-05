@@ -1,3 +1,5 @@
+import { useEffect, useRef } from "react";
+
 import { useLibraryStore } from "@/store/useLibraryStore";
 import { useAudioAnalysisMarkers } from "./useAudioAnalysisMarkers";
 
@@ -5,9 +7,13 @@ import BarMarker from "./BarMarker";
 import QuarterBarMarker from "./QuarterBarMarker";
 import NoteMarker from "./NoteMarker";
 
-const AudioAnalysisPanel = () => {
-  const { api, selectedTrackId, currentTime, endTime } = useLibraryStore();
-  const { noteMarkers, barMarkers, quarterBarMarkers } = useAudioAnalysisMarkers(api, selectedTrackId, endTime);
+const AudioAnalysisPanel = ({ currentTimeRef }) => {
+  const { api, selectedTrackId, currentTime, setCurrentTime, endTime } = useLibraryStore();
+  const {
+    noteMarkers = [],
+    barMarkers = [],
+    quarterBarMarkers = [],
+  } = useAudioAnalysisMarkers(api, selectedTrackId, endTime);
 
   const pxPerMs = 0.20;
   const playheadOffset = 200;
@@ -20,6 +26,18 @@ const AudioAnalysisPanel = () => {
   
   const totalTrackWidth = endTime * pxPerMs + (2 * trackStartPadding);
   const currentTranslation = playheadOffset - (currentTime * pxPerMs + trackStartPadding + panelPadding);
+
+  useEffect(() => {
+    let rafId: number;
+
+    const tick = () => {
+      setCurrentTime(currentTimeRef.current);
+      rafId = requestAnimationFrame(tick);
+    };
+
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, []);
 
   if (!api || selectedTrackId === null) return null;
 
