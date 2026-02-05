@@ -30,10 +30,10 @@ const AudioAnalysisPanel = () => {
   const { api, selectedTrackId, currentTime, endTime } = useLibraryStore();
 
   const pxPerMs = 0.15;
-  const playheadOffset = 100;
+  const playheadOffset = 200;
 
-  // Panel padding "p-4"
-  const panelPadding = 16;
+  // Panel padding "p-6"
+  const panelPadding = 24;
 
   // Padding before/after time=0
   const trackStartPadding = 1000;
@@ -75,10 +75,7 @@ const AudioAnalysisPanel = () => {
       className="h-min border-t bg-background relative overflow-hidden"
       style={{ padding: `${panelPadding}px` }}
     >
-      {/* Playhead */}
-      <div className={`absolute top-4 bottom-4 w-[1px] bg-red-500 z-20 shadow-[0_0_15px_red]`} style={{ left: `${playheadOffset}px` }} />
-      
-      <div className="relative h-48 w-full overflow-hidden">
+      <div className="relative mask-x-from-90% h-40 w-full overflow-hidden">
         <div 
           className="absolute top-0 h-full flex flex-col gap-2 will-change-transform"
           style={{ 
@@ -87,7 +84,7 @@ const AudioAnalysisPanel = () => {
           }}
         >
           {/* Reference Lane */}
-          <div className="relative w-full h-10 bg-secondary">
+          <div className="relative w-full h-1/3 bg-secondary">
             {markers.map((marker, index) => (
               <NoteMarker 
                 key={index}
@@ -100,9 +97,34 @@ const AudioAnalysisPanel = () => {
           </div>
           
           {/* Recorded Audio */}
-          <div className="w-full h-20 bg-secondary/50 border border-dashed flex items-center justify-center">
+          <div className="w-full h-2/3 bg-secondary/50">
           </div>
         </div>
+      </div>
+
+      {/* Playhead */}
+      <div
+        className={`absolute w-[1px] bg-red-500 z-20`}
+        style={{
+          left: `${playheadOffset}px`,
+          top: `${panelPadding}px`,
+          bottom: `${panelPadding}px`,
+        }}
+      >
+        <div 
+          className="absolute top-0 -translate-y-full left-1/2 -translate-x-1/2 
+                    w-0 h-0 
+                    border-l-[6px] border-l-transparent 
+                    border-r-[6px] border-r-transparent 
+                    border-t-[8px] border-t-red-500" 
+        />
+        <div 
+          className="absolute bottom-0 translate-y-full left-1/2 -translate-x-1/2 
+                    w-0 h-0 
+                    border-l-[6px] border-l-transparent 
+                    border-r-[6px] border-r-transparent 
+                    border-b-[8px] border-b-red-500" 
+        />  
       </div>
     </section>
   );
