@@ -7,7 +7,7 @@ import { ChevronRight, FolderOpen, RotateCw } from "lucide-react";
 import PanelHeader from "@/components/ui/PanelHeader";
 
 const SongSelectorPanel = () => {
-  const { selectedSong, setSelectedSong } = useLibraryStore();
+  const { selectedSong, setSelectedSong, setSelectedTrackId } = useLibraryStore();
   const [songs, setSongs] = useState<string[]>([]);
   const [confirming, setConfirming] = useState<string | null>(null);
 
@@ -74,6 +74,7 @@ const SongSelectorPanel = () => {
                   className="shrink-0 animate-in fade-in zoom-in duration-200"
                   onClick={() => {
                     setSelectedSong(song);
+                    setSelectedTrackId(null);
                     setConfirming(null);
                   }}
                 >
