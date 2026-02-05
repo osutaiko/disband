@@ -71,8 +71,16 @@ export const useAlphaTab = (
               // 0 = stopped, 1 = playing, 2 = paused
               setIsPlaying(args.state === 1);
             });
+
+            let lastPlayerPositionUpdate = 0;
             api.playerPositionChanged.on((args) => {
-              setCurrentTime(args.currentTime);
+              const now = performance.now();
+
+              // 20 FPS throttle
+              if (now - lastPlayerPositionUpdate > 50) {
+                lastPlayerPositionUpdate = now;
+                setCurrentTime(args.currentTime);
+              }
             });
 
             api.error.on((e) => {

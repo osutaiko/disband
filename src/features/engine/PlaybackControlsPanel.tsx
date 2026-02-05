@@ -15,12 +15,7 @@ const PlaybackControlsPanel = () => {
 
   const handlePlayPause = () => {
     if (!api) return;
-    if (isPlaying) {
-      api.pause();
-    } else {
-      api.play();
-    }
-    setIsPlaying(!isPlaying);
+    isPlaying ? api.pause() : api.play();
   };
 
   const handleGotoStart = () => {
