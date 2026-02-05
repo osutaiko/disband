@@ -1,35 +1,13 @@
 import { useMemo } from "react";
 import { useLibraryStore } from "@/store/useLibraryStore";
-
-const NoteMarker = ({
-  timestamp,
-  length,
-  offsetBase,
-  pxPerMs,
-}: {
-  timestamp: number;
-  length: number;
-  offsetBase: number;
-  pxPerMs: number;
-}) => {
-  const left = timestamp * pxPerMs + offsetBase;
-  const width = Math.max(length * pxPerMs, 4);
-
-  return (
-    <div
-      className="absolute h-full border-l-4 border-primary bg-primary/50 rounded-r-md"
-      style={{
-        left: `${left}px`,
-        width: `${width}px`,
-      }}
-    />
-  )
-}
+import BarMarker from "./BarMarker";
+import QuarterBarMarker from "./QuarterBarMarker";
+import NoteMarker from "./NoteMarker";
 
 const AudioAnalysisPanel = () => {
   const { api, selectedTrackId, currentTime, endTime } = useLibraryStore();
 
-  const pxPerMs = 0.15;
+  const pxPerMs = 0.25;
   const playheadOffset = 200;
 
   // Panel padding "p-6"
@@ -66,6 +44,9 @@ const AudioAnalysisPanel = () => {
     return events;
   }, [api, selectedTrackId]);
 
+  const barMarkers = [{index: 42, timestamp: 1000, pxPerMs, offsetBase: trackStartPadding}];
+  const quarterBarMarkers = [{timestamp: 1250, pxPerMs, offsetBase: trackStartPadding}];
+
   const currentTranslation = playheadOffset - (currentTime * pxPerMs + trackStartPadding + panelPadding);
 
   if (!api || selectedTrackId === null) return null;
@@ -83,8 +64,30 @@ const AudioAnalysisPanel = () => {
             transform: `translateX(${currentTranslation}px)`,
           }}
         >
+          <div className="w-full h-[20px]"></div>
+
+          {/* Bar Markers */}
+          {barMarkers.map((marker) => (
+            <BarMarker 
+              key={marker.index}
+              index={marker.index}
+              timestamp={marker.timestamp}
+              pxPerMs={marker.pxPerMs}
+              offsetBase={marker.offsetBase}
+            />
+          ))}
+          {quarterBarMarkers.map((marker, index) => (
+            <QuarterBarMarker 
+              key={index}
+              timestamp={marker.timestamp}
+              pxPerMs={marker.pxPerMs}
+              offsetBase={marker.offsetBase}
+            />
+          ))}
+          
           {/* Reference Lane */}
-          <div className="relative w-full h-1/3 bg-secondary">
+          <div className="relative w-full h-1/3 bg-secondary z-20">
+            {/* Note Markers */}
             {markers.map((marker, index) => (
               <NoteMarker 
                 key={index}
@@ -97,14 +100,14 @@ const AudioAnalysisPanel = () => {
           </div>
           
           {/* Recorded Audio */}
-          <div className="w-full h-2/3 bg-secondary/50">
+          <div className="w-full h-2/3 bg-secondary/50 z-20">
           </div>
         </div>
       </div>
 
       {/* Playhead */}
       <div
-        className={`absolute w-[1px] bg-red-500 z-20`}
+        className={`absolute w-[1px] bg-red-500 z-100`}
         style={{
           left: `${playheadOffset}px`,
           top: `${panelPadding}px`,
