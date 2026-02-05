@@ -58,9 +58,9 @@ export const useLibraryStore = create<LibraryState>((set) => ({
   setIsPlaying: (isPlaying) => set({ isPlaying }),
   
   currentMs: 0,
-  setCurrentMs: (current) => set({ currentTime: current }),
+  setCurrentMs: (current) => set({ currentMs: current }),
   endMs: 0,
-  setEndMs: (end) => set({ endTime: end }),
+  setEndMs: (end) => set({ endMs: end }),
 
   isRecording: false,
   setIsRecording: (isRecording) => set({ isRecording }),

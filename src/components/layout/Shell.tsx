@@ -15,7 +15,7 @@ import OptionsPanelPanel from "@/features/configuration/OptionsPanel";
 const Shell = () => {
   const { selectedSong } = useLibraryStore();
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const { isTabLoading, currentTimeRef } = useAlphaTab(containerRef, selectedSong);
+  const { isTabLoading, currentMsRef } = useAlphaTab(containerRef, selectedSong);
 
   return (
     <div className="flex h-screen w-full overflow-hidden select-none">
@@ -33,7 +33,7 @@ const Shell = () => {
           isTabLoading={isTabLoading}
         />
         <AudioAnalysisPanel
-          currentTimeRef={currentTimeRef}
+          currentMsRef={currentMsRef}
         />
       </main>
 
