@@ -18,7 +18,7 @@ const BarMarker = ({
         left: `${left}px`,
       }}
     >
-      <p className="absolute top-[-4px] left-[6px] text-primary/30">{index}</p>
+      <p className="absolute top-[-4px] left-[6px] text-primary/30 font-mono">{index}</p>
     </div>
   )
 };

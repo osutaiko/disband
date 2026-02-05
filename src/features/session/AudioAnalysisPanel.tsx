@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 import { useLibraryStore } from "@/store/useLibraryStore";
 import { useAudioAnalysisMarkers } from "./useAudioAnalysisMarkers";

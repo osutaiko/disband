@@ -5,13 +5,18 @@ import PanelHeader from "@/components/ui/PanelHeader";
 import { ChevronFirst, Play, Pause, ChevronLast } from "lucide-react";
 
 const PlaybackControlsPanel = () => {
-  const { api, isPlaying, setIsPlaying, currentTime, setCurrentTime, endTime } = useLibraryStore();
+  const { api, isPlaying, currentTime, setCurrentTime, endTime } = useLibraryStore();
 
-  const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60000);
-    const seconds = Math.floor(time % 60000 / 1000);
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-  }
+  const parseMs = (ms: number) => {
+    return {
+      minutes: Math.floor(ms / 60000),
+      seconds: Math.floor(ms % 60000 / 1000),
+      milliseconds: Math.floor(ms % 1000),
+    };
+  };
+
+  const current = parseMs(currentTime);
+  const end = parseMs(endTime);
 
   const handlePlayPause = () => {
     if (!api) return;
@@ -49,12 +54,22 @@ const PlaybackControlsPanel = () => {
       </div>
 
       {/* Time/Bar Display */}
-      <div className="grid grid-cols-2 gap-4 font-mono p-2">
-        <div title="Time" className="flex flex-row justify-center gap-2 bg-muted rounded-md p-2">
-          <p>{formatTime(currentTime)} / {formatTime(endTime)}</p>
+      <div className="flex flex-row gap-1 font-mono p-2">
+        <div title="Time" className="flex flex-row w-2/3 justify-center items-center gap-1 bg-muted rounded-md p-2">
+          <p>
+            {current.minutes}:{current.seconds.toString().padStart(2, "0")}
+            <span className="text-[9px] text-muted-foreground">.{current.milliseconds.toString().padStart(3, "0")}</span>
+          </p>
+          <p>/</p>
+          <p>
+            {end.minutes}:{end.seconds.toString().padStart(2, "0")}
+            <span className="text-[9px] text-muted-foreground">.{end.milliseconds.toString().padStart(3, "0")}</span>
+          </p>
         </div>
-        <div title="Bar" className="flex flex-row justify-center gap-2 bg-muted rounded-md p-2">
-          <p>Bar {0} / {100}</p>
+        <div title="Bar" className="flex flex-row w-1/3 justify-center items-center gap-1 bg-muted rounded-md p-2">
+          <p>{42}</p>
+          <p>/</p>
+          <p>{100}</p>
         </div>
       </div>
     </section>
