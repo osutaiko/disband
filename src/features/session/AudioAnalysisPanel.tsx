@@ -17,23 +17,36 @@ const AudioAnalysisPanel = () => {
   const trackStartPadding = 1000;
   const totalTrackWidth = endTime * pxPerMs + (2 * trackStartPadding);
 
-  const markers = useMemo(() => {
+  const { noteMarkers, barMarkers, quarterBarMarkers } = useMemo(() => {
     if (!api?.score) return [];
     const currentTrack = api.score.tracks[selectedTrackId ?? 0];
-    const events: { time: number; length: number }[] = [];
+    const noteMarkers: { timestamp: number; length: number }[] = [];
+
+    const barMarkers: { index: number, timestamp: number }[] = [];
+    const quarterBarMarkers: { timestamp: number }[] = [];
     
     // TODO: Account for tempo changes
     let currentTempo = api.score.tempo;
     const PPQ = 960;
     const msPerTick = 60000 / (currentTempo * PPQ);
 
+    let barIndex = 1;
+    let tick = 0;
+
+    const beatsPerBar = api.score.timeSignature?.beats ?? 4;
+    const beatUnit = api.score.timeSignature?.beatType ?? 4;
+    const ticksPerBeat = PPQ * (4 / beatUnit);
+    const ticksPerBar = ticksPerBeat * beatsPerBar;
+    const endTick = endTime / msPerTick;
+    
+    // Note markers
     currentTrack.staves.forEach((staff) => {
       staff.bars.forEach((bar) => {
         bar.voices.forEach((voice) => {
           voice.beats.forEach((beat) => {
             if (!beat.isRest) { 
-              events.push({
-                time: beat.absolutePlaybackStart * msPerTick,
+              noteMarkers.push({
+                timestamp: beat.absolutePlaybackStart * msPerTick,
                 length: beat.playbackDuration * msPerTick,
               });
             }
@@ -41,11 +54,32 @@ const AudioAnalysisPanel = () => {
         });
       });
     });
-    return events;
-  }, [api, selectedTrackId]);
 
-  const barMarkers = [{index: 42, timestamp: 1000, pxPerMs, offsetBase: trackStartPadding}];
-  const quarterBarMarkers = [{timestamp: 1250, pxPerMs, offsetBase: trackStartPadding}];
+    while (tick <= endTick) {
+      const timeMs = tick * msPerTick;
+
+      // Bar marker
+      barMarkers.push({
+        index: barIndex,
+        timestamp: timeMs,
+      });
+
+      // Quarter bar marker
+      for (let b = 0; b < beatsPerBar; b++) {
+        const beatTick = tick + b * ticksPerBeat;
+        if (beatTick >= endTick) break;
+
+        quarterBarMarkers.push({
+          timestamp: beatTick * msPerTick,
+        });
+      }
+
+      tick += ticksPerBar;
+      barIndex++;
+    }
+    
+    return { noteMarkers, barMarkers, quarterBarMarkers };
+  }, [api, selectedTrackId]);
 
   const currentTranslation = playheadOffset - (currentTime * pxPerMs + trackStartPadding + panelPadding);
 
@@ -72,26 +106,26 @@ const AudioAnalysisPanel = () => {
               key={marker.index}
               index={marker.index}
               timestamp={marker.timestamp}
-              pxPerMs={marker.pxPerMs}
-              offsetBase={marker.offsetBase}
+              pxPerMs={pxPerMs}
+              offsetBase={trackStartPadding}
             />
           ))}
           {quarterBarMarkers.map((marker, index) => (
             <QuarterBarMarker 
               key={index}
               timestamp={marker.timestamp}
-              pxPerMs={marker.pxPerMs}
-              offsetBase={marker.offsetBase}
+              pxPerMs={pxPerMs}
+              offsetBase={trackStartPadding}
             />
           ))}
           
           {/* Reference Lane */}
           <div className="relative w-full h-1/3 bg-secondary z-20">
             {/* Note Markers */}
-            {markers.map((marker, index) => (
+            {noteMarkers.map((marker, index) => (
               <NoteMarker 
                 key={index}
-                timestamp={marker.time}
+                timestamp={marker.timestamp}
                 length={marker.length}
                 offsetBase={trackStartPadding}
                 pxPerMs={pxPerMs}
