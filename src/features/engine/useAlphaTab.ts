@@ -8,11 +8,11 @@ export const useAlphaTab = (
   containerRef: React.RefObject<HTMLDivElement | null>,
   selectedSong: string | null
 ) => {
-  const { setApi, setMetadata, setIsPlaying, setTracks, setEndTime, selectedTrackId, setSelectedTrackId } = useLibraryStore();
+  const { setApi, setMetadata, setIsPlaying, setTracks, setEndMs, selectedTrackId, setSelectedTrackId } = useLibraryStore();
 
   const [isTabLoading, setIsTabLoading] = useState(false);
   const apiRef = useRef<AlphaTabApi | null>(null);
-  const currentTimeRef = useRef(0);
+  const currentMsRef = useRef(0);
 
   const onError = () => {
     setIsTabLoading(false);
@@ -65,7 +65,7 @@ export const useAlphaTab = (
 
             api.playerReady.on(() => {
               setApi(api);
-              setEndTime(api.endTime);
+              setEndMs(api.endTime);
             });
 
             api.playerStateChanged.on((args) => {
@@ -74,7 +74,7 @@ export const useAlphaTab = (
             });
 
             api.playerPositionChanged.on((args) => {
-              currentTimeRef.current = args.currentTime;
+              currentMsRef.current = args.currentTime;
             });
 
             api.error.on((e) => {
@@ -117,6 +117,6 @@ export const useAlphaTab = (
 
   return {
     isTabLoading,
-    currentTimeRef,
+    currentMsRef,
   };
 };

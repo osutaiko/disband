@@ -5,7 +5,7 @@ import PanelHeader from "@/components/ui/PanelHeader";
 import { ChevronFirst, Play, Pause, ChevronLast } from "lucide-react";
 
 const PlaybackControlsPanel = () => {
-  const { api, isPlaying, currentTime, setCurrentTime, endTime } = useLibraryStore();
+  const { api, isPlaying, currentMs, setCurrentMs, endMs } = useLibraryStore();
 
   const parseMs = (ms: number) => {
     return {
@@ -15,8 +15,8 @@ const PlaybackControlsPanel = () => {
     };
   };
 
-  const current = parseMs(currentTime);
-  const end = parseMs(endTime);
+  const current = parseMs(currentMs);
+  const end = parseMs(endMs);
 
   const handlePlayPause = () => {
     if (!api) return;
@@ -26,13 +26,13 @@ const PlaybackControlsPanel = () => {
   const handleGotoStart = () => {
     if (!api) return;
     api.pause();
-    setCurrentTime(0);
+    setCurrentMs(0);
   }
 
   const handleGotoEnd = () => {
     if (!api) return;
     api.pause();
-    setCurrentTime(endTime);
+    setCurrentMs(endMs);
   }
   
   return (

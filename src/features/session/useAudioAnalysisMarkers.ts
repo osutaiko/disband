@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-export const useAudioAnalysisMarkers = (api, selectedTrackId, endTime) => {
+export const useAudioAnalysisMarkers = (api, selectedTrackId, endMs) => {
   return useMemo(() => {
     if (!api?.score) return [];
     const currentTrack = api.score.tracks[selectedTrackId ?? 0];
@@ -21,7 +21,7 @@ export const useAudioAnalysisMarkers = (api, selectedTrackId, endTime) => {
     const beatUnit = api.score.timeSignature?.beatType ?? 4;
     const ticksPerBeat = PPQ * (4 / beatUnit);
     const ticksPerBar = ticksPerBeat * beatsPerBar;
-    const endTick = endTime / msPerTick;
+    const endTick = endMs / msPerTick;
     
     // Note markers
     currentTrack.staves.forEach((staff) => {

@@ -7,13 +7,13 @@ import BarMarker from "./BarMarker";
 import QuarterBarMarker from "./QuarterBarMarker";
 import NoteMarker from "./NoteMarker";
 
-const AudioAnalysisPanel = ({ currentTimeRef }) => {
-  const { api, selectedTrackId, currentTime, setCurrentTime, endTime } = useLibraryStore();
+const AudioAnalysisPanel = ({ currentMsRef }) => {
+  const { api, selectedTrackId, currentMs, setCurrentMs, endMs } = useLibraryStore();
   const {
     noteMarkers = [],
     barMarkers = [],
     quarterBarMarkers = [],
-  } = useAudioAnalysisMarkers(api, selectedTrackId, endTime);
+  } = useAudioAnalysisMarkers(api, selectedTrackId, endMs);
 
   const pxPerMs = 0.20;
   const playheadOffset = 200;
@@ -24,14 +24,14 @@ const AudioAnalysisPanel = ({ currentTimeRef }) => {
   // Padding before/after time=0
   const trackStartPadding = 1000;
   
-  const totalTrackWidth = endTime * pxPerMs + (2 * trackStartPadding);
-  const currentTranslation = playheadOffset - (currentTime * pxPerMs + trackStartPadding + panelPadding);
+  const totalTrackWidth = endMs * pxPerMs + (2 * trackStartPadding);
+  const currentTranslation = playheadOffset - (currentMs * pxPerMs + trackStartPadding + panelPadding);
 
   useEffect(() => {
     let rafId: number;
 
     const tick = () => {
-      setCurrentTime(currentTimeRef.current);
+      setCurrentMs(currentMsRef.current);
       rafId = requestAnimationFrame(tick);
     };
 

@@ -30,10 +30,10 @@ interface LibraryState {
   isPlaying: boolean;
   setIsPlaying: (playing: boolean) => void;
 
-  currentTime: number;
-  setCurrentTime: (current: number) => void;
-  endTime: number;
-  setEndTime: (end: number) => void;
+  currentMs: number;
+  setCurrentMs: (current: number) => void;
+  endMs: number;
+  setEndMs: (end: number) => void;
 
   isRecording: boolean;
   setIsRecording: (recording: boolean) => void;
@@ -57,10 +57,10 @@ export const useLibraryStore = create<LibraryState>((set) => ({
   isPlaying: false,
   setIsPlaying: (isPlaying) => set({ isPlaying }),
   
-  currentTime: 0,
-  setCurrentTime: (current) => set({ currentTime: current }),
-  endTime: 0,
-  setEndTime: (end) => set({ endTime: end }),
+  currentMs: 0,
+  setCurrentMs: (current) => set({ currentTime: current }),
+  endMs: 0,
+  setEndMs: (end) => set({ endTime: end }),
 
   isRecording: false,
   setIsRecording: (isRecording) => set({ isRecording }),
