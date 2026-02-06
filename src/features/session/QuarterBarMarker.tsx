@@ -11,7 +11,7 @@ const QuarterBarMarker = ({
 
   return (
     <div
-      className="absolute top-[12px] w-[1px] h-full bg-primary/10 z-40"
+      className="absolute top-[12px] w-[1px] h-full bg-primary/30 z-40"
       style={{
         left: `${left}px`,
       }}

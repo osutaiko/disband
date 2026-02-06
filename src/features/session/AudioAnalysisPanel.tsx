@@ -5,6 +5,7 @@ import { useAudioAnalysisMarkers } from "./useAudioAnalysisMarkers";
 
 import BarMarker from "./BarMarker";
 import QuarterBarMarker from "./QuarterBarMarker";
+import SixteenthBarMarker from "./SixteenthBarMarker";
 import NoteMarker from "./NoteMarker";
 
 const AudioAnalysisPanel = ({ currentMsRef }) => {
@@ -13,6 +14,7 @@ const AudioAnalysisPanel = ({ currentMsRef }) => {
     noteMarkers = [],
     barMarkers = [],
     quarterBarMarkers = [],
+    sixteenthBarMarkers = [],
   } = useAudioAnalysisMarkers(api, selectedTrackId, endMs);
 
   const pxPerMs = 0.20;
@@ -68,6 +70,14 @@ const AudioAnalysisPanel = ({ currentMsRef }) => {
           ))}
           {quarterBarMarkers.map((marker, index) => (
             <QuarterBarMarker 
+              key={index}
+              timestamp={marker.timestamp}
+              pxPerMs={pxPerMs}
+              offsetBase={trackStartPadding}
+            />
+          ))}
+          {sixteenthBarMarkers.map((marker, index) => (
+            <SixteenthBarMarker 
               key={index}
               timestamp={marker.timestamp}
               pxPerMs={pxPerMs}
