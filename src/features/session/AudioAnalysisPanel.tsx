@@ -50,14 +50,12 @@ const AudioAnalysisPanel = ({ currentMsRef }) => {
     >
       <div className="relative mask-x-from-90% h-40 w-full overflow-hidden">
         <div 
-          className="absolute top-0 h-full flex flex-col gap-2 will-change-transform"
+          className="absolute top-0 h-full pt-[24px] pb-[12px] flex flex-col gap-2 will-change-transform"
           style={{ 
             width: `${totalTrackWidth}px`,
             transform: `translateX(${currentTranslation}px)`,
           }}
         >
-          <div className="w-full h-[20px]"></div>
-
           {/* Bar Markers */}
           {barMarkers.map((marker) => (
             <BarMarker 
@@ -86,7 +84,7 @@ const AudioAnalysisPanel = ({ currentMsRef }) => {
           ))}
           
           {/* Reference Lane */}
-          <div className="relative w-full h-1/3 bg-secondary z-20">
+          <div className="relative w-full h-1/3 z-20">
             {/* Note Markers */}
             {noteMarkers.map((marker, index) => (
               <NoteMarker 
@@ -100,7 +98,7 @@ const AudioAnalysisPanel = ({ currentMsRef }) => {
           </div>
           
           {/* Recorded Audio */}
-          <div className="w-full h-2/3 bg-secondary/50 z-20">
+          <div className="w-full h-2/3 bg-secondary z-20">
           </div>
         </div>
       </div>

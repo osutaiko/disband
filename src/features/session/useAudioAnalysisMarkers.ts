@@ -60,8 +60,6 @@ export const useAudioAnalysisMarkers = (api, selectedTrackId, endMs) => {
       });
     });
 
-    console.log(quarterBarMarkers, sixteenthBarMarkers)
-
     return { noteMarkers, barMarkers, quarterBarMarkers, sixteenthBarMarkers };
   }, [api, selectedTrackId]);
 };

@@ -11,7 +11,7 @@ const SixteenthBarMarker = ({
 
   return (
     <div
-      className="absolute top-[24px] w-[1px] h-full bg-primary/10 z-40"
+      className="absolute top-[12px] w-[0.5px] h-full bg-primary/20"
       style={{
         left: `${left}px`,
       }}

@@ -13,12 +13,12 @@ const BarMarker = ({
 
   return (
     <div
-      className="absolute top-[4px] w-[2px] h-full bg-primary z-40"
+      className="absolute top-[4px] w-[2px] h-full bg-primary/50"
       style={{
         left: `${left}px`,
       }}
     >
-      <p className="absolute top-[-4px] left-[6px] text-primary/30 font-mono">{index}</p>
+      <p className="absolute top-[-4px] left-[6px] font-mono text-primary/50">{index}</p>
     </div>
   )
 };
