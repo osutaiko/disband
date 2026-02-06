@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { useLibraryStore } from "@/store/useLibraryStore";
+import { useSongMetadata } from "@/features/library/useSongMetadata";
 import { useAlphaTab } from "@/features/engine/useAlphaTab";
 
 import SongOverviewPanel from "@/features/library/SongOverviewPanel";
@@ -13,6 +14,8 @@ import TrackMenuPanel from "@/features/tracks/TrackMenuPanel";
 import OptionsPanelPanel from "@/features/configuration/OptionsPanel";
 
 const Shell = () => {
+  useSongMetadata();
+  
   const { selectedSong } = useLibraryStore();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const { isTabLoading, currentMsRef } = useAlphaTab(containerRef, selectedSong);

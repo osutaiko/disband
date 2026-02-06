@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 interface SongMetadata {
+  id: string;
   title: string;
   artist: string;
   album: string;
@@ -19,8 +20,8 @@ interface LibraryState {
   selectedSong: string | null;
   setSelectedSong: (song: string | null) => void;
   clearSelection: () => void;
-  metadata: SongMetadata | null;
-  setMetadata: (metadata: SongMetadata | null) => void;
+  songsMetadata: Record<string, SongMetadata>
+  setSongsMetadata: (data: Record<string, SongMetadata>) => void
 
   tracks: Track[] | null;
   setTracks: (tracks: Track[] | null) => void;
@@ -51,8 +52,8 @@ export const useLibraryStore = create<LibraryState>((set) => ({
   selectedSong: null,
   setSelectedSong: (song) => set({ selectedSong: song }),
   clearSelection: () => set({ selectedSong: null }),
-  metadata: null,
-  setMetadata: (metadata) => set({ metadata }),
+  songsMetadata: {},
+  setSongsMetadata: (data) => set({ songsMetadata: data }),
   
   tracks: null,
   setTracks: (tracks) => set({ tracks }),
