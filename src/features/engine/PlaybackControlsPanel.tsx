@@ -2,6 +2,8 @@ import { useLibraryStore } from "@/store/useLibraryStore";
 import { Button } from "@/components/ui/button";
 import PanelHeader from "@/components/ui/PanelHeader";
 
+import { handlePlayPause, handleGotoStart, handleGotoEnd } from "./playback";
+
 import { ChevronFirst, Play, Pause, ChevronLast } from "lucide-react";
 
 const PlaybackControlsPanel = () => {
@@ -17,23 +19,6 @@ const PlaybackControlsPanel = () => {
 
   const current = parseMs(currentMs);
   const end = parseMs(endMs);
-
-  const handlePlayPause = () => {
-    if (!api) return;
-    isPlaying ? api.pause() : api.play();
-  };
-
-  const handleGotoStart = () => {
-    if (!api) return;
-    api.pause();
-    api.timePosition = 0;
-  }
-
-  const handleGotoEnd = () => {
-    if (!api) return;
-    api.pause();
-    api.timePosition = endMs;
-  }
   
   return (
     <section className="h-min border-b flex flex-col p-4 gap-4">
@@ -42,13 +27,13 @@ const PlaybackControlsPanel = () => {
 
       {/* Playback Buttons */}
       <div className="flex flex-row gap-1 justify-center p-2">
-        <Button title="Go to Start" variant="outline" size="icon" onClick={handleGotoStart} className="rounded-full">
+        <Button title="Go to Start" variant="outline" size="icon" onClick={() => handleGotoStart(api)} className="rounded-full">
           <ChevronFirst />
         </Button>
-        <Button title={isPlaying ? "Pause" : "Play"} size="lg" onClick={handlePlayPause} className="rounded-full">
+        <Button title={isPlaying ? "Pause" : "Play"} size="lg" onClick={() => handlePlayPause(api, isPlaying)} className="rounded-full">
           {isPlaying ? <Pause className="fill-current" /> : <Play className="fill-current" />}
         </Button>
-        <Button title="Go to End" variant="outline" size="icon" onClick={handleGotoEnd} className="rounded-full">
+        <Button title="Go to End" variant="outline" size="icon" onClick={() => handleGotoEnd(api, endMs)} className="rounded-full">
           <ChevronLast />
         </Button>
       </div>
