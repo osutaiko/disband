@@ -8,7 +8,7 @@ export const useAlphaTab = (
   containerRef: React.RefObject<HTMLDivElement | null>,
   selectedSong: string | null
 ) => {
-  const { setApi, setMetadata, setIsPlaying, setTracks, setEndMs, selectedTrackId, setSelectedTrackId } = useLibraryStore();
+  const { setApi, setMetadata, setIsPlaying, setTracks, setEndMs, setCurrentBar, setEndBar, selectedTrackId, setSelectedTrackId } = useLibraryStore();
 
   const [isTabLoading, setIsTabLoading] = useState(false);
   const apiRef = useRef<AlphaTabApi | null>(null);
@@ -58,6 +58,11 @@ export const useAlphaTab = (
               if (!trackExists && score.tracks.length > 0) {
                 setSelectedTrackId(score.tracks[0].index); 
               }
+              
+              setEndMs(api.endTime);
+              if (score.tracks.length > 0) {
+                setEndBar(score.tracks[0].staves[0].bars.length);
+              }
             });
             api.renderFinished.on(() => {
               setIsTabLoading(false);
@@ -65,7 +70,6 @@ export const useAlphaTab = (
 
             api.playerReady.on(() => {
               setApi(api);
-              setEndMs(api.endTime);
             });
 
             api.playerStateChanged.on((args) => {
@@ -75,6 +79,19 @@ export const useAlphaTab = (
 
             api.playerPositionChanged.on((args) => {
               currentMsRef.current = args.currentTime;
+
+              if (api.score && api.score.masterBars) {
+                const ticks = args.currentTick;
+                
+                const barIndex = api.score.masterBars.findIndex((mb, index) => {
+                  const nextBar = api.score.masterBars[index + 1];
+                  return ticks >= mb.start && (!nextBar || ticks < nextBar.start);
+                });
+
+                if (barIndex !== -1) {
+                  setCurrentBar(barIndex + 1); // 1-based
+                }
+              }
             });
 
             api.error.on((e) => {

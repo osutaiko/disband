@@ -5,7 +5,7 @@ import PanelHeader from "@/components/ui/PanelHeader";
 import { ChevronFirst, Play, Pause, ChevronLast } from "lucide-react";
 
 const PlaybackControlsPanel = () => {
-  const { api, isPlaying, currentMs, endMs } = useLibraryStore();
+  const { api, isPlaying, currentMs, endMs, currentBar, endBar } = useLibraryStore();
 
   const parseMs = (ms: number) => {
     return {
@@ -67,9 +67,9 @@ const PlaybackControlsPanel = () => {
           </p>
         </div>
         <div title="Bar" className="flex flex-row w-1/3 justify-center items-center gap-1 bg-muted rounded-md p-2">
-          <p>{42}</p>
+          <p>{currentBar}</p>
           <p>/</p>
-          <p>{100}</p>
+          <p>{endBar}</p>
         </div>
       </div>
     </section>

@@ -35,6 +35,11 @@ interface LibraryState {
   endMs: number;
   setEndMs: (end: number) => void;
 
+  currentBar: number;
+  setCurrentBar: (current: number) => void;
+  endBar: number;
+  setEndBar: (end: number) => void;
+
   isRecording: boolean;
   setIsRecording: (recording: boolean) => void;
 }
@@ -61,6 +66,11 @@ export const useLibraryStore = create<LibraryState>((set) => ({
   setCurrentMs: (current) => set({ currentMs: current }),
   endMs: 0,
   setEndMs: (end) => set({ endMs: end }),
+
+  currentBar: 0,
+  setCurrentBar: (current) => set({ currentBar: current }),
+  endBar: 0,
+  setEndBar: (end) => set({ endBar: end }),
 
   isRecording: false,
   setIsRecording: (isRecording) => set({ isRecording }),
