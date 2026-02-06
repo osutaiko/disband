@@ -79,19 +79,10 @@ export const useAlphaTab = (
 
             api.playerPositionChanged.on((args) => {
               currentMsRef.current = args.currentTime;
+            });
 
-              if (api.score && api.score.masterBars) {
-                const ticks = args.currentTick;
-                
-                const barIndex = api.score.masterBars.findIndex((mb, index) => {
-                  const nextBar = api.score.masterBars[index + 1];
-                  return ticks >= mb.start && (!nextBar || ticks < nextBar.start);
-                });
-
-                if (barIndex !== -1) {
-                  setCurrentBar(barIndex + 1); // 1-based
-                }
-              }
+            api.playedBeatChanged.on((beat) => {
+              setCurrentBar(beat.voice.bar.index + 1) // 1-based
             });
 
             api.error.on((e) => {
