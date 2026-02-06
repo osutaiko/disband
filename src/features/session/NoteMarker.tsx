@@ -14,7 +14,7 @@ const NoteMarker = ({
 
   return (
     <div
-      className="absolute h-[calc(100%-16px)] border-l-4 border-note-start bg-note-middle z-50"
+      className="absolute h-[calc(100%-16px)] border-l-4 border-note-start bg-note-middle"
       style={{
         left: `${left}px`,
         width: `${width}px`,

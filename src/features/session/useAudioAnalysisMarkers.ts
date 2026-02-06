@@ -12,8 +12,8 @@ export const useAudioAnalysisMarkers = (api, selectedTrackId, endMs) => {
 
     const PPQ = 960;
     
-    let currentBpm = api.score.tempo ?? 120;
-    let msPerTick = 60000 / (currentBpm * PPQ);
+    let currentBpm = 0;
+    let msPerTick = 0;
     let currentBarStartMs = 0;
 
     // Note markers
@@ -56,7 +56,7 @@ export const useAudioAnalysisMarkers = (api, selectedTrackId, endMs) => {
           });
         });
         
-        currentBarStartMs += quarterNotesPerBar * PPQ * msPerTick;
+        currentBarStartMs += bar.masterBar.calculateDuration(true) * msPerTick;
       });
     });
 
