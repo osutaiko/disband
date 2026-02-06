@@ -84,7 +84,7 @@ const AudioAnalysisPanel = ({ currentMsRef }) => {
           ))}
           
           {/* Reference Lane */}
-          <div className="relative w-full h-1/3 z-20">
+          <div className="relative w-full h-1/3 bg-secondary py-2 z-20">
             {/* Note Markers */}
             {noteMarkers.map((marker, index) => (
               <NoteMarker 
@@ -98,7 +98,7 @@ const AudioAnalysisPanel = ({ currentMsRef }) => {
           </div>
           
           {/* Recorded Audio */}
-          <div className="w-full h-2/3 bg-secondary z-20">
+          <div className="w-full h-2/3 bg-secondary py-2 z-20">
           </div>
         </div>
       </div>
