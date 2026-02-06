@@ -93,6 +93,10 @@ const AudioAnalysisPanel = ({ currentMsRef }) => {
                 length={marker.length}
                 offsetBase={trackStartPadding}
                 pxPerMs={pxPerMs}
+                isCurrentlyPlaying={
+                  currentMs >= marker.timestamp &&
+                  currentMs < marker.timestamp + marker.length
+                }
               />
             ))}
           </div>

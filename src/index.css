@@ -40,6 +40,8 @@
 
   --note-start: oklch(0.5 0.25 250);
   --note-middle: oklch(0.7 0.25 250);
+  --note-playing-start: oklch(0.5 0.25 300);
+  --note-playing-middle: oklch(0.7 0.25 300);
 }
 
 .dark {
@@ -120,6 +122,8 @@
 
   --color-note-start: var(--note-start);
   --color-note-middle: var(--note-middle);
+  --color-note-playing-start: var(--note-playing-start);
+  --color-note-playing-middle: var(--note-playing-middle);
 }
 
 @layer base {
