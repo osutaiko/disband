@@ -49,7 +49,7 @@ export const useAudioAnalysisMarkers = (api, selectedTrackId, endMs) => {
       });
 
       // Quarter bar marker
-      for (let b = 0; b < beatsPerBar; b++) {
+      for (let b = 1; b < beatsPerBar; b++) {
         const beatTick = tick + b * ticksPerBeat;
         if (beatTick >= endTick) break;
 

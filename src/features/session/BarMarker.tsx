@@ -9,7 +9,7 @@ const BarMarker = ({
   offsetBase: number;
   pxPerMs: number;
 }) => {
-  const left = timestamp * pxPerMs + offsetBase;
+  const left = Math.round(timestamp * pxPerMs + offsetBase);
 
   return (
     <div

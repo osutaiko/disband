@@ -9,8 +9,8 @@ const NoteMarker = ({
   offsetBase: number;
   pxPerMs: number;
 }) => {
-  const left = timestamp * pxPerMs + offsetBase;
-  const width = Math.max(length * pxPerMs, 4);
+  const left = Math.round(timestamp * pxPerMs + offsetBase);
+  const width = Math.round(Math.max(length * pxPerMs, 4));
 
   return (
     <div
