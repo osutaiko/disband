@@ -25,9 +25,29 @@ const AudioAnalysisPanel = ({ currentMsRef }) => {
 
   // Padding before/after time=0
   const trackStartPadding = 1000;
-  
   const totalTrackWidth = endMs * pxPerMs + (2 * trackStartPadding);
   const currentTranslation = playheadOffset - (currentMs * pxPerMs + trackStartPadding + panelPadding);
+
+  const visibleRangeMs = 5000;
+  const windowStart = currentMs - visibleRangeMs;
+  const windowEnd = currentMs + visibleRangeMs;
+  
+  const visibleNoteMarkers = noteMarkers.filter(
+    (m) =>
+      m.timestamp + m.length >= windowStart &&
+      m.timestamp <= windowEnd
+  );
+  const visibleBarMarkers = barMarkers.filter(
+    (m) => m.timestamp >= windowStart && m.timestamp <= windowEnd
+  );
+  const visibleQuarterBarMarkers = quarterBarMarkers.filter(
+    (m) => m.timestamp >= windowStart && m.timestamp <= windowEnd
+  );
+  const visibleSixteenthBarMarkers = sixteenthBarMarkers.filter(
+    (m) => m.timestamp >= windowStart && m.timestamp <= windowEnd
+  );
+
+
 
   useEffect(() => {
     let rafId: number;
@@ -57,7 +77,7 @@ const AudioAnalysisPanel = ({ currentMsRef }) => {
           }}
         >
           {/* Bar Markers */}
-          {barMarkers.map((marker) => (
+          {visibleBarMarkers.map((marker) => (
             <BarMarker 
               key={marker.index}
               index={marker.index}
@@ -66,7 +86,7 @@ const AudioAnalysisPanel = ({ currentMsRef }) => {
               offsetBase={trackStartPadding}
             />
           ))}
-          {quarterBarMarkers.map((marker, index) => (
+          {visibleQuarterBarMarkers.map((marker, index) => (
             <QuarterBarMarker 
               key={index}
               timestamp={marker.timestamp}
@@ -74,7 +94,7 @@ const AudioAnalysisPanel = ({ currentMsRef }) => {
               offsetBase={trackStartPadding}
             />
           ))}
-          {sixteenthBarMarkers.map((marker, index) => (
+          {visibleSixteenthBarMarkers.map((marker, index) => (
             <SixteenthBarMarker 
               key={index}
               timestamp={marker.timestamp}
@@ -86,7 +106,7 @@ const AudioAnalysisPanel = ({ currentMsRef }) => {
           {/* Reference Lane */}
           <div className="relative w-full h-1/3 bg-secondary py-2 z-20">
             {/* Note Markers */}
-            {noteMarkers.map((marker, index) => (
+            {visibleNoteMarkers.map((marker, index) => (
               <NoteMarker 
                 key={index}
                 timestamp={marker.timestamp}
