@@ -59,7 +59,6 @@ export const useAlphaTab = (
                 setSelectedTrackId(score.tracks[0].index); 
               }
               
-              setEndMs(api.endTime);
               if (score.tracks.length > 0) {
                 setEndBar(score.tracks[0].staves[0].bars.length);
               }
@@ -70,6 +69,7 @@ export const useAlphaTab = (
 
             api.playerReady.on(() => {
               setApi(api);
+              setEndMs(api.endTime);
             });
 
             api.playerStateChanged.on((args) => {
