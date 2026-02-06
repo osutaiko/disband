@@ -29,8 +29,14 @@ export const useAudioAnalysisMarkers = (api, selectedTrackId, endMs) => {
           timestamp: currentBarStartMs,
         });
 
+        const quarterNotesPerBar = (bar.masterBar.timeSignatureNumerator / bar.masterBar.timeSignatureDenominator * 4)
+
         // Quarter bar markers
-        // TODO
+        for (let i = 1; i <= quarterNotesPerBar; i++) {
+          quarterBarMarkers.push({
+            timestamp: currentBarStartMs + i * PPQ * msPerTick,
+          })
+        }
 
         bar.voices.forEach((voice) => {
           voice.beats.forEach((beat) => {
@@ -43,7 +49,6 @@ export const useAudioAnalysisMarkers = (api, selectedTrackId, endMs) => {
           });
         });
         
-        const quarterNotesPerBar = (bar.masterBar.timeSignatureNumerator / bar.masterBar.timeSignatureDenominator * 4)
         currentBarStartMs += quarterNotesPerBar * PPQ * msPerTick;
       });
     });
