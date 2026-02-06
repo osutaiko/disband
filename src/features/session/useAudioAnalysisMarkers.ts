@@ -16,6 +16,8 @@ export const useAudioAnalysisMarkers = (api, selectedTrackId, endMs) => {
     let msPerTick = 0;
     let currentBarStartMs = 0;
 
+    let anacrusisShiftMs = 0;
+
     // Note markers
     currentTrack.staves.forEach((staff) => {
       staff.bars.forEach((bar) => {
@@ -23,6 +25,10 @@ export const useAudioAnalysisMarkers = (api, selectedTrackId, endMs) => {
           currentBpm = tempoAutomation.value;
           msPerTick = 60000 / (currentBpm * PPQ);
         }});
+
+        if (bar.masterBar.isAnacrusis) {
+          anacrusisShiftMs = bar.masterBar.calculateDuration(true) * msPerTick;
+        }
 
         // Bar markers
         barMarkers.push({
@@ -49,7 +55,7 @@ export const useAudioAnalysisMarkers = (api, selectedTrackId, endMs) => {
           voice.beats.forEach((beat) => {
             if (!beat.isRest) { 
               noteMarkers.push({
-                timestamp: beat.absolutePlaybackStart * msPerTick,
+                timestamp: beat.absolutePlaybackStart * msPerTick + anacrusisShiftMs,
                 length: beat.playbackDuration * msPerTick,
               });
             }
