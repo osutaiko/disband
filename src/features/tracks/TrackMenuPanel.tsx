@@ -11,7 +11,7 @@ import { Slider } from "@/components/ui/slider";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import PanelHeader from "@/components/ui/PanelHeader";
 
-import { RotateCw, View, Volume2, VolumeX } from "lucide-react";
+import { RotateCw, View, Volume2, VolumeX, MicVocal, Guitar, Drum, Piano, Music } from "lucide-react";
 import { useState } from "react";
 
 const TrackMenuPanel = () => {
@@ -67,6 +67,19 @@ const TrackMenuPanel = () => {
     }
   };
 
+  const getInstrumentIcon = (track: any) => {
+    const name = track.name?.toLowerCase() ?? "";
+
+    if (name.includes("vocal")) return <MicVocal size={14} />;
+    if (name.includes("bass")) return <Guitar size={14} />;
+    if (name.includes("guitar")) return <Guitar size={14} />;
+    if (name.includes("drum")) return <Drum size={14} />;
+    if (name.includes("piano") || name.includes("keys"))
+      return <Piano size={14} />;
+
+    return <Music size={14} />;
+  };
+
   return (
     <section className="h-1/2 border-b flex flex-col p-4 gap-4">
       {/* Header */}
@@ -89,8 +102,13 @@ const TrackMenuPanel = () => {
                 <Card
                   className="w-full rounded-sm shadow-none"
                 >
-                  <CardHeader className="px-3 pt-2 pb-1 flex flex-row items-center justify-between gap-2">
-                    <CardTitle title={track.name} className={`text-[11px] truncate ${isSelected ? "font-bold" : ""}`}>{track.name}</CardTitle>
+                  <CardHeader className="space-y-0 px-3 pt-2 pb-1 h-full flex flex-row items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span>
+                        {getInstrumentIcon(track)}
+                      </span>
+                      <CardTitle title={track.name} className={`text-[11px] truncate ${isSelected ? "font-bold" : ""}`}>{track.name}</CardTitle>
+                    </div>
                     <Button
                       title={isSelected ? "Currently Displayed" : "Show Track Score"}
                       size="icon" 
@@ -107,8 +125,8 @@ const TrackMenuPanel = () => {
                       className="flex flex-row w-full gap-2 items-center"
                     >
                       {isMuted ? 
-                        <VolumeX size={16} className="text-muted-foreground" /> :
-                        <Volume2 size={16} />
+                        <VolumeX size={14} className="text-muted-foreground shrink-0" /> :
+                        <Volume2 size={14} className="shrink-0" />
                       }
                       <Slider 
                         defaultValue={[trackVol * 100]} 
