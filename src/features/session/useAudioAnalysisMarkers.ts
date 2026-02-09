@@ -23,7 +23,6 @@ export const useAudioAnalysisMarkers = (
 
     let anacrusisShiftMs = 0;
 
-    // Note markers
     currentTrack.staves.forEach((staff) => {
       staff.bars.forEach((bar) => {
         bar.masterBar.tempoAutomations.forEach((tempoAutomation) => {{
@@ -35,7 +34,7 @@ export const useAudioAnalysisMarkers = (
           anacrusisShiftMs = bar.masterBar.calculateDuration(true) * msPerTick;
         }
 
-        // Bar markers
+        // --- Bar markers ---
         barMarkers.push({
           index: bar.masterBar.index + 1,
           timestamp: currentBarStartMs,
@@ -43,27 +42,43 @@ export const useAudioAnalysisMarkers = (
 
         const quarterNotesPerBar = (bar.masterBar.timeSignatureNumerator / bar.masterBar.timeSignatureDenominator * 4)
 
-        // Quarter bar markers
+        // --- Quarter note bar markers ---
         for (let i = 1; i < quarterNotesPerBar; i++) {
           quarterBarMarkers.push({
             timestamp: currentBarStartMs + i * PPQ * msPerTick,
           })
         }
-
+      
+        // --- Sixteenth note bar markers ---
         for (let i = 1; i < quarterNotesPerBar * 4; i++) {
           sixteenthBarMarkers.push({
             timestamp: currentBarStartMs + i * (PPQ / 4) * msPerTick,
           })
         }
 
+        // --- Note markers ---
         bar.voices.forEach((voice) => {
           voice.beats.forEach((beat) => {
-            if (!beat.isRest) { 
+            if (beat.isRest) return;
+
+            beat.notes.forEach((note) => {
+              // Skip tied notes on destination
+              if (note.isTieDestination) return;
+
+              let totalDuration = beat.playbackDuration;
+              let tiedNote = note.tieDestination;
+
+              // Through tie group
+              while (tiedNote) {
+                totalDuration += tiedNote.beat.playbackDuration;
+                tiedNote = tiedNote.tieDestination;
+              }
+
               noteMarkers.push({
                 timestamp: currentBarStartMs + beat.playbackStart * msPerTick,
-                length: beat.playbackDuration * msPerTick,
+                length: totalDuration * msPerTick,
               });
-            }
+            });
           });
         });
         
