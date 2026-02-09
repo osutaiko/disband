@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { RefObject, useEffect } from "react";
 
 import { useLibraryStore } from "@/store/useLibraryStore";
 import { useAudioAnalysisMarkers } from "./useAudioAnalysisMarkers";
@@ -8,14 +8,18 @@ import QuarterBarMarker from "./QuarterBarMarker";
 import SixteenthBarMarker from "./SixteenthBarMarker";
 import NoteMarker from "./NoteMarker";
 
-const AudioAnalysisPanel = ({ currentMsRef }) => {
+const AudioAnalysisPanel = ({
+  currentMsRef,
+}: {
+  currentMsRef: RefObject<number>;
+}) => {
   const { api, selectedTrackId, currentMs, setCurrentMs, endMs } = useLibraryStore();
   const {
     noteMarkers = [],
     barMarkers = [],
     quarterBarMarkers = [],
     sixteenthBarMarkers = [],
-  } = useAudioAnalysisMarkers(api, selectedTrackId, endMs);
+  } = useAudioAnalysisMarkers(api, selectedTrackId);
 
   const pxPerMs = 0.20;
   const playheadOffset = 200;
@@ -53,7 +57,9 @@ const AudioAnalysisPanel = ({ currentMsRef }) => {
     let rafId: number;
 
     const tick = () => {
-      setCurrentMs(currentMsRef.current);
+      if (currentMsRef.current !== null) {
+        setCurrentMs(currentMsRef.current);
+      }
       rafId = requestAnimationFrame(tick);
     };
 

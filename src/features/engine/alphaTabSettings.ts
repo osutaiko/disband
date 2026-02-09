@@ -1,16 +1,16 @@
 import { Settings } from "@coderline/alphatab";
 
+type DeepPartial<T> = T extends object ? {
+    [P in keyof T]?: DeepPartial<T[P]>;
+} : T;
+
 // https://alphatab.net/docs/reference/settings
-export const alphaTabSettings: Partial<Settings> = {
+export const alphaTabSettings: DeepPartial<Settings> = {
   core: {
     fontDirectory: "https://cdn.jsdelivr.net/npm/@coderline/alphatab@latest/dist/font/",
   },
   display: {
-    layoutMode: "page",
     scale: 1.0,
-    rhythm: {
-      enableAll: true,
-    },
   },
   player: {
     enablePlayer: true,
@@ -18,4 +18,4 @@ export const alphaTabSettings: Partial<Settings> = {
     soundFont: "/soundfonts/sonivox.sf2", 
     enableUserInteraction: true,
   },
-}
+};

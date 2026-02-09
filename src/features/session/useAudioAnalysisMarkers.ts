@@ -1,8 +1,13 @@
 import { useMemo } from "react";
+import { AlphaTabApi } from "@coderline/alphatab";
 
-export const useAudioAnalysisMarkers = (api, selectedTrackId, endMs) => {
+export const useAudioAnalysisMarkers = (
+  api: AlphaTabApi | null,
+  selectedTrackId: number | null,
+ ) => {
   return useMemo(() => {
-    if (!api?.score) return [];
+    if (!api?.score) return { noteMarkers: [], barMarkers: [], quarterBarMarkers: [], sixteenthBarMarkers: [] };
+
     const currentTrack = api.score.tracks[selectedTrackId ?? 0];
 
     const noteMarkers: { timestamp: number; length: number }[] = [];

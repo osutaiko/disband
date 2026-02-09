@@ -1,11 +1,17 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, RefObject, useState } from "react";
 import { useLibraryStore } from "@/store/useLibraryStore";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Slider } from "@/components/ui/slider";
 import { ZoomIn, ZoomOut } from "lucide-react";
 
-const TabViewPanel = ({ containerRef, isTabLoading }) => {
+const TabViewPanel = ({
+  containerRef, 
+  isTabLoading,
+}: {
+  containerRef: RefObject<HTMLDivElement> | null,
+  isTabLoading: boolean,
+}) => {
   const ZOOM_MIN = 0.25;
   const ZOOM_MAX = 2.0;
 
@@ -28,6 +34,8 @@ const TabViewPanel = ({ containerRef, isTabLoading }) => {
 
   // Ctrl + scroll behavior
   useEffect(() => {
+    if (!containerRef) return;
+    
     const handleWheel = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
