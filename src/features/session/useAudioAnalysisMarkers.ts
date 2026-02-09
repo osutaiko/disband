@@ -60,7 +60,7 @@ export const useAudioAnalysisMarkers = (
           voice.beats.forEach((beat) => {
             if (!beat.isRest) { 
               noteMarkers.push({
-                timestamp: beat.absolutePlaybackStart * msPerTick + anacrusisShiftMs,
+                timestamp: currentBarStartMs + beat.playbackStart * msPerTick,
                 length: beat.playbackDuration * msPerTick,
               });
             }
