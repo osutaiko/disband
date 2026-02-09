@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { AlphaTabApi } from "@coderline/alphatab";
+import { AlphaTabApi, Settings } from "@coderline/alphatab";
 import { useLibraryStore } from "@/store/useLibraryStore";
 
 import { alphaTabSettings } from "./alphaTabSettings";
@@ -40,7 +40,7 @@ export const useAlphaTab = (
         setTimeout(() => {
           if (!containerRef.current) return;
 
-          const api = new AlphaTabApi(containerRef.current, alphaTabSettings);
+          const api = new AlphaTabApi(containerRef.current, alphaTabSettings as Settings);
           apiRef.current = api;
           setApi(api);
 

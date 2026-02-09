@@ -24,7 +24,8 @@ const TrackMenuPanel = () => {
 
     // Reset track volumes
     tracks.forEach((track) => {
-      api.changeTrackVolume([track], track.playbackInfo?.volume ?? 1.0);
+      // FIXME: get track volume from API
+      api.changeTrackVolume([track], 1.0);
       api.changeTrackMute([track], false);
       api.changeTrackSolo([track], false);
     });
@@ -95,7 +96,8 @@ const TrackMenuPanel = () => {
             const isSelected = selectedTrackId === track.index;
             const isMuted = mutedTracks.includes(track.index);
             const isSoloed = soloTracks.includes(track.index);
-            const trackVol = track.playbackInfo?.volume ?? 1;
+            // FIXME: me too
+            const trackVol = 1;
 
             return (
               <div key={track.index} className="flex items-center gap-1 group w-68">
