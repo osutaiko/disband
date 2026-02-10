@@ -77,7 +77,7 @@ const AudioAnalysisPanel = ({
       className="h-min border-t bg-background relative overflow-hidden"
       style={{ padding: `${panelPadding}px` }}
     >
-      <div className="relative mask-x-from-90% h-50 w-full overflow-hidden">
+      <div className="relative mask-x-from-90% h-[160px] w-full overflow-hidden">
         <div 
           className="absolute top-0 h-full pt-[24px] pb-[12px] flex flex-col gap-2 will-change-transform"
           style={{ 
@@ -112,7 +112,7 @@ const AudioAnalysisPanel = ({
           ))}
           
           {/* Reference Lane */}
-          <div className="relative w-full h-[60px] bg-secondary py-2 z-20">
+          <div className="relative w-full h-[40px] bg-secondary py-2 z-20">
             {/* Note Markers */}
             {visibleNoteMarkers.map((marker, index) => (
               <NoteMarker 
@@ -130,7 +130,7 @@ const AudioAnalysisPanel = ({
           </div>
           
           {/* Recorded Audio */}
-          <div className="relative w-full h-[120px] bg-secondary py-2 z-20">
+          <div className="relative w-full h-[80px] bg-secondary py-2 z-20">
           </div>
         </div>
       </div>
