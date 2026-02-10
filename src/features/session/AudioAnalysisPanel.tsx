@@ -1,4 +1,4 @@
-import { RefObject, useEffect } from "react";
+import { RefObject, useEffect, useState } from "react";
 
 import { useLibraryStore } from "@/store/useLibraryStore";
 import { useAudioAnalysisMarkers } from "./useAudioAnalysisMarkers";
@@ -7,6 +7,9 @@ import BarMarker from "./BarMarker";
 import QuarterBarMarker from "./QuarterBarMarker";
 import SixteenthBarMarker from "./SixteenthBarMarker";
 import NoteMarker from "./NoteMarker";
+
+import { Button } from "@/components/ui/button";
+import { Circle, Trash } from "lucide-react";
 
 const AudioAnalysisPanel = ({
   currentMsRef,
@@ -51,7 +54,7 @@ const AudioAnalysisPanel = ({
     (m) => m.timestamp >= windowStart && m.timestamp <= windowEnd
   );
 
-
+  const [isRecording, setIsRecording] = useState<boolean>(false);
 
   useEffect(() => {
     let rafId: number;
@@ -74,7 +77,7 @@ const AudioAnalysisPanel = ({
       className="h-min border-t bg-background relative overflow-hidden"
       style={{ padding: `${panelPadding}px` }}
     >
-      <div className="relative mask-x-from-90% h-40 w-full overflow-hidden">
+      <div className="relative mask-x-from-90% h-50 w-full overflow-hidden">
         <div 
           className="absolute top-0 h-full pt-[24px] pb-[12px] flex flex-col gap-2 will-change-transform"
           style={{ 
@@ -109,7 +112,7 @@ const AudioAnalysisPanel = ({
           ))}
           
           {/* Reference Lane */}
-          <div className="relative w-full h-1/3 bg-secondary py-2 z-20">
+          <div className="relative w-full h-[60px] bg-secondary py-2 z-20">
             {/* Note Markers */}
             {visibleNoteMarkers.map((marker, index) => (
               <NoteMarker 
@@ -127,9 +130,27 @@ const AudioAnalysisPanel = ({
           </div>
           
           {/* Recorded Audio */}
-          <div className="w-full h-2/3 bg-secondary py-2 z-20">
+          <div className="relative w-full h-[120px] bg-secondary py-2 z-20">
           </div>
         </div>
+      </div>
+
+      {/* Recording Controls */}
+      <div className="absolute bottom-6 right-6 z-50 flex flex-col items-center gap-2 bg-background border px-2 py-2 rounded-full shadow-md">
+        <Button
+          variant="destructive"
+          size="icon" 
+          className="rounded-full w-7 h-7 flex-0 aspect-square"
+          //onClick={startAudioCapture}
+        >
+          <Circle className="text-white" />
+        </Button>
+        <Button
+          size="icon" 
+          className="rounded-full w-7 h-7 flex-0 aspect-square"
+        >
+          <Trash className="text-white" />
+        </Button>
       </div>
 
       {/* Playhead */}

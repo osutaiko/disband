@@ -65,8 +65,6 @@ export const useAudioAnalysisMarkers = (
 
     const playbackMasterBars = getPlaybackMasterBars(api.score);
 
-    console.log(playbackMasterBars.map((mb) => mb.index))
-
     playbackMasterBars.forEach((masterBar) => {
       const bar = currentTrack.staves[0].bars.find(
         b => b.masterBar === masterBar
