@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { AlphaTabApi, Settings } from "@coderline/alphatab";
 import { useLibraryStore } from "@/store/useLibraryStore";
 
-import { alphaTabSettings } from "./alphaTabSettings";
+import alphaTabSettings from "./alphaTabSettings.json";
 
 export const useAlphaTab = (
   containerRef: React.RefObject<HTMLDivElement | null>,
