@@ -1,5 +1,6 @@
-import { useEffect, RefObject, useState } from "react";
+import { useEffect, RefObject, useRef, useState } from "react";
 import { useLibraryStore } from "@/store/useLibraryStore";
+import { ScrollMode } from "@coderline/alphatab";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Slider } from "@/components/ui/slider";
@@ -17,6 +18,7 @@ const TabViewPanel = ({
 
   const { api, selectedSong, selectedTrackId } = useLibraryStore();
   const [zoom, setZoom] = useState<number>(1.0);
+  const scrollAreaRef = useRef<HTMLDivElement | null>(null);
 
   const applyZoom = (newZoom: number) => {
     if (!api) return;
@@ -31,6 +33,17 @@ const TabViewPanel = ({
   useEffect(() => {
     setZoom(1.0);
   }, [selectedSong, selectedTrackId]);
+
+  // Auto scrolling during playback
+  useEffect(() => {
+    if (!api || !scrollAreaRef.current) return;
+
+    const viewport = scrollAreaRef.current.querySelector("[data-radix-scroll-area-viewport]") as HTMLElement | null;
+    if (!viewport) return;
+
+    api.settings.player.scrollElement = viewport;
+    api.updateSettings();
+  }, [api, selectedSong, selectedTrackId, isTabLoading]);
 
   // Ctrl + scroll behavior
   useEffect(() => {
@@ -67,7 +80,7 @@ const TabViewPanel = ({
 
       {/* Actual TAB */}
       {selectedSong && (
-        <ScrollArea className="flex-1 w-full h-full">
+        <ScrollArea ref={scrollAreaRef} className="flex-1 w-full h-full">
           <div className="flex justify-center w-full p-4">
             <div 
               ref={containerRef} 
