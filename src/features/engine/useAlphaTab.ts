@@ -73,6 +73,13 @@ export const useAlphaTab = (
 
             api.playerPositionChanged.on((args) => {
               currentMsRef.current = args.currentTime;
+              if (args.isSeek && api.tickCache) {
+                const trackId = useLibraryStore.getState().selectedTrackId ?? 0;
+                const lookup = api.tickCache.findBeat(new Set([trackId]), args.currentTick);
+                if (lookup?.beat) {
+                  setCurrentBar(lookup.beat.voice.bar.index + 1);
+                }
+              }
             });
 
             api.playedBeatChanged.on((beat) => {
