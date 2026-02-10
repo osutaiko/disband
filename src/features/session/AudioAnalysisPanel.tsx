@@ -1,12 +1,16 @@
-import { RefObject, useEffect, useState } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 
 import { useLibraryStore } from "@/store/useLibraryStore";
 import { useAudioAnalysisMarkers } from "./useAudioAnalysisMarkers";
+import { useRealtimeAudio } from "./useRealtimeAudio";
+
+import { handlePlayPause } from "../engine/playback";
 
 import BarMarker from "./BarMarker";
 import QuarterBarMarker from "./QuarterBarMarker";
 import SixteenthBarMarker from "./SixteenthBarMarker";
 import NoteMarker from "./NoteMarker";
+import RealtimeWaveform from "./RealtimeWaveform";
 
 import { Button } from "@/components/ui/button";
 import { Circle, Trash } from "lucide-react";
@@ -16,13 +20,16 @@ const AudioAnalysisPanel = ({
 }: {
   currentMsRef: RefObject<number>;
 }) => {
-  const { api, selectedTrackId, currentMs, setCurrentMs, endMs } = useLibraryStore();
+  const { api, selectedTrackId, currentMs, setCurrentMs, endMs, isPlaying } = useLibraryStore();
   const {
     noteMarkers = [],
     barMarkers = [],
     quarterBarMarkers = [],
     sixteenthBarMarkers = [],
   } = useAudioAnalysisMarkers(api, selectedTrackId);
+  
+  const { bufferRef: audioBufferRef, start, stop } = useRealtimeAudio();
+  const recordStartMsRef = useRef<number | null>(null);
 
   const pxPerMs = 0.20;
   const playheadOffset = 200;
@@ -54,8 +61,6 @@ const AudioAnalysisPanel = ({
     (m) => m.timestamp >= windowStart && m.timestamp <= windowEnd
   );
 
-  const [isRecording, setIsRecording] = useState<boolean>(false);
-
   useEffect(() => {
     let rafId: number;
 
@@ -69,6 +74,21 @@ const AudioAnalysisPanel = ({
     rafId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafId);
   }, []);
+
+  const [isRecording, setIsRecording] = useState<boolean>(false);
+
+  const waveformStartX =
+  recordStartMsRef.current !== null
+    ? recordStartMsRef.current * pxPerMs + trackStartPadding
+    : trackStartPadding;
+
+  useEffect(() => {
+    if (!isPlaying && isRecording) {
+      stop();
+      recordStartMsRef.current = null;
+      setIsRecording(false);
+    }
+  }, [isPlaying]);
 
   if (!api || selectedTrackId === null) return null;
 
@@ -131,6 +151,14 @@ const AudioAnalysisPanel = ({
           
           {/* Recorded Audio */}
           <div className="relative w-full h-[120px] bg-secondary py-2 z-20">
+            <div
+              className="absolute top-0 h-full will-change-transform"
+              style={{
+                transform: `translateX(${waveformStartX}px)`,
+              }}
+            >
+              <RealtimeWaveform audioBufferRef={audioBufferRef} />
+            </div>
           </div>
         </div>
       </div>
@@ -141,7 +169,23 @@ const AudioAnalysisPanel = ({
           variant="destructive"
           size="icon" 
           className="rounded-full w-7 h-7 flex-0 aspect-square"
-          //onClick={startAudioCapture}
+          onClick={() => {
+            setIsRecording((r) => {
+              if (!r) {
+                recordStartMsRef.current = currentMs;
+                
+                if (!isPlaying) {
+                  handlePlayPause(api, isPlaying);
+                }
+
+                start();
+              } else {
+                stop();
+                recordStartMsRef.current = null;
+              }
+              return !r;
+            });
+          }}
         >
           <Circle className="text-white" />
         </Button>
