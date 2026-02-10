@@ -1,4 +1,4 @@
-import { Settings } from "@coderline/alphatab";
+import { ScrollMode, Settings } from "@coderline/alphatab";
 
 type DeepPartial<T> = T extends object ? {
     [P in keyof T]?: DeepPartial<T[P]>;
@@ -17,5 +17,7 @@ export const alphaTabSettings: DeepPartial<Settings> = {
     enableCursor: true,
     soundFont: "/soundfonts/sonivox.sf2", 
     enableUserInteraction: true,
+    scrollMode: ScrollMode.Continuous,
+    scrollOffsetY: -80,
   },
 };
