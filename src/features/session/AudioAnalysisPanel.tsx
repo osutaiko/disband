@@ -83,10 +83,9 @@ const AudioAnalysisPanel = ({
           }}
         >
           {/* Bar Markers */}
-          {visibleBarMarkers.map((marker) => (
+          {visibleBarMarkers.map((marker, index) => (
             <BarMarker 
-              key={marker.index}
-              index={marker.index}
+              key={index}
               timestamp={marker.timestamp}
               pxPerMs={pxPerMs}
               offsetBase={trackStartPadding}

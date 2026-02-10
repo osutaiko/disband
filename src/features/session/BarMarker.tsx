@@ -1,10 +1,8 @@
 const BarMarker = ({
-  index,
   timestamp,
   offsetBase,
   pxPerMs,
 }: {
-  index: number;
   timestamp: number;
   offsetBase: number;
   pxPerMs: number;
@@ -18,7 +16,7 @@ const BarMarker = ({
         left: `${left}px`,
       }}
     >
-      <p className="absolute top-[-4px] left-[6px] font-mono text-primary/50">{index}</p>
+      {/* <p className="absolute top-[-4px] left-[6px] font-mono text-primary/50">{index}</p> */}
     </div>
   )
 };
