@@ -5,6 +5,11 @@ export const useAudioAnalysisMarkers = (
   api: AlphaTabApi | null,
   selectedTrackId: number | null
 ) => {
+  const isBarActiveForRepeat = (mb, repeatIndex) => {
+    if (!mb.alternateEndings || mb.alternateEndings === 0) return true;
+    return (mb.alternateEndings & (1 << repeatIndex)) !== 0;
+  };
+
   // MasterBars in actual playback order
   const getPlaybackMasterBars = (score) => {
     const result: any[] = [];
@@ -12,19 +17,28 @@ export const useAudioAnalysisMarkers = (
 
     for (let i = 0; i < score.masterBars.length; i++) {
       const mb = score.masterBars[i];
+      const group = mb.repeatGroup;
+
+      let repeatIndex = 0;
+      if (group) {
+        repeatIndex = repeatCounters.get(group) ?? 0;
+      }
+
+      // Skip bars not active for this repeat pass
+      if (!isBarActiveForRepeat(mb, repeatIndex)) {
+        continue;
+      }
+
       result.push(mb);
 
-      const group = mb.repeatGroup;
-      if (!group) continue;
-
       // Handle repeat close
-      if (group.isClosed && group.closings?.includes(mb)) {
-        const count = repeatCounters.get(group) ?? 0;
+      if (group?.isClosed && group.closings?.includes(mb)) {
+        const maxRepeats = group.repeatCount ?? 1;
 
-        if (count < (group.repeatCount ?? 1)) {
-          repeatCounters.set(group, count + 1);
+        if (repeatIndex < maxRepeats) {
+          repeatCounters.set(group, repeatIndex + 1);
 
-          // Loop back to opening bar
+          // jump back to opening bar
           i = score.masterBars.indexOf(group.opening) - 1;
         }
       }
@@ -32,7 +46,6 @@ export const useAudioAnalysisMarkers = (
 
     return result;
   };
-
 
   return useMemo(() => {
     if (!api?.score) return { noteMarkers: [], barMarkers: [], quarterBarMarkers: [], sixteenthBarMarkers: [] };
