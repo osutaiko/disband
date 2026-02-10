@@ -30,7 +30,7 @@ const PlaybackControlsPanel = () => {
         <Button title="Go to Start" variant="outline" size="icon" onClick={() => handleGotoStart(api)} className="rounded-full">
           <ChevronFirst />
         </Button>
-        <Button title={isPlaying ? "Pause" : "Play"} size="lg" onClick={() => handlePlayPause(api, isPlaying)} className="rounded-full">
+        <Button title={isPlaying ? "Pause" : "Play"} size="lg" onClick={() => handlePlayPause(api)} className="rounded-full">
           {isPlaying ? <Pause className="fill-current" /> : <Play className="fill-current" />}
         </Button>
         <Button title="Go to End" variant="outline" size="icon" onClick={() => handleGotoEnd(api, endMs)} className="rounded-full">

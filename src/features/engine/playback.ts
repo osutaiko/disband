@@ -1,6 +1,6 @@
-export const handlePlayPause = (api: any, isPlaying: boolean) => {
+export const handlePlayPause = (api: any) => {
   if (!api || !api.isReadyForPlayback) return;
-  isPlaying ? api.pause() : api.play();
+  api.playPause();
 };
 
 export const handleGotoStart = (api: any) => {
