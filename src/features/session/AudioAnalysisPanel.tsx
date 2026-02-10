@@ -4,8 +4,6 @@ import { useLibraryStore } from "@/store/useLibraryStore";
 import { useAudioAnalysisMarkers } from "./useAudioAnalysisMarkers";
 
 import BarMarker from "./BarMarker";
-import QuarterBarMarker from "./QuarterBarMarker";
-import SixteenthBarMarker from "./SixteenthBarMarker";
 import NoteMarker from "./NoteMarker";
 
 import { Button } from "@/components/ui/button";
@@ -20,8 +18,6 @@ const AudioAnalysisPanel = ({
   const {
     noteMarkers = [],
     barMarkers = [],
-    quarterBarMarkers = [],
-    sixteenthBarMarkers = [],
   } = useAudioAnalysisMarkers(api, selectedTrackId);
 
   const pxPerMs = 0.20;
@@ -44,13 +40,7 @@ const AudioAnalysisPanel = ({
       m.timestamp + m.length >= windowStart &&
       m.timestamp <= windowEnd
   );
-  const visibleBarMarkers = barMarkers.filter(
-    (m) => m.timestamp >= windowStart && m.timestamp <= windowEnd
-  );
-  const visibleQuarterBarMarkers = quarterBarMarkers.filter(
-    (m) => m.timestamp >= windowStart && m.timestamp <= windowEnd
-  );
-  const visibleSixteenthBarMarkers = sixteenthBarMarkers.filter(
+  const visibleBarMarkers = barMarkers.slice(1).filter(
     (m) => m.timestamp >= windowStart && m.timestamp <= windowEnd
   );
 
@@ -89,22 +79,7 @@ const AudioAnalysisPanel = ({
           {visibleBarMarkers.map((marker, index) => (
             <BarMarker 
               key={index}
-              timestamp={marker.timestamp}
-              pxPerMs={pxPerMs}
-              offsetBase={trackStartPadding}
-            />
-          ))}
-          {visibleQuarterBarMarkers.map((marker, index) => (
-            <QuarterBarMarker 
-              key={index}
-              timestamp={marker.timestamp}
-              pxPerMs={pxPerMs}
-              offsetBase={trackStartPadding}
-            />
-          ))}
-          {visibleSixteenthBarMarkers.map((marker, index) => (
-            <SixteenthBarMarker 
-              key={index}
+              variant={marker.variant}
               timestamp={marker.timestamp}
               pxPerMs={pxPerMs}
               offsetBase={trackStartPadding}
