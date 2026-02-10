@@ -150,7 +150,7 @@ const AudioAnalysisPanel = ({
                 recordStartMsRef.current = currentMs;
                 
                 if (!isPlaying) {
-                  handlePlayPause(api, isPlaying);
+                  handlePlayPause(api);
                 }
 
                 start();
