@@ -127,7 +127,7 @@ const TrackMenuPanel = () => {
                       className="flex flex-row w-full gap-2 items-center"
                     >
                       {isMuted ? 
-                        <VolumeX size={14} className="text-muted-foreground shrink-0" /> :
+                        <VolumeX size={14} className="text-grayed shrink-0" /> :
                         <Volume2 size={14} className="shrink-0" />
                       }
                       <Slider 

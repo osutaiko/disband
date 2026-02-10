@@ -7,8 +7,6 @@ import { useRealtimeAudio } from "./useRealtimeAudio";
 import { handlePlayPause } from "../engine/playback";
 
 import BarMarker from "./BarMarker";
-import QuarterBarMarker from "./QuarterBarMarker";
-import SixteenthBarMarker from "./SixteenthBarMarker";
 import NoteMarker from "./NoteMarker";
 import RealtimeWaveform from "./RealtimeWaveform";
 
@@ -24,8 +22,6 @@ const AudioAnalysisPanel = ({
   const {
     noteMarkers = [],
     barMarkers = [],
-    quarterBarMarkers = [],
-    sixteenthBarMarkers = [],
   } = useAudioAnalysisMarkers(api, selectedTrackId);
   
   const { bufferRef: audioBufferRef, start, stop } = useRealtimeAudio();
@@ -51,13 +47,7 @@ const AudioAnalysisPanel = ({
       m.timestamp + m.length >= windowStart &&
       m.timestamp <= windowEnd
   );
-  const visibleBarMarkers = barMarkers.filter(
-    (m) => m.timestamp >= windowStart && m.timestamp <= windowEnd
-  );
-  const visibleQuarterBarMarkers = quarterBarMarkers.filter(
-    (m) => m.timestamp >= windowStart && m.timestamp <= windowEnd
-  );
-  const visibleSixteenthBarMarkers = sixteenthBarMarkers.filter(
+  const visibleBarMarkers = barMarkers.slice(1).filter(
     (m) => m.timestamp >= windowStart && m.timestamp <= windowEnd
   );
 
@@ -97,7 +87,7 @@ const AudioAnalysisPanel = ({
       className="h-min border-t bg-background relative overflow-hidden"
       style={{ padding: `${panelPadding}px` }}
     >
-      <div className="relative mask-x-from-90% h-50 w-full overflow-hidden">
+      <div className="relative mask-x-from-90% h-[160px] w-full overflow-hidden">
         <div 
           className="absolute top-0 h-full pt-[24px] pb-[12px] flex flex-col gap-2 will-change-transform"
           style={{ 
@@ -109,22 +99,7 @@ const AudioAnalysisPanel = ({
           {visibleBarMarkers.map((marker, index) => (
             <BarMarker 
               key={index}
-              timestamp={marker.timestamp}
-              pxPerMs={pxPerMs}
-              offsetBase={trackStartPadding}
-            />
-          ))}
-          {visibleQuarterBarMarkers.map((marker, index) => (
-            <QuarterBarMarker 
-              key={index}
-              timestamp={marker.timestamp}
-              pxPerMs={pxPerMs}
-              offsetBase={trackStartPadding}
-            />
-          ))}
-          {visibleSixteenthBarMarkers.map((marker, index) => (
-            <SixteenthBarMarker 
-              key={index}
+              variant={marker.variant}
               timestamp={marker.timestamp}
               pxPerMs={pxPerMs}
               offsetBase={trackStartPadding}
@@ -132,7 +107,7 @@ const AudioAnalysisPanel = ({
           ))}
           
           {/* Reference Lane */}
-          <div className="relative w-full h-[60px] bg-secondary py-2 z-20">
+          <div className="relative w-full h-[40px] bg-secondary py-2 z-20">
             {/* Note Markers */}
             {visibleNoteMarkers.map((marker, index) => (
               <NoteMarker 

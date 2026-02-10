@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { AlphaTabApi, Settings } from "@coderline/alphatab";
 import { useLibraryStore } from "@/store/useLibraryStore";
 
-import { alphaTabSettings } from "./alphaTabSettings";
+import alphaTabSettings from "./alphaTabSettings.json";
 
 export const useAlphaTab = (
   containerRef: React.RefObject<HTMLDivElement | null>,
@@ -73,6 +73,13 @@ export const useAlphaTab = (
 
             api.playerPositionChanged.on((args) => {
               currentMsRef.current = args.currentTime;
+              if (args.isSeek && api.tickCache) {
+                const trackId = useLibraryStore.getState().selectedTrackId ?? 0;
+                const lookup = api.tickCache.findBeat(new Set([trackId]), args.currentTick);
+                if (lookup?.beat) {
+                  setCurrentBar(lookup.beat.voice.bar.index + 1);
+                }
+              }
             });
 
             api.playedBeatChanged.on((beat) => {

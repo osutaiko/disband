@@ -30,7 +30,7 @@ const PlaybackControlsPanel = () => {
         <Button title="Go to Start" variant="outline" size="icon" onClick={() => handleGotoStart(api)} className="rounded-full">
           <ChevronFirst />
         </Button>
-        <Button title={isPlaying ? "Pause" : "Play"} size="lg" onClick={() => handlePlayPause(api, isPlaying)} className="rounded-full">
+        <Button title={isPlaying ? "Pause" : "Play"} size="lg" onClick={() => handlePlayPause(api)} className="rounded-full">
           {isPlaying ? <Pause className="fill-current" /> : <Play className="fill-current" />}
         </Button>
         <Button title="Go to End" variant="outline" size="icon" onClick={() => handleGotoEnd(api, endMs)} className="rounded-full">
@@ -43,12 +43,12 @@ const PlaybackControlsPanel = () => {
         <div title="Time" className="flex flex-row w-2/3 justify-center items-center gap-1 bg-muted rounded-md p-2">
           <p>
             {current.minutes}:{current.seconds.toString().padStart(2, "0")}
-            <span className="text-[9px] text-muted-foreground">.{current.milliseconds.toString().padStart(3, "0")}</span>
+            <span className="text-[9px] text-grayed">.{current.milliseconds.toString().padStart(3, "0")}</span>
           </p>
           <p>/</p>
           <p>
             {end.minutes}:{end.seconds.toString().padStart(2, "0")}
-            <span className="text-[9px] text-muted-foreground">.{end.milliseconds.toString().padStart(3, "0")}</span>
+            <span className="text-[9px] text-grayed">.{end.milliseconds.toString().padStart(3, "0")}</span>
           </p>
         </div>
         <div title="Bar" className="flex flex-row w-1/3 justify-center items-center gap-1 bg-muted rounded-md p-2">

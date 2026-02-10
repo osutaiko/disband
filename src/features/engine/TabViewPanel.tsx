@@ -1,4 +1,4 @@
-import { useEffect, RefObject, useState } from "react";
+import { useEffect, RefObject, useRef, useState } from "react";
 import { useLibraryStore } from "@/store/useLibraryStore";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -17,6 +17,7 @@ const TabViewPanel = ({
 
   const { api, selectedSong, selectedTrackId } = useLibraryStore();
   const [zoom, setZoom] = useState<number>(1.0);
+  const scrollAreaRef = useRef<HTMLDivElement | null>(null);
 
   const applyZoom = (newZoom: number) => {
     if (!api) return;
@@ -31,6 +32,17 @@ const TabViewPanel = ({
   useEffect(() => {
     setZoom(1.0);
   }, [selectedSong, selectedTrackId]);
+
+  // Auto scrolling during playback
+  useEffect(() => {
+    if (!api || !scrollAreaRef.current) return;
+
+    const viewport = scrollAreaRef.current.querySelector("[data-radix-scroll-area-viewport]") as HTMLElement | null;
+    if (!viewport) return;
+
+    api.settings.player.scrollElement = viewport;
+    api.updateSettings();
+  }, [api, selectedSong, selectedTrackId, isTabLoading]);
 
   // Ctrl + scroll behavior
   useEffect(() => {
@@ -67,7 +79,7 @@ const TabViewPanel = ({
 
       {/* Actual TAB */}
       {selectedSong && (
-        <ScrollArea className="flex-1 w-full h-full">
+        <ScrollArea ref={scrollAreaRef} className="flex-1 w-full h-full">
           <div className="flex justify-center w-full p-4">
             <div 
               ref={containerRef} 
@@ -82,7 +94,7 @@ const TabViewPanel = ({
       {/* Zoom Controls */}
       {selectedSong && !isTabLoading && (
         <div className="absolute bottom-6 right-6 z-50 flex items-center gap-3 bg-background border px-4 py-2 rounded-full shadow-md opacity-50 hover:opacity-100 transition-opacity duration-300">
-          <ZoomOut size={16} className="text-muted-foreground" />
+          <ZoomOut size={16} className="text-grayed" />
           <Slider
             className="w-32"
             value={[zoom * 100]}
@@ -92,7 +104,7 @@ const TabViewPanel = ({
             onValueChange={(vals) => setZoom(vals[0] / 100)}
             onValueCommit={(vals) => applyZoom(vals[0] / 100)}
           />
-          <ZoomIn size={16} className="text-muted-foreground" />
+          <ZoomIn size={16} className="text-grayed" />
           <span className="text-xs font-mono min-w-8 text-end">{Math.round(zoom * 100)}%</span>
         </div>
       )}
