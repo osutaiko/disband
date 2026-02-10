@@ -11,6 +11,7 @@ export const RealtimeWaveform = ({
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
     const buffer = audioBufferRef.current;
+    console.log(buffer)
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);

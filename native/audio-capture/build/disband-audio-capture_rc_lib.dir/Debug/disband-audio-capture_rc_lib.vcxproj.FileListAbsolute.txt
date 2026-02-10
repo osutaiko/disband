@@ -1,0 +1,1 @@
+C:\Users\henon\OneDrive\Documents\Github\disband\native\audio-capture\build\disband-audio-capture_rc_lib.dir\Debug\disband-audio-capture_rc_lib.lib

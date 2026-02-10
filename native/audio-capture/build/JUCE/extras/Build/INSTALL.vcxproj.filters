@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\henon\OneDrive\Documents\Github\disband\native\audio-capture\build\CMakeFiles\756c840189bff4057582bd28ac020264\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{2D10322A-E863-3BB7-A8F5-FA9E1CAF08B0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
