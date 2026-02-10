@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { useLibraryStore } from "@/store/useLibraryStore";
 import { useSongMetadata } from "@/features/library/useSongMetadata";
 import { useAlphaTab } from "@/features/engine/useAlphaTab";
+import PlaybackHotkeys from "@/features/engine/PlaybackHotkeys";
 
 import SongOverviewPanel from "@/features/library/SongOverviewPanel";
 import SongSelectorPanel from "@/features/library/SongSelectorPanel";
@@ -22,6 +23,7 @@ const Shell = () => {
 
   return (
     <div className="flex h-screen w-full overflow-hidden select-none">
+      <PlaybackHotkeys />
       
       {/* Left Panel Group */}
       <aside className="w-80 flex flex-col border-r">

@@ -48,14 +48,12 @@ export const useAudioAnalysisMarkers = (
   };
 
   return useMemo(() => {
-    if (!api?.score) return { noteMarkers: [], barMarkers: [], quarterBarMarkers: [], sixteenthBarMarkers: [] };
+    if (!api?.score) return { noteMarkers: [], barMarkers: [] };
 
     const currentTrack = api.score.tracks[selectedTrackId ?? 0];
 
     const noteMarkers: { timestamp: number, length: number }[] = [];
-    const barMarkers: { index: number, timestamp: number }[] = [];
-    const quarterBarMarkers: { timestamp: number }[] = [];
-    const sixteenthBarMarkers: { timestamp: number }[] = [];
+    const barMarkers: { variant: "score-start" | "score-end" | "whole" | "quarter" | "sixteenth", timestamp: number }[] = [];
 
     const PPQ = 960;
     
@@ -77,24 +75,36 @@ export const useAudioAnalysisMarkers = (
         msPerTick = 60000 / (currentBpm * PPQ);
       }});
 
-      // --- Bar markers ---
       barMarkers.push({
-        index: bar.masterBar.index + 1,
-        timestamp: currentBarStartMs,
+        variant: "score-start",
+        timestamp: 0,
+      }, {
+        variant: "score-end",
+        timestamp: api.endTime,
       });
+
+      // --- Bar markers ---
+      if (currentBarStartMs > 0) {
+        barMarkers.push({
+          variant: "whole",
+          timestamp: currentBarStartMs,
+        });
+      }
 
       const quarterNotesPerBar = (bar.masterBar.timeSignatureNumerator / bar.masterBar.timeSignatureDenominator * 4)
 
       // --- Quarter note bar markers ---
       for (let i = 1; i < quarterNotesPerBar; i++) {
-        quarterBarMarkers.push({
+        barMarkers.push({
+          variant: "quarter",
           timestamp: currentBarStartMs + i * PPQ * msPerTick,
         })
       }
     
       // --- Sixteenth note bar markers ---
       for (let i = 1; i < quarterNotesPerBar * 4; i++) {
-        sixteenthBarMarkers.push({
+        barMarkers.push({
+          variant: "sixteenth",
           timestamp: currentBarStartMs + i * (PPQ / 4) * msPerTick,
         })
       }
@@ -128,6 +138,6 @@ export const useAudioAnalysisMarkers = (
       currentBarStartMs += bar.masterBar.calculateDuration(true) * msPerTick;
     });
 
-    return { noteMarkers, barMarkers, quarterBarMarkers, sixteenthBarMarkers };
+    return { noteMarkers, barMarkers };
   }, [api, selectedTrackId]);
 };
