@@ -1,14 +1,19 @@
 # Disband
 
 ## Stack
-Electron
-TypeScript
-JUCE
-React
-Vite
-Tailwind CSS
-Zustand
-AlphaTab
+### Frontend
+TypeScript/HTML/CSS
+- Electron
+- React
+- Vite
+- Tailwind CSS
+- Zustand
+- AlphaTab
+
+### Backend / Native
+C++
+- JUCE (audio capture/processing)
+- CMake
 
 ## Tasks
 - [X] Project setup
