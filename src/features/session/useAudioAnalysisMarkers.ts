@@ -1,17 +1,17 @@
 import { useMemo } from "react";
-import { AlphaTabApi } from "@coderline/alphatab";
+import { AlphaTabApi, model } from "@coderline/alphatab";
 
 export const useAudioAnalysisMarkers = (
   api: AlphaTabApi | null,
   selectedTrackId: number | null
 ) => {
-  const isBarActiveForRepeat = (mb, repeatIndex) => {
+  const isBarActiveForRepeat = (mb: model.MasterBar, repeatIndex: number) => {
     if (!mb.alternateEndings || mb.alternateEndings === 0) return true;
     return (mb.alternateEndings & (1 << repeatIndex)) !== 0;
   };
 
   // MasterBars in actual playback order
-  const getPlaybackMasterBars = (score) => {
+  const getPlaybackMasterBars = (score: model.Score) => {
     const result: any[] = [];
     const repeatCounters = new Map<any, number>();
 
@@ -32,8 +32,8 @@ export const useAudioAnalysisMarkers = (
       result.push(mb);
 
       // Handle repeat close
-      if (group?.isClosed && group.closings?.includes(mb)) {
-        const maxRepeats = group.repeatCount ?? 1;
+      if (group.opening && group.isClosed && group.closings.includes(mb)) {
+        const maxRepeats = mb.repeatCount ?? 1;
 
         if (repeatIndex < maxRepeats) {
           repeatCounters.set(group, repeatIndex + 1);
