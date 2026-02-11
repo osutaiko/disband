@@ -24,7 +24,7 @@ const AudioAnalysisPanel = ({
     barMarkers = [],
   } = useAudioAnalysisMarkers(api, selectedTrackId);
   
-  const { bufferRef: audioBufferRef, start, stop } = useRealtimeAudio();
+  const { bufferRef: audioBufferRef, reset, start, stop } = useRealtimeAudio();
   const recordStartMsRef = useRef<number | null>(null);
   const wasPlayingRef = useRef(isPlaying);
 
@@ -205,9 +205,18 @@ const AudioAnalysisPanel = ({
         >
           <Circle stroke={isRecording ? "white" : "red"} />
         </Button>
-        <Button
+        <Button {/* TODO: confirmation dialog */}
           size="icon" 
           className="rounded-full w-7 h-7 flex-0 aspect-square"
+          onClick={() => {
+              if (isRecording) {
+                stopRecording();
+              }
+
+              setRecordedRange(null);
+              recordStartMsRef.current = null;
+              reset();
+            }}
         >
           <Trash className="text-white" />
         </Button>

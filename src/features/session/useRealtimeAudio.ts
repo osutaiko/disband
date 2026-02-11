@@ -7,21 +7,23 @@ export function useRealtimeAudio() {
   const writeIndexRef = useRef(0);
   const runningRef = useRef(false);
 
-  const start = useCallback(() => {
-    if (runningRef.current) return;
-    console.log("[audio] START recording");
-
-    // Reset states
-    runningRef.current = true;
+  const reset = useCallback(() => {
+    runningRef.current = false;
     writeIndexRef.current = 0;
     bufferRef.current.fill(0);
+  }, [])
 
+  const start = useCallback(() => {
+    if (runningRef.current) return;
+
+    writeIndexRef.current = 0;
+    bufferRef.current = new Float32Array(BUFFER_SIZE);
+    runningRef.current = true;
     window.audio.start();
   }, []);
 
   const stop = useCallback(() => {
     if (!runningRef.current) return;
-    console.log("[audio] STOP recording");
 
     runningRef.current = false;
     window.audio
@@ -64,6 +66,7 @@ export function useRealtimeAudio() {
 
   return {
     bufferRef,
+    reset,
     start,
     stop,
   };
