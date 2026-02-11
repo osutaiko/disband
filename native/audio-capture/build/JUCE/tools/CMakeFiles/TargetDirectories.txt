@@ -1,7 +1,0 @@
-C:/Users/henon/OneDrive/Documents/Github/disband/native/audio-capture/build/JUCE/tools/CMakeFiles/INSTALL.dir
-C:/Users/henon/OneDrive/Documents/Github/disband/native/audio-capture/build/JUCE/tools/CMakeFiles/ALL_BUILD.dir
-C:/Users/henon/OneDrive/Documents/Github/disband/native/audio-capture/build/JUCE/tools/CMakeFiles/ZERO_CHECK.dir
-C:/Users/henon/OneDrive/Documents/Github/disband/native/audio-capture/build/JUCE/tools/modules/CMakeFiles/INSTALL.dir
-C:/Users/henon/OneDrive/Documents/Github/disband/native/audio-capture/build/JUCE/tools/extras/Build/CMakeFiles/INSTALL.dir
-C:/Users/henon/OneDrive/Documents/Github/disband/native/audio-capture/build/JUCE/tools/extras/Build/juceaide/CMakeFiles/juceaide.dir
-C:/Users/henon/OneDrive/Documents/Github/disband/native/audio-capture/build/JUCE/tools/extras/Build/juceaide/CMakeFiles/INSTALL.dir
