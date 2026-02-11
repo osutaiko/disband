@@ -85,8 +85,7 @@ const AudioAnalysisPanel = ({
   const stopRecording = useCallback(() => {
     const startMs = recordStartMsRef.current;
     if (startMs !== null) {
-      const snappedEndMs = getSnappedQuarterEndMs(startMs, currentMs);
-      setRecordedRange({ startMs, endMs: snappedEndMs });
+      setRecordedRange({ startMs, endMs: currentMsRef.current ?? currentMs });
     }
 
     stop();
@@ -98,16 +97,15 @@ const AudioAnalysisPanel = ({
     }
   }, [api, currentMs, getSnappedQuarterEndMs, stop]);
 
-  const activeWaveformRange = (() => {
-    if (isRecording && recordStartMsRef.current !== null) {
-      const startMs = recordStartMsRef.current;
-      return {
-        startMs,
-        endMs: getSnappedQuarterEndMs(startMs, currentMs),
-      };
-    }
-    return recordedRange;
-  })();
+  let activeWaveformRange = recordedRange;
+
+  if (isRecording && recordStartMsRef.current !== null) {
+    const startMs = recordStartMsRef.current;
+    activeWaveformRange = {
+      startMs,
+      endMs: getSnappedQuarterEndMs(startMs, currentMs),
+    };
+  }
 
   const waveformStartX = activeWaveformRange
     ? activeWaveformRange.startMs * pxPerMs + trackStartPadding
@@ -185,7 +183,7 @@ const AudioAnalysisPanel = ({
 
       <div className="absolute bottom-6 right-6 z-50 flex flex-col items-center gap-2 bg-background border px-2 py-2 rounded-full shadow-md">
         <Button
-          variant="destructive"
+          variant={isRecording ? "destructive" : "secondary"}
           size="icon" 
           className="rounded-full w-7 h-7 flex-0 aspect-square"
           onClick={() => {
@@ -205,7 +203,7 @@ const AudioAnalysisPanel = ({
             stopRecording();
           }}
         >
-          <Circle className="text-white" />
+          <Circle stroke={isRecording ? "white" : "red"} />
         </Button>
         <Button
           size="icon" 
