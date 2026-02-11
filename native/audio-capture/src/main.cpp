@@ -6,12 +6,13 @@
 class MyAudioCallback : public juce::AudioIODeviceCallback
 {
 public:
-    void audioDeviceIOCallback(
+    void audioDeviceIOCallbackWithContext(
         const float* const* inputChannelData,
         int numInputChannels,
         float* const* /*outputChannelData*/,
         int /*numOutputChannels*/,
-        int numSamples
+        int numSamples,
+        const juce::AudioIODeviceCallbackContext& /*context*/
     ) override
     {
         if (numInputChannels <= 0 || numSamples <= 0) return;
