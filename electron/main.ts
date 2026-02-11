@@ -77,27 +77,8 @@ function makeRecordingFileName(date = new Date()) {
   return `capture-${yyyy}${mm}${dd}-${hh}${min}${ss}.wav`
 }
 
-function convertFloatToPcm16Data(pcmFloatData: Buffer) {
-  const sampleCount = Math.floor(pcmFloatData.length / 4)
-  const pcm16Data = Buffer.alloc(sampleCount * 2)
-
-  for (let i = 0; i < sampleCount; i++) {
-    const floatSample = pcmFloatData.readFloatLE(i * 4)
-    const safeSample = Number.isFinite(floatSample)
-      ? Math.max(-1, Math.min(1, floatSample))
-      : 0
-    const intSample = safeSample < 0
-      ? Math.round(safeSample * 32768)
-      : Math.round(safeSample * 32767)
-    pcm16Data.writeInt16LE(intSample, i * 2)
-  }
-
-  return pcm16Data
-}
-
-function writeWavFile(filePath: string, pcmFloatData: Buffer) {
-  const pcmData = convertFloatToPcm16Data(pcmFloatData)
-  const dataSize = pcmData.length
+function writePcm16WavFile(filePath: string, pcm16Data: Buffer) {
+  const dataSize = pcm16Data.length
   const blockAlign = AUDIO_CHANNEL_COUNT * (AUDIO_BITS_PER_SAMPLE / 8)
   const byteRate = AUDIO_SAMPLE_RATE * blockAlign
   const header = Buffer.alloc(44)
@@ -117,12 +98,11 @@ function writeWavFile(filePath: string, pcmFloatData: Buffer) {
   header.writeUInt32LE(dataSize, 40)
 
   fs.mkdirSync(path.dirname(filePath), { recursive: true })
-  fs.writeFileSync(filePath, Buffer.concat([header, pcmData], 44 + dataSize))
+  fs.writeFileSync(filePath, Buffer.concat([header, pcm16Data], 44 + dataSize))
 }
 
-// --- Sidecar for Audio --- //
 function startAudioSidecar() {
-  if (audioSidecar) return;
+  if (audioSidecar) return
 
   const exe = getSidecarPath();
   audioRemainder = Buffer.alloc(0);
@@ -130,15 +110,15 @@ function startAudioSidecar() {
   recordedAudioBytes = 0;
 
   const sidecar = spawn(exe, [], {
-    stdio: ["ignore", "pipe", "inherit"],
-  });
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
   audioSidecar = sidecar;
 
-  sidecar.stdout.on("data", (chunk: Buffer) => {
-    audioRemainder = Buffer.concat([audioRemainder, chunk]);
+  sidecar.stdout.on('data', (chunk: Buffer) => {
+    audioRemainder = Buffer.concat([audioRemainder, chunk])
 
-    const usableBytes = audioRemainder.length - (audioRemainder.length % 4);
-    if (usableBytes === 0) return;
+    const usableBytes = audioRemainder.length - (audioRemainder.length % 2)
+    if (usableBytes === 0) return
 
     const frame = audioRemainder.subarray(0, usableBytes);
     audioRemainder = audioRemainder.subarray(usableBytes);
@@ -155,30 +135,33 @@ function startAudioSidecar() {
 
 function stopAudioSidecar() {
   if (!audioSidecar) {
-    return { ok: true, alreadyStopped: true };
+    return { ok: true, alreadyStopped: true }
   }
 
   const pcmBytes = recordedAudioBytes;
-  const pcmData = Buffer.concat(recordedAudioChunks, recordedAudioBytes);
+  const pcm16Data = Buffer.concat(recordedAudioChunks, recordedAudioBytes);
   const outputPath = path.join(RECORDINGS_PATH, makeRecordingFileName());
 
   audioSidecar.kill();
   audioSidecar = null;
-  writeWavFile(outputPath, pcmData);
+  writePcm16WavFile(outputPath, pcm16Data)
 
   audioRemainder = Buffer.alloc(0);
   recordedAudioChunks = [];
   recordedAudioBytes = 0;
 
-  console.log('[audio] saved recording', {
-    path: outputPath,
-    pcmBytes,
-    empty: pcmBytes === 0,
-  });
+  let fileSize: number | null = null
+  try {
+    fileSize = fs.statSync(outputPath).size
+  } catch {
+    fileSize = null
+  }
 
   return {
     ok: true,
     path: outputPath,
+    saved: fileSize !== null && fileSize > 44,
+    fileSize,
     pcmBytes,
     empty: pcmBytes === 0,
   };

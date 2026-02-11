@@ -11,7 +11,7 @@ export function useRealtimeAudio() {
     if (runningRef.current) return;
     console.log("[audio] START recording");
 
-    // Reset state for a clean recording
+    // Reset states
     runningRef.current = true;
     writeIndexRef.current = 0;
     bufferRef.current.fill(0);
@@ -39,11 +39,11 @@ export function useRealtimeAudio() {
       if (!runningRef.current) return;
 
       const view = new DataView(data);
-      const sampleCount = Math.floor(view.byteLength / 4);
+      const sampleCount = Math.floor(view.byteLength / 2);
       const input = new Float32Array(sampleCount);
       for (let i = 0; i < sampleCount; i++) {
-        const sample = view.getFloat32(i * 4, true);
-        input[i] = Number.isFinite(sample) ? sample : 0;
+        const sample = view.getInt16(i * 2, true);
+        input[i] = sample / 32768;
       }
 
       const buffer = bufferRef.current;

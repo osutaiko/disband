@@ -35,7 +35,14 @@ export interface IElectronAPI {
 declare global {
   interface IAudioAPI {
     start: () => Promise<{ ok: boolean }>;
-    stop: () => Promise<{ ok: boolean; alreadyStopped?: boolean; path?: string; pcmBytes?: number; empty?: boolean }>;
+    stop: () => Promise<{
+      ok: boolean;
+      alreadyStopped?: boolean;
+      path?: string;
+      saved?: boolean;
+      fileSize?: number;
+      pcmBytes?: number;
+    }>;
     onChunk: (handler: (data: ArrayBuffer) => void) => () => void;
   }
 
