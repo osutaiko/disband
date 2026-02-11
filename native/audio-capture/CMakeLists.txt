@@ -30,8 +30,8 @@ target_link_libraries(disband-audio-capture PRIVATE
 
 add_custom_command(TARGET disband-audio-capture POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory
-        "${CMAKE_SOURCE_DIR}/native/audio-capture/bin/win32"
+        "${CMAKE_SOURCE_DIR}/bin/win32"
     COMMAND ${CMAKE_COMMAND} -E copy
         $<TARGET_FILE:disband-audio-capture>
-        "${CMAKE_SOURCE_DIR}/native/audio-capture/bin/win32/disband-audio-capture.exe"
+        "${CMAKE_SOURCE_DIR}/bin/win32/disband-audio-capture.exe"
 )
