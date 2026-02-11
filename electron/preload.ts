@@ -12,7 +12,7 @@ contextBridge.exposeInMainWorld("audio", {
 
   onChunk: (cb: (data: ArrayBuffer) => void) => {
     const listener = (_: any, data: Buffer) => {
-      cb(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength));
+      cb(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer);
     };
 
     ipcRenderer.on("audio-capture-chunk", listener);

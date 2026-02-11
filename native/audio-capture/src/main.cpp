@@ -2,6 +2,10 @@
 #include <juce_audio_utils/juce_audio_utils.h>
 #include <juce_core/juce_core.h>
 #include <cstdio>
+#if JUCE_WINDOWS
+#include <fcntl.h>
+#include <io.h>
+#endif
 
 class MyAudioCallback : public juce::AudioIODeviceCallback
 {
@@ -19,11 +23,20 @@ public:
 
         for (int i = 0; i < numSamples; ++i)
         {
+            float mixedSample = 0.0f;
+            int contributingChannels = 0;
+
             for (int ch = 0; ch < numInputChannels; ++ch)
             {
-                float sample = inputChannelData[ch] ? inputChannelData[ch][i] : 0.0f;
-                std::fwrite(&sample, sizeof(float), 1, stdout);
+                if (inputChannelData[ch] == nullptr) continue;
+                mixedSample += inputChannelData[ch][i];
+                ++contributingChannels;
             }
+
+            if (contributingChannels > 1)
+                mixedSample /= static_cast<float>(contributingChannels);
+
+            std::fwrite(&mixedSample, sizeof(float), 1, stdout);
         }
 
         std::fflush(stdout);
@@ -42,6 +55,9 @@ public:
 
     void initialise(const juce::String&) override
     {
+#if JUCE_WINDOWS
+        _setmode(_fileno(stdout), _O_BINARY);
+#endif
         deviceManager.initialise(1, 0, nullptr, true);
         configureDevice();
         deviceManager.addAudioCallback(&callback);

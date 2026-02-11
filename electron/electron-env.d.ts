@@ -33,8 +33,15 @@ export interface IElectronAPI {
 
 // Used in Renderer process, expose in `preload.ts`
 declare global {
+  interface IAudioAPI {
+    start: () => Promise<{ ok: boolean }>;
+    stop: () => Promise<{ ok: boolean; alreadyStopped?: boolean; path?: string; pcmBytes?: number; empty?: boolean }>;
+    onChunk: (handler: (data: ArrayBuffer) => void) => () => void;
+  }
+
   interface Window {
     ipcRenderer: import('electron').IpcRenderer;
     electron: IElectronAPI;
+    audio: IAudioAPI;
   }
 }

@@ -24,22 +24,27 @@ export function useRealtimeAudio() {
     console.log("[audio] STOP recording");
 
     runningRef.current = false;
-    window.audio.stop();
+    window.audio
+      .stop()
+      .then((result) => {
+        console.log("[audio] file saved", result);
+      })
+      .catch((error) => {
+        console.error("[audio] failed to save file", error);
+      });
   }, []);
 
   useEffect(() => {
     const unsubscribe = window.audio.onChunk((data: ArrayBuffer) => {
       if (!runningRef.current) return;
 
-      const input = new Float32Array(data);
-
-      const nonZero = input.some((v) => Math.abs(v) > 1e-4);
-      console.log(
-        "[audio chunk]",
-        "len =", input.length,
-        "nonZero =", nonZero,
-        "first =", Array.from(input.slice(0, 8))
-      );
+      const view = new DataView(data);
+      const sampleCount = Math.floor(view.byteLength / 4);
+      const input = new Float32Array(sampleCount);
+      for (let i = 0; i < sampleCount; i++) {
+        const sample = view.getFloat32(i * 4, true);
+        input[i] = Number.isFinite(sample) ? sample : 0;
+      }
 
       const buffer = bufferRef.current;
       let writeIndex = writeIndexRef.current;
