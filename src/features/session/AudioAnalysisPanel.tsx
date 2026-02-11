@@ -205,7 +205,7 @@ const AudioAnalysisPanel = ({
         >
           <Circle stroke={isRecording ? "white" : "red"} />
         </Button>
-        <Button {/* TODO: confirmation dialog */}
+        <Button // TODO: confirmation dialog
           size="icon" 
           className="rounded-full w-7 h-7 flex-0 aspect-square"
           onClick={() => {
