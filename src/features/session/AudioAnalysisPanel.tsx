@@ -1,4 +1,4 @@
-import { RefObject, useEffect, useRef, useState } from "react";
+import { RefObject, useCallback, useEffect, useRef, useState } from "react";
 
 import { useLibraryStore } from "@/store/useLibraryStore";
 import { useAudioAnalysisMarkers } from "./useAudioAnalysisMarkers";
@@ -67,6 +67,16 @@ const AudioAnalysisPanel = ({
 
   const [isRecording, setIsRecording] = useState<boolean>(false);
 
+  const stopRecording = useCallback(() => {
+    stop();
+    recordStartMsRef.current = null;
+    setIsRecording(false);
+
+    if (api?.playerState === 1) {
+      api.pause();
+    }
+  }, [api, stop]);
+
   const waveformStartX =
   recordStartMsRef.current !== null
     ? recordStartMsRef.current * pxPerMs + trackStartPadding
@@ -78,7 +88,7 @@ const AudioAnalysisPanel = ({
       recordStartMsRef.current = null;
       setIsRecording(false);
     }
-  }, [isPlaying]);
+  }, [isPlaying, isRecording, stop]);
 
   if (!api || selectedTrackId === null) return null;
 
@@ -145,21 +155,19 @@ const AudioAnalysisPanel = ({
           size="icon" 
           className="rounded-full w-7 h-7 flex-0 aspect-square"
           onClick={() => {
-            setIsRecording((r) => {
-              if (!r) {
-                recordStartMsRef.current = currentMs;
-                
-                if (!isPlaying) {
-                  handlePlayPause(api);
-                }
+            if (!isRecording) {
+              recordStartMsRef.current = currentMs;
+              setIsRecording(true);
 
-                start();
-              } else {
-                stop();
-                recordStartMsRef.current = null;
+              if (!isPlaying) {
+                handlePlayPause(api);
               }
-              return !r;
-            });
+
+              start();
+              return;
+            }
+
+            stopRecording();
           }}
         >
           <Circle className="text-white" />
