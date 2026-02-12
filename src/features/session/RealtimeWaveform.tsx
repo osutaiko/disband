@@ -51,7 +51,9 @@ export function RealtimeWaveform({
         const y = mid - sample * mid;
         const px = x * dpr;
         const py = y * dpr;
-        x === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+
+        if (x === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
       }
 
       ctx.stroke();

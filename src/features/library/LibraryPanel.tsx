@@ -19,11 +19,11 @@ function LibraryPanel() {
   }, []);
 
   const handleOpenFolder = useCallback(async () => {
-    const selectedSong = await window.electron.openSongsFolder();
-    if (!selectedSong) return;
+    const pendingSong = await window.electron.openSongsFolder();
+    if (!pendingSong) return;
 
     await fetchSongs();
-    setSelectedSong(selectedSong);
+    setSelectedSong(pendingSong);
     setSelectedTrackId(null);
     setConfirming(null);
   }, [fetchSongs, setSelectedSong, setSelectedTrackId]);

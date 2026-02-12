@@ -9,7 +9,8 @@ const useAlphaTab = (
   selectedSong: string | null,
 ) => {
   const {
-    setApi, setIsPlaying, setTracks, setEndMs, setCurrentBar, setEndBar, selectedTrackId, setSelectedTrackId,
+    setApi, setIsPlaying, setTracks, setEndMs,
+    setCurrentBar, setEndBar, selectedTrackId, setSelectedTrackId,
   } = useLibraryStore();
 
   const [isTabLoading, setIsTabLoading] = useState(false);
