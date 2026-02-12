@@ -87,6 +87,6 @@ export const useLibraryStore = create<LibraryState>((set) => ({
   isRecording: false,
   setIsRecording: (isRecording) => set({ isRecording }),
 
-  pxPerMs: 0.15,
+  pxPerMs: 0.25,
   setPxPerMs: (ppm) => set({ pxPerMs: ppm }),
 }));
