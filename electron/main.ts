@@ -5,6 +5,12 @@ import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
+import {
+  getSidecarPath,
+  makeRecordingFileName,
+  writePcm16WavFile,
+} from './utils';
+
 import { SUPPORTED_EXTENSIONS } from '../shared/constants';
 
 const fileName = fileURLToPath(import.meta.url);
@@ -19,11 +25,6 @@ let audioRemainder = Buffer.alloc(0);
 let recordedAudioChunks: Buffer[] = [];
 let recordedAudioBytes = 0;
 
-const AUDIO_SAMPLE_RATE = 48_000;
-const AUDIO_CHANNEL_COUNT = 1;
-const AUDIO_BITS_PER_SAMPLE = 16;
-const AUDIO_FORMAT_PCM = 1;
-
 function createWindow() {
   win = new BrowserWindow({
     minWidth: 1280,
@@ -31,7 +32,7 @@ function createWindow() {
     show: false,
     autoHideMenuBar: true,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.mjs'),
+      preload: path.join(dirName, 'preload.mjs'),
       contextIsolation: true,
       nodeIntegration: false,
     },
@@ -54,61 +55,14 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
-app.on('before-quit', () => {
-  stopAudioSidecar();
-});
 
 const SONGS_PATH = path.join(app.getPath('documents'), 'Disband', 'Songs');
 const RECORDINGS_PATH = path.join(app.getPath('documents'), 'Disband', 'Takes');
 
-function getSidecarPath() {
-  const base = path.join(process.env.APP_ROOT!, 'native', 'audio-capture', 'bin', process.platform);
-  const exe = process.platform === 'win32' ? 'disband-audio-capture.exe' : 'disband-audio-capture';
-  return path.join(base, exe);
-}
-
-function pad2(value: number) {
-  return value.toString().padStart(2, '0');
-}
-
-function makeRecordingFileName(date = new Date()) {
-  const yyyy = date.getFullYear();
-  const mm = pad2(date.getMonth() + 1);
-  const dd = pad2(date.getDate());
-  const hh = pad2(date.getHours());
-  const min = pad2(date.getMinutes());
-  const ss = pad2(date.getSeconds());
-  return `capture-${yyyy}${mm}${dd}-${hh}${min}${ss}.wav`;
-}
-
-function writePcm16WavFile(filePath: string, pcm16Data: Buffer) {
-  const dataSize = pcm16Data.length;
-  const blockAlign = AUDIO_CHANNEL_COUNT * (AUDIO_BITS_PER_SAMPLE / 8);
-  const byteRate = AUDIO_SAMPLE_RATE * blockAlign;
-  const header = Buffer.alloc(44);
-
-  header.write('RIFF', 0);
-  header.writeUInt32LE(36 + dataSize, 4);
-  header.write('WAVE', 8);
-  header.write('fmt ', 12);
-  header.writeUInt32LE(16, 16); // PCM fmt chunk size
-  header.writeUInt16LE(AUDIO_FORMAT_PCM, 20);
-  header.writeUInt16LE(AUDIO_CHANNEL_COUNT, 22);
-  header.writeUInt32LE(AUDIO_SAMPLE_RATE, 24);
-  header.writeUInt32LE(byteRate, 28);
-  header.writeUInt16LE(blockAlign, 32);
-  header.writeUInt16LE(AUDIO_BITS_PER_SAMPLE, 34);
-  header.write('data', 36);
-  header.writeUInt32LE(dataSize, 40);
-
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.writeFileSync(filePath, Buffer.concat([header, pcm16Data], 44 + dataSize));
-}
-
 function startAudioSidecar() {
   if (audioSidecar) return;
 
-  const exe = getSidecarPath();
+  const exe = getSidecarPath(process.env.APP_ROOT!);
   audioRemainder = Buffer.alloc(0);
   recordedAudioChunks = [];
   recordedAudioBytes = 0;
@@ -170,6 +124,10 @@ function stopAudioSidecar() {
     empty: pcmBytes === 0,
   };
 }
+
+app.on('before-quit', () => {
+  stopAudioSidecar();
+});
 
 ipcMain.handle('audio-start', async () => {
   startAudioSidecar();

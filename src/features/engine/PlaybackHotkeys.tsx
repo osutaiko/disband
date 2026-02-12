@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { model } from '@coderline/alphatab';
 import useLibraryStore from '@/store/useLibraryStore';
 import { handlePlayPause } from './playback';
 
@@ -48,11 +49,13 @@ function PlaybackHotkeys() {
         if (!nextBar) return;
         let targetBeat = nextBar.voices[0]?.beats?.[0] ?? null;
         if (!targetBeat) {
-          for (const voice of nextBar.voices) {
-            if (voice.beats?.length) {
-              targetBeat = voice.beats[0];
-              break;
-            }
+          const voiceWithBeats = nextBar.voices.find(
+            (voice: model.Voice) => voice.beats?.length,
+          );
+
+          if (voiceWithBeats) {
+            const [firstBeat] = voiceWithBeats.beats;
+            targetBeat = firstBeat;
           }
         }
         if (!targetBeat) return;

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-export function RealtimeWaveform({
+function RealtimeWaveform({
   audioBufferRef,
   className,
 }: {

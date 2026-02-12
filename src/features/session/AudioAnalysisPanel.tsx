@@ -66,12 +66,12 @@ function AudioAnalysisPanel({
     .map((m) => m.timestamp)
     .sort((a, b) => a - b);
 
-  const getSnappedQuarterEndMs = useCallback((startMs: number, endMs: number) => {
+  const getSnappedQuarterEndMs = useCallback((rawStartMs: number, rawEndMs: number) => {
     const nextQuarterMs = quarterBarTimestamps.find(
-      (timestamp) => timestamp > endMs && timestamp > startMs,
+      (timestamp) => timestamp > rawEndMs && timestamp > rawStartMs,
     );
     if (nextQuarterMs !== undefined) return nextQuarterMs;
-    return endMs;
+    return rawEndMs;
   }, [quarterBarTimestamps]);
 
   useEffect(() => {
@@ -101,7 +101,7 @@ function AudioAnalysisPanel({
     if (api?.playerState === 1) {
       api.pause();
     }
-  }, [api, currentMs, getSnappedQuarterEndMs, stop]);
+  }, [api, currentMs, currentMsRef, stop]);
 
   let activeWaveformRange = recordedRange;
 
@@ -143,9 +143,9 @@ function AudioAnalysisPanel({
             transform: `translateX(${currentTranslation}px)`,
           }}
         >
-          {visibleBarMarkers.map((marker, index) => (
+          {visibleBarMarkers.map((marker) => (
             <BarMarker
-              key={index}
+              key={`${marker.variant}-${marker.timestamp}`}
               variant={marker.variant}
               timestamp={marker.timestamp}
               pxPerMs={pxPerMs}
@@ -155,9 +155,9 @@ function AudioAnalysisPanel({
 
           <div className="relative w-full h-[40px] bg-secondary py-2 z-20">
             {/* Note Markers */}
-            {visibleNoteMarkers.map((marker, index) => (
+            {visibleNoteMarkers.map((marker) => (
               <NoteMarker
-                key={index}
+                key={`${marker.timestamp}:${marker.length}`}
                 timestamp={marker.timestamp}
                 length={marker.length}
                 offsetBase={trackStartPadding}
