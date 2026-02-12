@@ -1,12 +1,12 @@
 import { useLibraryStore } from "@/store/useLibraryStore";
 import { Button } from "@/components/ui/button";
-import PanelHeader from "@/components/ui/PanelHeader";
+import Panel from "@/components/ui/Panel";
 
 import { handlePlayPause, handleGotoStart, handleGotoEnd } from "./playback";
 
 import { ChevronFirst, Play, Pause, ChevronLast } from "lucide-react";
 
-const PlaybackControlsPanel = () => {
+const PlaybackControlPanel = () => {
   const { api, isPlaying, currentMs, endMs, currentBar, endBar } = useLibraryStore();
 
   const parseMs = (ms: number) => {
@@ -21,10 +21,7 @@ const PlaybackControlsPanel = () => {
   const end = parseMs(endMs);
   
   return (
-    <section className="border-b flex flex-col p-4 gap-4">
-      {/* Header */}
-      <PanelHeader title="Playback Controls" />
-
+    <Panel className="border-b">
       {/* Playback Buttons */}
       <div className="flex flex-row gap-1 justify-center p-2">
         <Button title="Go to Start" variant="outline" size="icon" onClick={() => handleGotoStart(api)} className="rounded-full">
@@ -57,8 +54,8 @@ const PlaybackControlsPanel = () => {
           <p>{endBar}</p>
         </div>
       </div>
-    </section>
+    </Panel>
   );
 };
 
-export default PlaybackControlsPanel;
+export default PlaybackControlPanel;

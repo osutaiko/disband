@@ -17,7 +17,7 @@ const NoteMarker = ({
   return (
     <div
       className={`
-        absolute h-[calc(100%-16px)] border-l-2
+        absolute h-[calc(100%-16px)] border-l-4
         ${isCurrentlyPlaying ? "border-note-playing-start bg-note-playing-middle" : "border-note-start bg-note-middle"}
       `}
       style={{

@@ -2,11 +2,11 @@ import { useEffect, useState, useCallback } from "react";
 import { useLibraryStore } from "@/store/useLibraryStore";
 
 import { Button } from "@/components/ui/button";
+import Panel from "@/components/ui/Panel";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { ChevronRight, FolderOpen, RotateCw } from "lucide-react";
-import PanelHeader from "@/components/ui/PanelHeader";
 
-const SongSelectorPanel = () => {
+const LibraryPanel = () => {
   const { songsMetadata, selectedSong, setSelectedSong, setSelectedTrackId } = useLibraryStore();
   const [songs, setSongs] = useState<string[]>([]);
   const [confirming, setConfirming] = useState<string | null>(null);
@@ -24,28 +24,28 @@ const SongSelectorPanel = () => {
   }, [handleRefresh]);
 
   return (
-    <section className="flex flex-col h-full overflow-hidden p-4 gap-4">
-      {/* Header */}
-      <PanelHeader
-        title="Song Selector"
-        buttons={[
-          {
-            title: "Open Songs Folder",
-            icon: <FolderOpen />,
-            onClick: handleOpenFolder
-          },
-          {
-            title: "Refresh Song List",
-            icon: <RotateCw />,
-            onClick: handleRefresh
-          }
-        ]}
-      />
-
+    <Panel
+      className="flex flex-col h-full overflow-hidden"
+      contentClassName="flex-1 overflow-hidden"
+      isCollapsible
+      title="Library"
+      actions={[
+        {
+          title: "Open Songs Folder",
+          icon: <FolderOpen />,
+          onClick: handleOpenFolder
+        },
+        {
+          title: "Refresh Song List",
+          icon: <RotateCw />,
+          onClick: handleRefresh
+        }
+      ]}
+    >
       {/* TODO: Search/filter functionality */}
 
       {/* Song Catalog */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="h-full">
         <div className="flex flex-col w-68 min-h-full">
           {songs.map((song) => {
             const meta = songsMetadata[song];
@@ -91,8 +91,8 @@ const SongSelectorPanel = () => {
         </div>
         <ScrollBar orientation="vertical" />
       </ScrollArea>
-    </section>
+    </Panel>
   );
 };
 
-export default SongSelectorPanel;
+export default LibraryPanel;
