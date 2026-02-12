@@ -44,6 +44,9 @@ interface LibraryState {
 
   isRecording: boolean;
   setIsRecording: (recording: boolean) => void;
+
+  pxPerMs: number;
+  setPxPerMs: (ppm: number) => void;
 }
 
 export const useLibraryStore = create<LibraryState>((set) => ({
@@ -83,4 +86,7 @@ export const useLibraryStore = create<LibraryState>((set) => ({
 
   isRecording: false,
   setIsRecording: (isRecording) => set({ isRecording }),
+
+  pxPerMs: 0.15,
+  setPxPerMs: (ppm) => set({ pxPerMs: ppm }),
 }));
