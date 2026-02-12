@@ -12,7 +12,7 @@ import AudioAnalysisPanel from "@/features/session/AudioAnalysisPanel";
 
 import PlaybackControlsPanel from "@/features/engine/PlaybackControlsPanel";
 import TrackMenuPanel from "@/features/tracks/TrackMenuPanel";
-import OptionsPanelPanel from "@/features/configuration/OptionsPanel";
+import OptionsPanel from "@/features/configuration/OptionsPanel";
 
 const Shell = () => {
   useSongMetadata();
@@ -46,7 +46,7 @@ const Shell = () => {
       <aside className="w-80 flex flex-col border-l">
         <PlaybackControlsPanel />
         <TrackMenuPanel />
-        <OptionsPanelPanel />
+        <OptionsPanel />
       </aside>
 
     </div>

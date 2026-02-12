@@ -21,7 +21,7 @@ const PlaybackControlsPanel = () => {
   const end = parseMs(endMs);
   
   return (
-    <section className="h-min border-b flex flex-col p-4 gap-4">
+    <section className="border-b flex flex-col p-4 gap-4">
       {/* Header */}
       <PanelHeader title="Playback Controls" />
 
