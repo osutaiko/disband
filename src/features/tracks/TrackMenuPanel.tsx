@@ -1,21 +1,24 @@
-import { useLibraryStore } from "@/store/useLibraryStore";
+import {
+  RotateCw, View, Volume2, VolumeX, MicVocal, Guitar, Drum, Piano, Music,
+} from 'lucide-react';
+import { useState } from 'react';
+import useLibraryStore from '@/store/useLibraryStore';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Slider } from "@/components/ui/slider";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import Panel from "@/components/ui/Panel";
+} from '@/components/ui/card';
+import { Slider } from '@/components/ui/slider';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import Panel from '@/components/ui/Panel';
 
-import { RotateCw, View, Volume2, VolumeX, MicVocal, Guitar, Drum, Piano, Music } from "lucide-react";
-import { useState } from "react";
-
-const TrackMenuPanel = () => {
-  const { api, tracks, selectedTrackId, setSelectedTrackId } = useLibraryStore();
+function TrackMenuPanel() {
+  const {
+    api, tracks, selectedTrackId, setSelectedTrackId,
+  } = useLibraryStore();
   const [mutedTracks, setMutedTracks] = useState<number[]>([]);
   const [soloTracks, setSoloTracks] = useState<number[]>([]);
 
@@ -43,9 +46,9 @@ const TrackMenuPanel = () => {
     if (!api) return;
     const isMuted = mutedTracks.includes(track.index);
     api.changeTrackMute([track], !isMuted);
-    setMutedTracks(prev => 
-      isMuted ? prev.filter(id => id !== track.index) : [...prev, track.index]
-    );
+    setMutedTracks((prev) => (
+      isMuted ? prev.filter((id) => id !== track.index) : [...prev, track.index]
+    ));
   };
 
   const handleSoloToggle = (track: any) => {
@@ -59,7 +62,7 @@ const TrackMenuPanel = () => {
       // Unmute track
       if (mutedTracks.includes(track.index)) {
         api.changeTrackMute([track], false);
-        setMutedTracks(prev => prev.filter(id => id !== track.index));
+        setMutedTracks((prev) => prev.filter((id) => id !== track.index));
       }
 
       // Exclusive solo
@@ -69,14 +72,13 @@ const TrackMenuPanel = () => {
   };
 
   const getInstrumentIcon = (track: any) => {
-    const name = track.name?.toLowerCase() ?? "";
+    const name = track.name?.toLowerCase() ?? '';
 
-    if (name.includes("vocal")) return <MicVocal size={14} />;
-    if (name.includes("bass")) return <Guitar size={14} />;
-    if (name.includes("guitar")) return <Guitar size={14} />;
-    if (name.includes("drum")) return <Drum size={14} />;
-    if (name.includes("piano") || name.includes("keys"))
-      return <Piano size={14} />;
+    if (name.includes('vocal')) return <MicVocal size={14} />;
+    if (name.includes('bass')) return <Guitar size={14} />;
+    if (name.includes('guitar')) return <Guitar size={14} />;
+    if (name.includes('drum')) return <Drum size={14} />;
+    if (name.includes('piano') || name.includes('keys')) { return <Piano size={14} />; }
 
     return <Music size={14} />;
   };
@@ -88,7 +90,7 @@ const TrackMenuPanel = () => {
       isCollapsible
       title="Tracks"
       actions={[
-          { title: "Reset Track Settings", icon: <RotateCw />, onClick: handleReset }
+        { title: 'Reset Track Settings', icon: <RotateCw />, onClick: handleReset },
       ]}
     >
       <ScrollArea className="h-full">
@@ -110,50 +112,49 @@ const TrackMenuPanel = () => {
                       <span>
                         {getInstrumentIcon(track)}
                       </span>
-                      <CardTitle title={track.name} className={`truncate ${isSelected ? "font-bold" : ""}`}>{track.name}</CardTitle>
+                      <CardTitle title={track.name} className={`truncate ${isSelected ? 'font-bold' : ''}`}>{track.name}</CardTitle>
                     </div>
                     <Button
-                      title={isSelected ? "Currently Displayed" : "Show Track Score"}
-                      size="icon" 
-                      variant={`${isSelected ? "default" : "secondary"}`}
-                      className={`w-6 h-6 flex-0 aspect-square`}
+                      title={isSelected ? 'Currently Displayed' : 'Show Track Score'}
+                      size="icon"
+                      variant={`${isSelected ? 'default' : 'secondary'}`}
+                      className="w-6 h-6 flex-0 aspect-square"
                       onClick={() => setSelectedTrackId(track.index)}
                     >
                       <View />
                     </Button>
                   </CardHeader>
                   <CardContent className="px-3 pt-0 pb-2 flex flex-row gap-4 items-center">
-                    <div 
+                    <div
                       title="Track Volume"
                       className="flex flex-row w-full gap-2 items-center"
                     >
-                      {isMuted ? 
-                        <VolumeX size={14} className="text-muted-foreground shrink-0" /> :
-                        <Volume2 size={14} className="shrink-0" />
-                      }
-                      <Slider 
-                        defaultValue={[trackVol * 100]} 
-                        max={100} 
-                        step={1} 
+                      {isMuted
+                        ? <VolumeX size={14} className="text-muted-foreground shrink-0" />
+                        : <Volume2 size={14} className="shrink-0" />}
+                      <Slider
+                        defaultValue={[trackVol * 100]}
+                        max={100}
+                        step={1}
                         disabled={isMuted}
                         onValueChange={(vals) => handleVolumeChange(track, vals)}
                       />
                     </div>
                     <div className="flex flex-row gap-1">
                       <Button
-                        title={isMuted ? "Unmute Track" : "Mute Track"}
+                        title={isMuted ? 'Unmute Track' : 'Mute Track'}
                         size="icon"
-                        variant={isMuted ? "destructive" : "secondary"}
-                        className={`w-6 h-6 flex-0 aspect-square ${isMuted ? "text-white" : "text-black"}`}
+                        variant={isMuted ? 'destructive' : 'secondary'}
+                        className={`w-6 h-6 flex-0 aspect-square ${isMuted ? 'text-white' : 'text-black'}`}
                         onClick={() => handleMuteToggle(track)}
                       >
                         M
                       </Button>
                       <Button
-                        title={isSoloed ? "Unsolo Track" : "Solo Track"}
+                        title={isSoloed ? 'Unsolo Track' : 'Solo Track'}
                         size="icon"
-                        variant={isSoloed ? "destructive" : "secondary"}
-                        className={`w-6 h-6 flex-0 aspect-square ${isSoloed ? "text-white" : "text-black"}`}
+                        variant={isSoloed ? 'destructive' : 'secondary'}
+                        className={`w-6 h-6 flex-0 aspect-square ${isSoloed ? 'text-white' : 'text-black'}`}
                         onClick={() => handleSoloToggle(track)}
                       >
                         S
@@ -168,6 +169,6 @@ const TrackMenuPanel = () => {
       </ScrollArea>
     </Panel>
   );
-};
+}
 
 export default TrackMenuPanel;

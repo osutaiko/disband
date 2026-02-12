@@ -1,7 +1,7 @@
-import { Button } from "./button";
-import { Smile } from "lucide-react";
+import { Smile } from 'lucide-react';
+import { Button } from './button';
 
-const PanelHeader = ({
+function PanelHeader({
   title,
   buttons = [],
 }: {
@@ -11,7 +11,7 @@ const PanelHeader = ({
     icon: React.ReactNode;
     onClick: () => void;
   }[];
-}) => {
+}) {
   return (
     <div className="flex items-center justify-between shrink-0">
       <h2 className="underline p-2">{title}</h2>
@@ -35,6 +35,6 @@ const PanelHeader = ({
       </div>
     </div>
   );
-};
+}
 
 export default PanelHeader;

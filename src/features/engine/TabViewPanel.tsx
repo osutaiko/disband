@@ -1,17 +1,19 @@
-import { useEffect, RefObject, useRef, useState } from "react";
-import { useLibraryStore } from "@/store/useLibraryStore";
+import {
+  useEffect, RefObject, useRef, useState,
+} from 'react';
+import { ZoomIn, ZoomOut } from 'lucide-react';
+import useLibraryStore from '@/store/useLibraryStore';
 
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Slider } from "@/components/ui/slider";
-import { ZoomIn, ZoomOut } from "lucide-react";
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Slider } from '@/components/ui/slider';
 
-const TabViewPanel = ({
-  containerRef, 
+function TabViewPanel({
+  containerRef,
   isTabLoading,
 }: {
   containerRef: RefObject<HTMLDivElement> | null,
   isTabLoading: boolean,
-}) => {
+}) {
   const ZOOM_MIN = 0.25;
   const ZOOM_MAX = 2.0;
 
@@ -23,7 +25,7 @@ const TabViewPanel = ({
     if (!api) return;
     const clampedZoom = Math.min(Math.max(newZoom, ZOOM_MIN), ZOOM_MAX);
     setZoom(clampedZoom);
-    
+
     api.settings.display.scale = clampedZoom;
     api.updateSettings();
     api.render();
@@ -37,7 +39,7 @@ const TabViewPanel = ({
   useEffect(() => {
     if (!api || !scrollAreaRef.current) return;
 
-    const viewport = scrollAreaRef.current.querySelector("[data-radix-scroll-area-viewport]") as HTMLElement | null;
+    const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement | null;
     if (!viewport) return;
 
     api.settings.player.scrollElement = viewport;
@@ -47,7 +49,7 @@ const TabViewPanel = ({
   // Ctrl + scroll behavior
   useEffect(() => {
     if (!containerRef) return;
-    
+
     const handleWheel = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
@@ -58,9 +60,9 @@ const TabViewPanel = ({
 
     const container = containerRef.current;
     if (container) {
-      window.addEventListener("wheel", handleWheel, { passive: false });
+      window.addEventListener('wheel', handleWheel, { passive: false });
     }
-    return () => window.removeEventListener("wheel", handleWheel);
+    return () => window.removeEventListener('wheel', handleWheel);
   }, [api, zoom]);
 
   return (
@@ -81,11 +83,11 @@ const TabViewPanel = ({
       {selectedSong && (
         <ScrollArea ref={scrollAreaRef} className="flex-1 w-full h-full">
           <div className="flex justify-center w-full p-4">
-            <div 
-              ref={containerRef} 
+            <div
+              ref={containerRef}
               className="w-full max-w-[1000px]"
               // Must keep mounted but hidden
-              style={{ visibility: isTabLoading ? "hidden" : "visible" }}
+              style={{ visibility: isTabLoading ? 'hidden' : 'visible' }}
             />
           </div>
         </ScrollArea>
@@ -105,11 +107,14 @@ const TabViewPanel = ({
             onValueCommit={(vals) => applyZoom(vals[0] / 100)}
           />
           <ZoomIn size={16} className="text-muted-foreground" />
-          <span className="text-xs font-mono min-w-8 text-end">{Math.round(zoom * 100)}%</span>
+          <span className="text-xs font-mono min-w-8 text-end">
+            {Math.round(zoom * 100)}
+            %
+          </span>
         </div>
       )}
     </section>
   );
-};
+}
 
 export default TabViewPanel;

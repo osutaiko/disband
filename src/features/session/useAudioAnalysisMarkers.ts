@@ -1,9 +1,9 @@
-import { useMemo } from "react";
-import { AlphaTabApi, model } from "@coderline/alphatab";
+import { useMemo } from 'react';
+import { AlphaTabApi, model } from '@coderline/alphatab';
 
-export const useAudioAnalysisMarkers = (
+const useAudioAnalysisMarkers = (
   api: AlphaTabApi | null,
-  selectedTrackId: number | null
+  selectedTrackId: number | null,
 ) => {
   const isBarActiveForRepeat = (mb: model.MasterBar, repeatIndex: number) => {
     if (!mb.alternateEndings || mb.alternateEndings === 0) return true;
@@ -53,10 +53,10 @@ export const useAudioAnalysisMarkers = (
     const currentTrack = api.score.tracks[selectedTrackId ?? 0];
 
     const noteMarkers: { timestamp: number, length: number }[] = [];
-    const barMarkers: { variant: "score-start" | "score-end" | "whole" | "quarter" | "sixteenth", timestamp: number }[] = [];
+    const barMarkers: { variant: 'score-start' | 'score-end' | 'whole' | 'quarter' | 'sixteenth', timestamp: number }[] = [];
 
     const PPQ = 960;
-    
+
     let currentBpm = 0;
     let msPerTick = 0;
     let currentBarStartMs = 0;
@@ -65,48 +65,48 @@ export const useAudioAnalysisMarkers = (
 
     playbackMasterBars.forEach((masterBar) => {
       const bar = currentTrack.staves[0].bars.find(
-        b => b.masterBar === masterBar
+        (b) => b.masterBar === masterBar,
       );
-      
+
       if (!bar) return;
 
-      bar.masterBar.tempoAutomations.forEach((tempoAutomation) => {{
+      bar.masterBar.tempoAutomations.forEach((tempoAutomation) => {
         currentBpm = tempoAutomation.value;
         msPerTick = 60000 / (currentBpm * PPQ);
-      }});
+      });
 
       barMarkers.push({
-        variant: "score-start",
+        variant: 'score-start',
         timestamp: 0,
       }, {
-        variant: "score-end",
+        variant: 'score-end',
         timestamp: api.endTime,
       });
 
       // --- Bar markers ---
       if (currentBarStartMs > 0) {
         barMarkers.push({
-          variant: "whole",
+          variant: 'whole',
           timestamp: currentBarStartMs,
         });
       }
 
-      const quarterNotesPerBar = (bar.masterBar.timeSignatureNumerator / bar.masterBar.timeSignatureDenominator * 4)
+      const quarterNotesPerBar = (bar.masterBar.timeSignatureNumerator / bar.masterBar.timeSignatureDenominator) * 4;
 
       // --- Quarter note bar markers ---
       for (let i = 1; i < quarterNotesPerBar; i++) {
         barMarkers.push({
-          variant: "quarter",
+          variant: 'quarter',
           timestamp: currentBarStartMs + i * PPQ * msPerTick,
-        })
+        });
       }
-    
+
       // --- Sixteenth note bar markers ---
       for (let i = 1; i < quarterNotesPerBar * 4; i++) {
         barMarkers.push({
-          variant: "sixteenth",
+          variant: 'sixteenth',
           timestamp: currentBarStartMs + i * (PPQ / 4) * msPerTick,
-        })
+        });
       }
 
       // --- Note markers ---
@@ -134,10 +134,12 @@ export const useAudioAnalysisMarkers = (
           });
         });
       });
-      
+
       currentBarStartMs += bar.masterBar.calculateDuration(true) * msPerTick;
     });
 
     return { noteMarkers, barMarkers };
-  }, [api, selectedTrackId]);
+  }, [api, selectedTrackId, getPlaybackMasterBars]);
 };
+
+export default useAudioAnalysisMarkers;

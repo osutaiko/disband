@@ -14,7 +14,7 @@ interface Track {
 }
 
 interface LibraryState {
-  api: any | null; 
+  api: any | null;
   setApi: (api: any | null) => void;
 
   selectedSong: string | null;
@@ -49,7 +49,7 @@ interface LibraryState {
   setPxPerMs: (ppm: number) => void;
 }
 
-export const useLibraryStore = create<LibraryState>((set) => ({
+const useLibraryStore = create<LibraryState>((set) => ({
   api: null,
   setApi: (api) => set({ api }),
 
@@ -58,14 +58,13 @@ export const useLibraryStore = create<LibraryState>((set) => ({
   clearSelection: () => set({ selectedSong: null }),
   songsMetadata: {},
   setSongsMetadata: (data) => set({ songsMetadata: data }),
-  upsertSongMetadata: (id, data) =>
-    set((state) => ({
-      songsMetadata: {
-        ...state.songsMetadata,
-        [id]: data,
-      },
-    })),
-  
+  upsertSongMetadata: (id, data) => set((state) => ({
+    songsMetadata: {
+      ...state.songsMetadata,
+      [id]: data,
+    },
+  })),
+
   tracks: null,
   setTracks: (tracks) => set({ tracks }),
   selectedTrackId: null,
@@ -73,7 +72,7 @@ export const useLibraryStore = create<LibraryState>((set) => ({
 
   isPlaying: false,
   setIsPlaying: (isPlaying) => set({ isPlaying }),
-  
+
   currentMs: 0,
   setCurrentMs: (current) => set({ currentMs: current }),
   endMs: 0,
@@ -90,3 +89,5 @@ export const useLibraryStore = create<LibraryState>((set) => ({
   pxPerMs: 0.25,
   setPxPerMs: (ppm) => set({ pxPerMs: ppm }),
 }));
+
+export default useLibraryStore;
