@@ -21,7 +21,7 @@ const OptionsPanel = () => {
   const [soundfontPreset, setSoundfontPreset] = useState("sonivox");
 
   return (
-    <Panel title="Options" className="h-fit" isCollapsible>
+    <Panel title="Options" className="h-fit border-b" isCollapsible>
       <div className="flex flex-col gap-1 p-2">
         <div className="flex flex-row items-center justify-between gap-4 mb-4">
           <div className="w-full flex flex-col gap-2">
