@@ -5,12 +5,12 @@ import { useAlphaTab } from "@/features/engine/useAlphaTab";
 import PlaybackHotkeys from "@/features/engine/PlaybackHotkeys";
 
 import SongOverviewPanel from "@/features/library/SongOverviewPanel";
-import SongSelectorPanel from "@/features/library/SongSelectorPanel";
+import LibraryPanel from "@/features/library/LibraryPanel";
 
 import TabViewPanel from "@/features/engine/TabViewPanel";
 import AudioAnalysisPanel from "@/features/session/AudioAnalysisPanel";  
 
-import PlaybackControlsPanel from "@/features/engine/PlaybackControlsPanel";
+import PlaybackControlPanel from "@/features/engine/PlaybackControlPanel";
 import TrackMenuPanel from "@/features/tracks/TrackMenuPanel";
 import OptionsPanel from "@/features/configuration/OptionsPanel";
 
@@ -28,7 +28,7 @@ const Shell = () => {
       {/* Left Panel Group */}
       <aside className="w-80 flex flex-col border-r">
         <SongOverviewPanel />
-        <SongSelectorPanel />
+        <LibraryPanel />
       </aside>
 
       {/* Center Panel (Tab & Recorder View) */}
@@ -44,7 +44,7 @@ const Shell = () => {
 
       {/* Right Panel Group */}
       <aside className="w-80 flex flex-col border-l">
-        <PlaybackControlsPanel />
+        <PlaybackControlPanel />
         <TrackMenuPanel />
         <OptionsPanel />
       </aside>

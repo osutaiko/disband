@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { useLibraryStore } from "@/store/useLibraryStore";
 
-import PanelHeader from "@/components/ui/PanelHeader";
+import Panel from "@/components/ui/Panel";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -21,10 +21,7 @@ const OptionsPanel = () => {
   const [soundfontPreset, setSoundfontPreset] = useState("sonivox");
 
   return (
-    <section className="h-fit flex flex-col p-4 gap-4">
-      {/* Header */}
-      <PanelHeader title="Options" />
-      
+    <Panel title="Options" className="h-fit" isCollapsible>
       <div className="flex flex-col gap-1 p-2">
         <div className="flex flex-row items-center justify-between gap-4 mb-4">
           <div className="w-full flex flex-col gap-2">
@@ -85,8 +82,7 @@ const OptionsPanel = () => {
           </Select>
         </div>
       </div>
-
-    </section>
+    </Panel>
   );
 };
 

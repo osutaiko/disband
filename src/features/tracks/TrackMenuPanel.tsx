@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import PanelHeader from "@/components/ui/PanelHeader";
+import Panel from "@/components/ui/Panel";
 
 import { RotateCw, View, Volume2, VolumeX, MicVocal, Guitar, Drum, Piano, Music } from "lucide-react";
 import { useState } from "react";
@@ -82,15 +82,16 @@ const TrackMenuPanel = () => {
   };
 
   return (
-    <section className="flex-1 h-1/2 border-b flex flex-col p-4 gap-4">
-      {/* Header */}
-      <PanelHeader title="Tracks"
-        buttons={[
+    <Panel
+      className="flex-1 h-1/2 border-b"
+      contentClassName="flex-1 overflow-hidden"
+      isCollapsible
+      title="Tracks"
+      actions={[
           { title: "Reset Track Settings", icon: <RotateCw />, onClick: handleReset }
-        ]}
-      />
-
-      <ScrollArea className="flex-1">
+      ]}
+    >
+      <ScrollArea className="h-full">
         <div className="flex flex-col w-64 gap-1 min-h-full">
           {tracks?.map((track) => {
             const isSelected = selectedTrackId === track.index;
@@ -165,7 +166,7 @@ const TrackMenuPanel = () => {
           })}
         </div>
       </ScrollArea>
-    </section>
+    </Panel>
   );
 };
 

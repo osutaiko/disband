@@ -1,5 +1,5 @@
 import { useLibraryStore } from "@/store/useLibraryStore";
-import PanelHeader from "@/components/ui/PanelHeader";
+import Panel from "@/components/ui/Panel";
 
 import { Calendar, User } from "lucide-react";
 
@@ -14,12 +14,7 @@ const SongOverviewPanel = () => {
   const { songsMetadata, selectedSong } = useLibraryStore();
 
   return (
-    <section className="h-min border-b flex flex-col p-4 gap-4">
-      {/* Header */}
-      <PanelHeader
-        title="Song Overview"
-      />
-
+    <Panel className="h-min border-b">
       {selectedSong ? (
         <div className="flex flex-col gap-4 p-2">
           <div className="flex flex-col gap-1">
@@ -42,9 +37,9 @@ const SongOverviewPanel = () => {
           </p>
         </div>
       ) : (
-        <p className="p-2 text-muted-foreground">No song selected</p>
+        <h3 className="p-2 text-muted-foreground">No song selected</h3>
       )}
-    </section>
+    </Panel>
   );
 };
 
