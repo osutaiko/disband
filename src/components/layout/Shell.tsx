@@ -6,6 +6,7 @@ import PlaybackHotkeys from "@/features/engine/PlaybackHotkeys";
 
 import SongOverviewPanel from "@/features/library/SongOverviewPanel";
 import LibraryPanel from "@/features/library/LibraryPanel";
+import SessionPanel from "@/features/session/SessionPanel";
 
 import TabViewPanel from "@/features/engine/TabViewPanel";
 import AudioAnalysisPanel from "@/features/session/AudioAnalysisPanel";  
@@ -29,6 +30,7 @@ const Shell = () => {
       <aside className="w-80 flex flex-col border-r">
         <SongOverviewPanel />
         <LibraryPanel />
+        <SessionPanel />
       </aside>
 
       {/* Center Panel (Tab & Recorder View) */}

@@ -83,7 +83,7 @@ const TrackMenuPanel = () => {
 
   return (
     <Panel
-      className="flex-1 h-1/2 border-b"
+      className="flex flex-col overflow-hidden border-b"
       contentClassName="flex-1 overflow-hidden"
       isCollapsible
       title="Tracks"

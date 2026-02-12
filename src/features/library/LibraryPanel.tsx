@@ -34,7 +34,7 @@ const LibraryPanel = () => {
 
   return (
     <Panel
-      className="flex flex-col h-full overflow-hidden"
+      className="flex flex-col overflow-hidden border-b"
       contentClassName="flex-1 overflow-hidden"
       isCollapsible
       title="Library"
