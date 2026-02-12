@@ -1,17 +1,17 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef } from 'react';
 
-export const RealtimeWaveform = ({
+function RealtimeWaveform({
   audioBufferRef,
   className,
 }: {
   audioBufferRef: React.MutableRefObject<Float32Array>;
   className?: string;
-}) => {
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current!;
-    const ctx = canvas.getContext("2d")!;
+    const ctx = canvas.getContext('2d')!;
     const dpr = window.devicePixelRatio || 1;
     let animationId = 0;
 
@@ -39,7 +39,7 @@ export const RealtimeWaveform = ({
       const displayHeight = Math.max(1, Math.floor(canvas.clientHeight));
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.strokeStyle = "#a855f7";
+      ctx.strokeStyle = '#a855f7';
       ctx.lineWidth = dpr;
       ctx.beginPath();
 
@@ -51,7 +51,9 @@ export const RealtimeWaveform = ({
         const y = mid - sample * mid;
         const px = x * dpr;
         const py = y * dpr;
-        x === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+
+        if (x === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
       }
 
       ctx.stroke();
@@ -66,6 +68,6 @@ export const RealtimeWaveform = ({
   }, [audioBufferRef]);
 
   return <canvas ref={canvasRef} className={className} />;
-};
+}
 
 export default RealtimeWaveform;
