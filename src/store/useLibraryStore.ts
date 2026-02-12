@@ -22,6 +22,7 @@ interface LibraryState {
   clearSelection: () => void;
   songsMetadata: Record<string, SongMetadata>
   setSongsMetadata: (data: Record<string, SongMetadata>) => void
+  upsertSongMetadata: (id: string, data: SongMetadata) => void
 
   tracks: Track[] | null;
   setTracks: (tracks: Track[] | null) => void;
@@ -54,6 +55,13 @@ export const useLibraryStore = create<LibraryState>((set) => ({
   clearSelection: () => set({ selectedSong: null }),
   songsMetadata: {},
   setSongsMetadata: (data) => set({ songsMetadata: data }),
+  upsertSongMetadata: (id, data) =>
+    set((state) => ({
+      songsMetadata: {
+        ...state.songsMetadata,
+        [id]: data,
+      },
+    })),
   
   tracks: null,
   setTracks: (tracks) => set({ tracks }),
