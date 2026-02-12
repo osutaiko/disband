@@ -67,7 +67,7 @@ const TabViewPanel = ({
     <section className="flex-1 flex flex-col relative w-full h-full overflow-hidden">
       {!selectedSong && (
         <div className="flex flex-1 items-center justify-center">
-          <h2 className="text-[18px]">No Song Selected</h2>
+          <h2>No Song Selected</h2>
         </div>
       )}
 
@@ -94,7 +94,7 @@ const TabViewPanel = ({
       {/* Zoom Controls */}
       {selectedSong && !isTabLoading && (
         <div className="absolute bottom-6 right-6 z-50 flex items-center gap-3 bg-background border px-4 py-2 rounded-full shadow-md opacity-50 hover:opacity-100 transition-opacity duration-300">
-          <ZoomOut size={16} className="text-grayed" />
+          <ZoomOut size={16} className="text-muted-foreground" />
           <Slider
             className="w-32"
             value={[zoom * 100]}
@@ -104,7 +104,7 @@ const TabViewPanel = ({
             onValueChange={(vals) => setZoom(vals[0] / 100)}
             onValueCommit={(vals) => applyZoom(vals[0] / 100)}
           />
-          <ZoomIn size={16} className="text-grayed" />
+          <ZoomIn size={16} className="text-muted-foreground" />
           <span className="text-xs font-mono min-w-8 text-end">{Math.round(zoom * 100)}%</span>
         </div>
       )}

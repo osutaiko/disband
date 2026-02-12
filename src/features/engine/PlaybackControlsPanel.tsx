@@ -43,12 +43,12 @@ const PlaybackControlsPanel = () => {
         <div title="Time" className="flex flex-row w-2/3 justify-center items-center gap-1 bg-muted rounded-md p-2">
           <p>
             {current.minutes}:{current.seconds.toString().padStart(2, "0")}
-            <span className="text-[9px] text-grayed">.{current.milliseconds.toString().padStart(3, "0")}</span>
+            <span className="text-muted-foreground text-xs">.{current.milliseconds.toString().padStart(3, "0")}</span>
           </p>
           <p>/</p>
           <p>
             {end.minutes}:{end.seconds.toString().padStart(2, "0")}
-            <span className="text-[9px] text-grayed">.{end.milliseconds.toString().padStart(3, "0")}</span>
+            <span className="text-muted-foreground text-xs">.{end.milliseconds.toString().padStart(3, "0")}</span>
           </p>
         </div>
         <div title="Bar" className="flex flex-row w-1/3 justify-center items-center gap-1 bg-muted rounded-md p-2">

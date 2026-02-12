@@ -61,11 +61,11 @@ const SongSelectorPanel = () => {
               >
                 <Button
                   variant={selectedSong === song ? "default" : "ghost"}
-                  className="px-2 flex-1 justify-start overflow-hidden text-[11px] truncate"
+                  className="px-2 flex-1 justify-start overflow-hidden truncate"
                   onClick={() => {if (selectedSong !== song) setConfirming(song)}}
                   title={song}
                 >
-                  <span className="text-[11px] truncate">
+                  <span className="truncate">
                     {meta ? `${meta.artist} - ${meta.title}` : song}
                   </span>
                 </Button>
