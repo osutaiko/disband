@@ -82,7 +82,7 @@ const TrackMenuPanel = () => {
   };
 
   return (
-    <section className="h-1/2 border-b flex flex-col p-4 gap-4">
+    <section className="flex-1 h-1/2 border-b flex flex-col p-4 gap-4">
       {/* Header */}
       <PanelHeader title="Tracks"
         buttons={[
