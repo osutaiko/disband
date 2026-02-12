@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain } from 'electron'
 import { fileURLToPath } from 'node:url'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -45,7 +45,9 @@ function createWindow() {
   }
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+  createWindow()
+})
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
@@ -177,13 +179,53 @@ ipcMain.handle("audio-stop", async () => {
 });
 
 // --- IPC Handlers --- //
-// Reveal Songs folder in user's file explorer
-ipcMain.on('open-songs-folder', () => {
+// Open a song picker and import the chosen file into Songs.
+ipcMain.handle('open-songs-folder', async () => {
   if (!fs.existsSync(SONGS_PATH)) {
     fs.mkdirSync(SONGS_PATH, { recursive: true })
   }
-  
-  shell.openPath(SONGS_PATH)
+
+  const picker = win
+    ? await dialog.showOpenDialog(win, {
+        title: 'Select Song File',
+        defaultPath: SONGS_PATH,
+        properties: ['openFile'],
+        filters: [
+          {
+            name: 'Guitar Pro Files',
+            extensions: SUPPORTED_EXTENSIONS.map((ext) => ext.slice(1)),
+          },
+        ],
+      })
+    : await dialog.showOpenDialog({
+    title: 'Select Song File',
+    defaultPath: SONGS_PATH,
+    properties: ['openFile'],
+    filters: [
+      {
+        name: 'Guitar Pro Files',
+        extensions: SUPPORTED_EXTENSIONS.map((ext) => ext.slice(1)),
+      },
+    ],
+  })
+
+  if (picker.canceled || picker.filePaths.length === 0) {
+    return null
+  }
+
+  const selectedPath = picker.filePaths[0]
+  const selectedName = path.basename(selectedPath)
+  const selectedExt = path.extname(selectedName).toLowerCase()
+  if (!SUPPORTED_EXTENSIONS.includes(selectedExt)) {
+    return null
+  }
+
+  const destination = path.join(SONGS_PATH, selectedName)
+  if (path.resolve(destination) !== path.resolve(selectedPath)) {
+    fs.copyFileSync(selectedPath, destination)
+  }
+
+  return selectedName
 })
 
 // Return list of .gp* files in Songs folder
