@@ -23,9 +23,9 @@ const SongOverviewPanel = () => {
       {selectedSong ? (
         <div className="flex flex-col gap-4 p-2">
           <div className="flex flex-col gap-1">
-            <p className="truncate">
+            <h3 className="truncate">
               {songsMetadata[selectedSong]?.title}
-            </p>
+            </h3>
             <p className="text-muted-foreground flex items-center gap-1">
               <User size={12} /> {songsMetadata[selectedSong]?.artist}
             </p>

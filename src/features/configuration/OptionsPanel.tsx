@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 
 const OptionsPanel = () => {
-  const [judgmentHarshness, setJudgmentHarshness] = useState(60);
+  const [judgmentHarshness, setJudgmentHarshness] = useState(6);
   const [scrollSpeed, setScrollSpeed] = useState(0.25);
   const [judgeByMode, setJudgeByMode] = useState("reference-notes");
   const [soundfontPreset, setSoundfontPreset] = useState("sonivox");
