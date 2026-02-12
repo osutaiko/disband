@@ -22,7 +22,7 @@ const useAlphaTab = (
   };
 
   useEffect(() => {
-    if (!containerRef || !containerRef.current || !selectedSong) return;
+    if (!containerRef || !containerRef.current || !selectedSong) return undefined;
 
     const initAlphaTab = async () => {
       setIsTabLoading(true);
@@ -116,7 +116,8 @@ const useAlphaTab = (
         setApi(null);
       }
     };
-  }, [selectedSong, setApi, setIsPlaying, containerRef]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSong, containerRef]);
 
   useEffect(() => {
     if (apiRef.current && apiRef.current.score && selectedTrackId !== null) {
@@ -125,7 +126,7 @@ const useAlphaTab = (
         apiRef.current.renderTracks([track]);
       }
     }
-  }, [apiRef.current, selectedTrackId]);
+  }, [selectedTrackId]);
 
   return {
     isTabLoading,

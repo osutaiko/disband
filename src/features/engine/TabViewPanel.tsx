@@ -1,5 +1,5 @@
 import {
-  useEffect, RefObject, useRef, useState,
+  useEffect, RefObject, useRef, useState, useCallback,
 } from 'react';
 import { ZoomIn, ZoomOut } from 'lucide-react';
 import useLibraryStore from '@/store/useLibraryStore';
@@ -21,15 +21,16 @@ function TabViewPanel({
   const [zoom, setZoom] = useState<number>(1.0);
   const scrollAreaRef = useRef<HTMLDivElement | null>(null);
 
-  const applyZoom = (newZoom: number) => {
+  const applyZoom = useCallback((newZoom: number) => {
     if (!api) return;
+
     const clampedZoom = Math.min(Math.max(newZoom, ZOOM_MIN), ZOOM_MAX);
     setZoom(clampedZoom);
 
     api.settings.display.scale = clampedZoom;
     api.updateSettings();
     api.render();
-  };
+  }, [api]);
 
   useEffect(() => {
     setZoom(1.0);
@@ -48,7 +49,7 @@ function TabViewPanel({
 
   // Ctrl + scroll behavior
   useEffect(() => {
-    if (!containerRef) return;
+    if (!containerRef) return undefined;
 
     const handleWheel = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
@@ -63,7 +64,7 @@ function TabViewPanel({
       window.addEventListener('wheel', handleWheel, { passive: false });
     }
     return () => window.removeEventListener('wheel', handleWheel);
-  }, [api, zoom]);
+  }, [api, zoom, applyZoom, containerRef]);
 
   return (
     <section className="flex-1 flex flex-col relative w-full h-full overflow-hidden">

@@ -9,7 +9,7 @@ const useSongMetadata = () => {
     const songFiles: string[] = await window.electron.getSongs();
     const result: Record<string, any> = {};
 
-    for (const id of songFiles) {
+    songFiles.map(async (id) => {
       try {
         const data = await window.electron.getSongData(id);
 
@@ -41,12 +41,9 @@ const useSongMetadata = () => {
           tempo: 0,
         };
       }
-    }
+    });
 
     setSongsMetadata(result);
-
-    // Yield to UI between songs
-    await new Promise((r) => setTimeout(r, 0));
   }, [setSongsMetadata]);
 
   useEffect(() => {

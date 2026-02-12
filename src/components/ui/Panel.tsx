@@ -10,7 +10,7 @@ type PanelAction = {
   onClick: () => void;
 };
 
-function Panel({
+const Panel = ({
   title,
   actions = [],
   isCollapsible = false,
@@ -26,7 +26,7 @@ function Panel({
   className?: string;
   contentClassName?: string;
   children: React.ReactNode;
-}) {
+}) => {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
   return (
