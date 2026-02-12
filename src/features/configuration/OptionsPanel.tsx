@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import { useLibraryStore } from "@/store/useLibraryStore";
+
 import PanelHeader from "@/components/ui/PanelHeader";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
@@ -12,8 +14,9 @@ import {
 } from "@/components/ui/select";
 
 const OptionsPanel = () => {
+  const { pxPerMs, setPxPerMs } = useLibraryStore();
+
   const [judgmentHarshness, setJudgmentHarshness] = useState(6);
-  const [scrollSpeed, setScrollSpeed] = useState(0.25);
   const [judgeByMode, setJudgeByMode] = useState("reference-notes");
   const [soundfontPreset, setSoundfontPreset] = useState("sonivox");
 
@@ -43,15 +46,15 @@ const OptionsPanel = () => {
           <div className="w-full flex flex-col gap-2">
             <div className="flex flex-row items-center justify-between gap-4">
               <Label htmlFor="scroll-speed">Scroll Speed</Label>
-              <span className="text-sm text-muted-foreground">{scrollSpeed.toFixed(2)} px/ms</span>
+              <span className="text-sm text-muted-foreground">{pxPerMs.toFixed(2)} px/ms</span>
             </div>
             <Slider
               id="scroll-speed"
-              value={[scrollSpeed]}
+              value={[pxPerMs]}
               min={0.05}
-              max={1.0}
-              step={0.01}
-              onValueChange={(vals) => setScrollSpeed(vals[0] ?? scrollSpeed)}
+              max={2.0}
+              step={0.05}
+              onValueChange={(vals) => setPxPerMs(vals[0] ?? pxPerMs)}
             />
           </div>
         </div>

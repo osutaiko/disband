@@ -18,7 +18,7 @@ const AudioAnalysisPanel = ({
 }: {
   currentMsRef: RefObject<number>;
 }) => {
-  const { api, selectedTrackId, currentMs, setCurrentMs, endMs, isPlaying } = useLibraryStore();
+  const { api, selectedTrackId, currentMs, setCurrentMs, endMs, isPlaying, pxPerMs } = useLibraryStore();
   const {
     noteMarkers = [],
     barMarkers = [],
@@ -31,7 +31,6 @@ const AudioAnalysisPanel = ({
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [recordedRange, setRecordedRange] = useState<{ startMs: number; endMs: number } | null>(null);
 
-  const pxPerMs = 0.20;
   const playheadOffset = 200;
 
   // Panel padding "p-6"
@@ -42,9 +41,8 @@ const AudioAnalysisPanel = ({
   const totalTrackWidth = endMs * pxPerMs + (2 * trackStartPadding);
   const currentTranslation = playheadOffset - (currentMs * pxPerMs + trackStartPadding + panelPadding);
 
-  const visibleRangeMs = 5000;
-  const windowStart = currentMs - visibleRangeMs;
-  const windowEnd = currentMs + visibleRangeMs;
+  const windowStart = currentMs - 500 / pxPerMs;
+  const windowEnd = currentMs + 2000 / pxPerMs;
 
   const visibleNoteMarkers = noteMarkers.filter(
     (m) =>
