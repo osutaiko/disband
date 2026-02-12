@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { useState } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import cn from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 type PanelAction = {
   title: string;
@@ -30,7 +30,7 @@ const Panel = ({
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
   return (
-    <section className={cn("flex flex-col p-4 gap-4", className)}>
+    <section className={cn('flex flex-col p-4 gap-4', className)}>
       {title && (
         <div className="flex items-center justify-between shrink-0">
           {isCollapsible ? (
@@ -64,6 +64,6 @@ const Panel = ({
       {!isCollapsed && <div className={contentClassName}>{children}</div>}
     </section>
   );
-};
+}
 
 export default Panel;

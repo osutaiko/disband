@@ -1,35 +1,43 @@
-import { RefObject, useCallback, useEffect, useRef, useState } from "react";
+import {
+  RefObject, useCallback, useEffect, useRef, useState,
+} from 'react';
 
-import { useLibraryStore } from "@/store/useLibraryStore";
-import { useAudioAnalysisMarkers } from "./useAudioAnalysisMarkers";
-import { useRealtimeAudio } from "./useRealtimeAudio";
+import { Circle, Trash } from 'lucide-react';
+import useLibraryStore from '@/store/useLibraryStore';
+import useAudioAnalysisMarkers from './useAudioAnalysisMarkers';
+import useRealtimeAudio from './useRealtimeAudio';
 
-import { handlePlayPause } from "../engine/playback";
+import { handlePlayPause } from '../engine/playback';
 
-import BarMarker from "./BarMarker";
-import NoteMarker from "./NoteMarker";
-import RealtimeWaveform from "./RealtimeWaveform";
+import BarMarker from './BarMarker';
+import NoteMarker from './NoteMarker';
+import RealtimeWaveform from './RealtimeWaveform';
 
-import { Button } from "@/components/ui/button";
-import { Circle, Trash } from "lucide-react";
+import { Button } from '@/components/ui/button';
 
-const AudioAnalysisPanel = ({
+function AudioAnalysisPanel({
   currentMsRef,
 }: {
   currentMsRef: RefObject<number>;
-}) => {
-  const { api, selectedTrackId, currentMs, setCurrentMs, endMs, isPlaying, pxPerMs } = useLibraryStore();
+}) {
+  const {
+    api, selectedTrackId, currentMs, setCurrentMs, endMs, isPlaying, pxPerMs,
+  } = useLibraryStore();
   const {
     noteMarkers = [],
     barMarkers = [],
   } = useAudioAnalysisMarkers(api, selectedTrackId);
-  
-  const { bufferRef: audioBufferRef, reset, start, stop } = useRealtimeAudio();
+
+  const {
+    bufferRef: audioBufferRef, reset, start, stop,
+  } = useRealtimeAudio();
   const recordStartMsRef = useRef<number | null>(null);
   const wasPlayingRef = useRef(isPlaying);
 
   const [isRecording, setIsRecording] = useState<boolean>(false);
-  const [recordedRange, setRecordedRange] = useState<{ startMs: number; endMs: number } | null>(null);
+  const [recordedRange, setRecordedRange] = useState<
+  { startMs: number; endMs: number } | null
+  >(null);
 
   const playheadOffset = 200;
 
@@ -39,31 +47,31 @@ const AudioAnalysisPanel = ({
   // Padding before/after time=0
   const trackStartPadding = 1000;
   const totalTrackWidth = endMs * pxPerMs + (2 * trackStartPadding);
-  const currentTranslation = playheadOffset - (currentMs * pxPerMs + trackStartPadding + panelPadding);
+  const currentTranslation = playheadOffset
+      - (currentMs * pxPerMs + trackStartPadding + panelPadding);
 
   const windowStart = currentMs - 500 / pxPerMs;
   const windowEnd = currentMs + 2000 / pxPerMs;
 
   const visibleNoteMarkers = noteMarkers.filter(
-    (m) =>
-      m.timestamp + m.length >= windowStart &&
-      m.timestamp <= windowEnd
+    (m) => m.timestamp + m.length >= windowStart
+      && m.timestamp <= windowEnd,
   );
   const visibleBarMarkers = barMarkers.slice(1).filter(
-    (m) => m.timestamp >= windowStart && m.timestamp <= windowEnd
+    (m) => m.timestamp >= windowStart && m.timestamp <= windowEnd,
   );
 
   const quarterBarTimestamps = barMarkers
-    .filter((m) => m.variant === "whole" || m.variant === "quarter")
+    .filter((m) => m.variant === 'whole' || m.variant === 'quarter')
     .map((m) => m.timestamp)
     .sort((a, b) => a - b);
 
-  const getSnappedQuarterEndMs = useCallback((startMs: number, endMs: number) => {
+  const getSnappedQuarterEndMs = useCallback((rawStartMs: number, rawEndMs: number) => {
     const nextQuarterMs = quarterBarTimestamps.find(
-      (timestamp) => timestamp > endMs && timestamp > startMs
+      (timestamp) => timestamp > rawEndMs && timestamp > rawStartMs,
     );
     if (nextQuarterMs !== undefined) return nextQuarterMs;
-    return endMs;
+    return rawEndMs;
   }, [quarterBarTimestamps]);
 
   useEffect(() => {
@@ -93,7 +101,7 @@ const AudioAnalysisPanel = ({
     if (api?.playerState === 1) {
       api.pause();
     }
-  }, [api, currentMs, getSnappedQuarterEndMs, stop]);
+  }, [api, currentMs, currentMsRef, stop]);
 
   let activeWaveformRange = recordedRange;
 
@@ -135,9 +143,9 @@ const AudioAnalysisPanel = ({
             transform: `translateX(${currentTranslation}px)`,
           }}
         >
-          {visibleBarMarkers.map((marker, index) => (
+          {visibleBarMarkers.map((marker) => (
             <BarMarker
-              key={index}
+              key={`${marker.variant}-${marker.timestamp}`}
               variant={marker.variant}
               timestamp={marker.timestamp}
               pxPerMs={pxPerMs}
@@ -147,21 +155,21 @@ const AudioAnalysisPanel = ({
 
           <div className="relative w-full h-[40px] bg-secondary py-2 z-20">
             {/* Note Markers */}
-            {visibleNoteMarkers.map((marker, index) => (
-              <NoteMarker 
-                key={index}
+            {visibleNoteMarkers.map((marker) => (
+              <NoteMarker
+                key={`${marker.timestamp}:${marker.length}`}
                 timestamp={marker.timestamp}
                 length={marker.length}
                 offsetBase={trackStartPadding}
                 pxPerMs={pxPerMs}
                 isCurrentlyPlaying={
-                  currentMs >= marker.timestamp &&
-                  currentMs < marker.timestamp + marker.length
+                  currentMs >= marker.timestamp
+                  && currentMs < marker.timestamp + marker.length
                 }
               />
             ))}
           </div>
-          
+
           {/* Recorded Audio */}
           <div className="relative w-full h-[120px] bg-secondary py-2 z-20">
             <div
@@ -181,8 +189,8 @@ const AudioAnalysisPanel = ({
 
       <div className="absolute bottom-6 right-6 z-50 flex flex-col items-center gap-2 bg-background border px-2 py-2 rounded-full shadow-md">
         <Button
-          variant={isRecording ? "destructive" : "secondary"}
-          size="icon" 
+          variant={isRecording ? 'destructive' : 'secondary'}
+          size="icon"
           className="rounded-full w-7 h-7 flex-0 aspect-square"
           onClick={() => {
             if (!isRecording) {
@@ -201,20 +209,20 @@ const AudioAnalysisPanel = ({
             stopRecording();
           }}
         >
-          <Circle stroke={isRecording ? "white" : "red"} />
+          <Circle stroke={isRecording ? 'white' : 'red'} />
         </Button>
         <Button // TODO: confirmation dialog
-          size="icon" 
+          size="icon"
           className="rounded-full w-7 h-7 flex-0 aspect-square"
           onClick={() => {
-              if (isRecording) {
-                stopRecording();
-              }
+            if (isRecording) {
+              stopRecording();
+            }
 
-              setRecordedRange(null);
-              recordStartMsRef.current = null;
-              reset();
-            }}
+            setRecordedRange(null);
+            recordStartMsRef.current = null;
+            reset();
+          }}
         >
           <Trash className="text-white" />
         </Button>
@@ -229,23 +237,23 @@ const AudioAnalysisPanel = ({
           bottom: `${panelPadding}px`,
         }}
       >
-        <div 
-          className="absolute top-0 -translate-y-full left-1/2 -translate-x-1/2 
-                    w-0 h-0 
-                    border-l-[6px] border-l-transparent 
-                    border-r-[6px] border-r-transparent 
-                    border-t-[8px] border-t-red-500" 
+        <div
+          className="absolute top-0 -translate-y-full left-1/2 -translate-x-1/2
+                    w-0 h-0
+                    border-l-[6px] border-l-transparent
+                    border-r-[6px] border-r-transparent
+                    border-t-[8px] border-t-red-500"
         />
-        <div 
-          className="absolute bottom-0 translate-y-full left-1/2 -translate-x-1/2 
-                    w-0 h-0 
-                    border-l-[6px] border-l-transparent 
-                    border-r-[6px] border-r-transparent 
-                    border-b-[8px] border-b-red-500" 
-        />  
+        <div
+          className="absolute bottom-0 translate-y-full left-1/2 -translate-x-1/2
+                    w-0 h-0
+                    border-l-[6px] border-l-transparent
+                    border-r-[6px] border-r-transparent
+                    border-b-[8px] border-b-red-500"
+        />
       </div>
     </section>
   );
-};
+}
 
 export default AudioAnalysisPanel;

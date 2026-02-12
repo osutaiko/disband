@@ -1,4 +1,4 @@
-import Shell from "@/components/layout/Shell";
+import Shell from '@/components/layout/Shell';
 
 function App() {
   return (

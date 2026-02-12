@@ -1,14 +1,17 @@
-import { useEffect, useRef, useState } from "react";
-import { AlphaTabApi, Settings } from "@coderline/alphatab";
-import { useLibraryStore } from "@/store/useLibraryStore";
+import { useEffect, useRef, useState } from 'react';
+import { AlphaTabApi, Settings } from '@coderline/alphatab';
+import useLibraryStore from '@/store/useLibraryStore';
 
-import alphaTabSettings from "./alphaTabSettings.json";
+import alphaTabSettings from './alphaTabSettings.json';
 
-export const useAlphaTab = (
+const useAlphaTab = (
   containerRef: React.RefObject<HTMLDivElement | null>,
-  selectedSong: string | null
+  selectedSong: string | null,
 ) => {
-  const { setApi, setIsPlaying, setTracks, setEndMs, setCurrentBar, setEndBar, selectedTrackId, setSelectedTrackId } = useLibraryStore();
+  const {
+    setApi, setIsPlaying, setTracks, setEndMs,
+    setCurrentBar, setEndBar, selectedTrackId, setSelectedTrackId,
+  } = useLibraryStore();
 
   const [isTabLoading, setIsTabLoading] = useState(false);
   const apiRef = useRef<AlphaTabApi | null>(null);
@@ -19,11 +22,11 @@ export const useAlphaTab = (
   };
 
   useEffect(() => {
-    if (!containerRef || !containerRef.current || !selectedSong) return;
+    if (!containerRef || !containerRef.current || !selectedSong) return undefined;
 
     const initAlphaTab = async () => {
       setIsTabLoading(true);
-    
+
       try {
         // Fetch binary data via Electron
         const data = await window.electron.getSongData(selectedSong);
@@ -48,11 +51,11 @@ export const useAlphaTab = (
             // --- Event Listeners --- //
             api.scoreLoaded.on((score) => {
               setTracks(score.tracks);
-              const trackExists = score.tracks.some(t => t.index === selectedTrackId);
+              const trackExists = score.tracks.some((t) => t.index === selectedTrackId);
               if (!trackExists && score.tracks.length > 0) {
-                setSelectedTrackId(score.tracks[0].index); 
+                setSelectedTrackId(score.tracks[0].index);
               }
-              
+
               if (score.tracks.length > 0) {
                 setEndBar(score.tracks[0].staves[0].bars.length);
               }
@@ -83,23 +86,23 @@ export const useAlphaTab = (
             });
 
             api.playedBeatChanged.on((beat) => {
-              setCurrentBar(beat.voice.bar.index + 1) // 1-based
+              setCurrentBar(beat.voice.bar.index + 1); // 1-based
             });
 
             api.error.on((e) => {
-              console.error("AlphaTab API error:", e);
+              console.error('AlphaTab API error:', e);
               onError();
             });
 
             // Load data
             api.load(uint8Data);
           } catch (e) {
-            console.error("AlphaTab init failed:", e);
+            console.error('AlphaTab init failed:', e);
             onError();
           }
         }, 150);
       } catch (e) {
-        console.error("AlphaTab data fetch error:", e);
+        console.error('AlphaTab data fetch error:', e);
         onError();
       }
     };
@@ -113,19 +116,22 @@ export const useAlphaTab = (
         setApi(null);
       }
     };
-  }, [selectedSong, setApi, setIsPlaying, containerRef]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSong, containerRef]);
 
   useEffect(() => {
     if (apiRef.current && apiRef.current.score && selectedTrackId !== null) {
-      const track = apiRef.current.score.tracks.find(t => t.index === selectedTrackId);
+      const track = apiRef.current.score.tracks.find((t) => t.index === selectedTrackId);
       if (track) {
         apiRef.current.renderTracks([track]);
       }
     }
-  }, [apiRef.current, selectedTrackId]);
+  }, [selectedTrackId]);
 
   return {
     isTabLoading,
     currentMsRef,
   };
 };
+
+export default useAlphaTab;
