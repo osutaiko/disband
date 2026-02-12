@@ -25,7 +25,9 @@ export interface IElectronAPI {
   openSongsFolder: () => Promise<string | null>;
   getSongs: () => Promise<string[]>;
   getSongData: (filename: string) => Promise<Uint8Array>;
-  startAudioCapture: () => Promise<{ ok: boolean; sidecarFound?: boolean; port?: number; alreadyRunning?: boolean }>;
+  startAudioCapture: () => Promise<{
+    ok: boolean; sidecarFound?: boolean; port?: number; alreadyRunning?: boolean
+  }>;
   stopAudioCapture: () => Promise<{ ok: boolean; alreadyStopped?: boolean }>;
   onAudioCaptureChunk: (handler: (data: ArrayBuffer) => void) => () => void;
   onAudioCaptureMessage: (handler: (message: string) => void) => () => void;

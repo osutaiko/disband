@@ -35,7 +35,9 @@ function AudioAnalysisPanel({
   const wasPlayingRef = useRef(isPlaying);
 
   const [isRecording, setIsRecording] = useState<boolean>(false);
-  const [recordedRange, setRecordedRange] = useState<{ startMs: number; endMs: number } | null>(null);
+  const [recordedRange, setRecordedRange] = useState<
+  { startMs: number; endMs: number } | null
+  >(null);
 
   const playheadOffset = 200;
 
@@ -45,7 +47,8 @@ function AudioAnalysisPanel({
   // Padding before/after time=0
   const trackStartPadding = 1000;
   const totalTrackWidth = endMs * pxPerMs + (2 * trackStartPadding);
-  const currentTranslation = playheadOffset - (currentMs * pxPerMs + trackStartPadding + panelPadding);
+  const currentTranslation = playheadOffset
+      - (currentMs * pxPerMs + trackStartPadding + panelPadding);
 
   const windowStart = currentMs - 500 / pxPerMs;
   const windowEnd = currentMs + 2000 / pxPerMs;

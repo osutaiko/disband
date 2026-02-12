@@ -7,10 +7,10 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { SUPPORTED_EXTENSIONS } from '../shared/constants';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const fileName = fileURLToPath(import.meta.url);
+const dirName = path.dirname(fileName);
 
-process.env.APP_ROOT = path.join(__dirname, '..');
+process.env.APP_ROOT = path.join(dirName, '..');
 const { VITE_DEV_SERVER_URL } = process.env;
 
 let win: BrowserWindow | null = null;

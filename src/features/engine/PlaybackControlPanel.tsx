@@ -14,7 +14,7 @@ function PlaybackControlPanel() {
 
   const parseMs = (ms: number) => ({
     minutes: Math.floor(ms / 60000),
-    seconds: Math.floor(ms % 60000 / 1000),
+    seconds: Math.floor((ms % 60000) / 1000),
     milliseconds: Math.floor(ms % 1000),
   });
 
