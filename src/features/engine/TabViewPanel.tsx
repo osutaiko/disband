@@ -49,22 +49,28 @@ function TabViewPanel({
 
   // Ctrl + scroll behavior
   useEffect(() => {
-    if (!containerRef) return undefined;
+    const container = containerRef?.current;
+    if (!container) return;
 
     const handleWheel = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
         const delta = e.deltaY > 0 ? -0.1 : 0.1;
-        applyZoom(zoom + delta);
+
+        setZoom((prev) => {
+          const next = prev + delta;
+          applyZoom(next);
+          return next;
+        });
       }
     };
 
-    const container = containerRef.current;
-    if (container) {
-      window.addEventListener('wheel', handleWheel, { passive: false });
-    }
-    return () => window.removeEventListener('wheel', handleWheel);
-  }, [api, zoom, applyZoom, containerRef]);
+    container.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      container.removeEventListener('wheel', handleWheel);
+    };
+  }, [applyZoom, containerRef]);
 
   return (
     <section className="flex-1 flex flex-col relative w-full h-full overflow-hidden">
@@ -117,5 +123,3 @@ function TabViewPanel({
     </section>
   );
 }
-
-export default TabViewPanel;
