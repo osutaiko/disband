@@ -16,11 +16,17 @@ const NoteMarker = ({
 
   return (
     <div
-      className={`absolute h-[calc(100%-16px)] border-l-4 ${isCurrentlyPlaying ? "border-note-playing-start bg-note-playing-middle" : "border-note-start bg-note-middle"}`}
+      className={`
+        absolute h-[calc(100%-16px)] border-l-2
+        ${isCurrentlyPlaying ? "border-note-playing-start bg-note-playing-middle" : "border-note-start bg-note-middle"}
+      `}
       style={{
         left: `${left}px`,
         width: `${width}px`,
-        clipPath: "polygon(0 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 0 100%)",
+        clipPath:
+          width >= 12
+            ? "polygon(0 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 0 100%)"
+            : undefined,
       }}
     />
   )

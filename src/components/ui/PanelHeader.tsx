@@ -14,7 +14,7 @@ const PanelHeader = ({
 }) => {
   return (
     <div className="flex items-center justify-between shrink-0">
-      <h2 className="p-2">{title}</h2>
+      <h2 className="underline p-2">{title}</h2>
       <div className="flex gap-1">
         {buttons.map((button, index) => (
           <Button

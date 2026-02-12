@@ -142,7 +142,7 @@
   }
 
   h2 {
-    @apply uppercase underline text-lg tracking-[0.15em] font-semibold text-muted-foreground;
+    @apply uppercase text-lg tracking-[0.15em] font-semibold text-muted-foreground;
   }
 
   p {
