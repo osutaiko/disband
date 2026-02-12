@@ -22,12 +22,12 @@ const OptionsPanel = () => {
       {/* Header */}
       <PanelHeader title="Options" />
       
-      <div className="flex flex-col gap-4 p-2">
-        <div className="flex flex-row items-center justify-between gap-4">
-          <div className="w-full flex flex-col gap-3">
+      <div className="flex flex-col gap-1 p-2">
+        <div className="flex flex-row items-center justify-between gap-4 mb-4">
+          <div className="w-full flex flex-col gap-2">
             <div className="flex flex-row items-center justify-between gap-4">
               <Label htmlFor="judgment-harshness">Judgment Harshness</Label>
-              <span className="text-xs text-grayed">{judgmentHarshness}</span>
+              <span className="text-sm text-muted-foreground">{judgmentHarshness}</span>
             </div>
             <Slider
               id="judgment-harshness"
@@ -39,11 +39,11 @@ const OptionsPanel = () => {
           </div>
         </div>
 
-        <div className="flex flex-row items-center justify-between gap-4">
-          <div className="w-full flex flex-col gap-3">
+        <div className="flex flex-row items-center justify-between gap-4 mb-2">
+          <div className="w-full flex flex-col gap-2">
             <div className="flex flex-row items-center justify-between gap-4">
               <Label htmlFor="scroll-speed">Scroll Speed</Label>
-              <span className="text-xs text-grayed">{scrollSpeed.toFixed(2)} px/ms</span>
+              <span className="text-sm text-muted-foreground">{scrollSpeed.toFixed(2)} px/ms</span>
             </div>
             <Slider
               id="scroll-speed"
@@ -59,7 +59,7 @@ const OptionsPanel = () => {
         <div className="flex flex-row items-center justify-between gap-4">
           <Label htmlFor="judge-by-mode" className="shrink-0">Judge By</Label>
           <Select value={judgeByMode} onValueChange={setJudgeByMode}>
-            <SelectTrigger id="judge-by-mode" className="w-[200px]">
+            <SelectTrigger id="judge-by-mode" className="w-[150px]">
               <SelectValue placeholder="..." />
             </SelectTrigger>
             <SelectContent>
@@ -72,7 +72,7 @@ const OptionsPanel = () => {
         <div className="flex flex-row items-center justify-between gap-4">
           <Label htmlFor="soundfont-preset" className="shrink-0">Soundfont</Label>
           <Select value={soundfontPreset} onValueChange={setSoundfontPreset}>
-            <SelectTrigger id="soundfont-preset" className="w-[200px]">
+            <SelectTrigger id="soundfont-preset" className="w-[150px]">
               <SelectValue placeholder="..." />
             </SelectTrigger>
             <SelectContent>

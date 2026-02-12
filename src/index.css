@@ -80,6 +80,13 @@
 }
 
 @theme inline {
+  --text-xs: 0.6rem;
+  --text-sm: 0.7rem;
+  --text-base: 0.85rem;
+  --text-lg: 1.0rem;
+  --text-xl: 1.2rem;
+  --text-2xl: 1.4rem;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -134,24 +141,20 @@
     @apply bg-background text-foreground font-medium antialiased;
   }
 
-  h1 {
-    @apply uppercase text-2xl tracking-[0.1em] font-bold text-foreground/90;
-  }
-
   h2 {
-    @apply uppercase text-sm tracking-[0.15em] font-semibold text-muted-foreground;
+    @apply uppercase underline text-lg tracking-[0.15em] font-semibold text-muted-foreground;
   }
 
   p {
-    @apply text-[12px] leading-relaxed normal-case text-foreground/80;
+    @apply text-sm leading-relaxed normal-case text-foreground/80;
+  }
+
+  small {
+    @apply text-xs leading-relaxed normal-case text-foreground/80;
   }
 }
 
 @layer components {
-  .text-grayed {
-    @apply text-muted-foreground;
-  }
-
   .at-cursor-bar {
     @apply bg-yellow-300/15 rounded-sm;
   }

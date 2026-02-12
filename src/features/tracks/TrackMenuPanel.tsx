@@ -104,12 +104,12 @@ const TrackMenuPanel = () => {
                 <Card
                   className="w-full rounded-sm shadow-none"
                 >
-                  <CardHeader className="space-y-0 px-3 pt-2 pb-1 h-full flex flex-row items-center justify-between gap-2">
+                  <CardHeader className="space-y-0 text-sm px-3 pt-2 pb-1 h-full flex flex-row items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
                       <span>
                         {getInstrumentIcon(track)}
                       </span>
-                      <CardTitle title={track.name} className={`text-[11px] truncate ${isSelected ? "font-bold" : ""}`}>{track.name}</CardTitle>
+                      <CardTitle title={track.name} className={`truncate ${isSelected ? "font-bold" : ""}`}>{track.name}</CardTitle>
                     </div>
                     <Button
                       title={isSelected ? "Currently Displayed" : "Show Track Score"}
@@ -127,7 +127,7 @@ const TrackMenuPanel = () => {
                       className="flex flex-row w-full gap-2 items-center"
                     >
                       {isMuted ? 
-                        <VolumeX size={14} className="text-grayed shrink-0" /> :
+                        <VolumeX size={14} className="text-muted-foreground shrink-0" /> :
                         <Volume2 size={14} className="shrink-0" />
                       }
                       <Slider 
@@ -143,7 +143,7 @@ const TrackMenuPanel = () => {
                         title={isMuted ? "Unmute Track" : "Mute Track"}
                         size="icon"
                         variant={isMuted ? "destructive" : "secondary"}
-                        className={`w-6 h-6 flex-0 aspect-square ${isMuted ? "text-white" : "text-black"} text-xs`}
+                        className={`w-6 h-6 flex-0 aspect-square ${isMuted ? "text-white" : "text-black"}`}
                         onClick={() => handleMuteToggle(track)}
                       >
                         M
@@ -152,7 +152,7 @@ const TrackMenuPanel = () => {
                         title={isSoloed ? "Unsolo Track" : "Solo Track"}
                         size="icon"
                         variant={isSoloed ? "destructive" : "secondary"}
-                        className={`w-6 h-6 flex-0 aspect-square ${isSoloed ? "text-white" : "text-black"} text-xs`}
+                        className={`w-6 h-6 flex-0 aspect-square ${isSoloed ? "text-white" : "text-black"}`}
                         onClick={() => handleSoloToggle(track)}
                       >
                         S

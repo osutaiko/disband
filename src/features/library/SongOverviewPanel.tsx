@@ -5,7 +5,7 @@ import { Calendar, User } from "lucide-react";
 
 const MetaItem = ({ label, value }: { label: string; value: any }) => (
   <div className="flex flex-col gap-0.5">
-    <p className="text-[9px]">{label}</p>
+    <p>{label}</p>
     <p className="font-mono">{value || "N/A"}</p>
   </div>
 );
@@ -23,10 +23,10 @@ const SongOverviewPanel = () => {
       {selectedSong ? (
         <div className="flex flex-col gap-4 p-2">
           <div className="flex flex-col gap-1">
-            <p className="text-[15px] truncate">
+            <p className="truncate">
               {songsMetadata[selectedSong]?.title}
             </p>
-            <p className="text-grayed flex items-center gap-1">
+            <p className="text-muted-foreground flex items-center gap-1">
               <User size={12} /> {songsMetadata[selectedSong]?.artist}
             </p>
           </div>
@@ -37,12 +37,12 @@ const SongOverviewPanel = () => {
             <MetaItem label="Tempo" value={songsMetadata[selectedSong]?.tempo} />
           </div>
 
-          <p className="text-grayed flex items-center gap-1">
+          <p className="text-muted-foreground flex items-center gap-1">
             <Calendar size={12} /> Revision: 2024-05-12
           </p>
         </div>
       ) : (
-        <p className="p-2 text-grayed">No song selected</p>
+        <p className="p-2 text-muted-foreground">No song selected</p>
       )}
     </section>
   );
