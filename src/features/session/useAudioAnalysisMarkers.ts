@@ -35,7 +35,7 @@ export const useAudioAnalysisMarkers = (
       if (group.opening && group.isClosed && group.closings.includes(mb)) {
         const maxRepeats = mb.repeatCount ?? 1;
 
-        if (repeatIndex < maxRepeats) {
+        if (repeatIndex < maxRepeats - 1) {
           repeatCounters.set(group, repeatIndex + 1);
 
           // jump back to opening bar
