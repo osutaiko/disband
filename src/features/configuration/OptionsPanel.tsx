@@ -1,24 +1,24 @@
-import { useState } from "react";
+import { useState } from 'react';
 
-import { useLibraryStore } from "@/store/useLibraryStore";
+import useLibraryStore from '@/store/useLibraryStore';
 
-import Panel from "@/components/ui/Panel";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
+import Panel from '@/components/ui/Panel';
+import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 
-const OptionsPanel = () => {
+function OptionsPanel() {
   const { pxPerMs, setPxPerMs } = useLibraryStore();
 
   const [judgmentHarshness, setJudgmentHarshness] = useState(6);
-  const [judgeByMode, setJudgeByMode] = useState("reference-notes");
-  const [soundfontPreset, setSoundfontPreset] = useState("sonivox");
+  const [judgeByMode, setJudgeByMode] = useState('reference-notes');
+  const [soundfontPreset, setSoundfontPreset] = useState('sonivox');
 
   return (
     <Panel title="Options" className="h-fit border-b" isCollapsible>
@@ -43,7 +43,11 @@ const OptionsPanel = () => {
           <div className="w-full flex flex-col gap-2">
             <div className="flex flex-row items-center justify-between gap-4">
               <Label htmlFor="scroll-speed">Scroll Speed</Label>
-              <span className="text-sm text-muted-foreground">{pxPerMs.toFixed(2)} px/ms</span>
+              <span className="text-sm text-muted-foreground">
+                {pxPerMs.toFixed(2)}
+                {' '}
+                px/ms
+              </span>
             </div>
             <Slider
               id="scroll-speed"
@@ -84,6 +88,6 @@ const OptionsPanel = () => {
       </div>
     </Panel>
   );
-};
+}
 
 export default OptionsPanel;

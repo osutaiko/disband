@@ -1,16 +1,15 @@
-import { useLibraryStore } from "@/store/useLibraryStore";
+import { Square } from 'lucide-react';
 
-import Panel from "@/components/ui/Panel";
-import { Card } from "@/components/ui/card";
+import Panel from '@/components/ui/Panel';
+import { Card } from '@/components/ui/card';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Square } from "lucide-react";
+} from '@/components/ui/accordion';
 
-const DataCountRow = ({
+function DataCountRow({
   name,
   description,
   content,
@@ -18,7 +17,7 @@ const DataCountRow = ({
   name: string;
   description: string;
   content: string;
-}) => {
+}) {
   return (
     <div className="flex flex-row items-center justify-between gap-4">
       <span title={description} className="hover:cursor-help text-sm">{name}</span>
@@ -27,7 +26,7 @@ const DataCountRow = ({
   );
 }
 
-const SessionPanel = () => {
+function SessionPanel() {
   return (
     <Panel
       title="This Session"
@@ -44,7 +43,7 @@ const SessionPanel = () => {
           <Accordion
             type="multiple"
             className="max-w-lg"
-            defaultValue={["OK", "Inaccurate", "Miss"]}
+            defaultValue={[]}
           >
             <AccordionItem value="OK">
               <AccordionTrigger className="flex flex-row items-center justify-between gap-4">
@@ -88,6 +87,6 @@ const SessionPanel = () => {
       </div>
     </Panel>
   );
-};
+}
 
 export default SessionPanel;
