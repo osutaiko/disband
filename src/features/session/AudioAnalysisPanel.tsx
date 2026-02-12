@@ -157,7 +157,7 @@ function AudioAnalysisPanel({
             {/* Note Markers */}
             {visibleNoteMarkers.map((marker) => (
               <NoteMarker
-                key={`${marker.timestamp}:${marker.length}`}
+                key={`${marker.timestamp}::${marker.length}`}
                 timestamp={marker.timestamp}
                 length={marker.length}
                 offsetBase={trackStartPadding}
