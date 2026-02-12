@@ -22,7 +22,7 @@ declare namespace NodeJS {
 }
 
 export interface IElectronAPI {
-  openSongsFolder: () => void;
+  openSongsFolder: () => Promise<string | null>;
   getSongs: () => Promise<string[]>;
   getSongData: (filename: string) => Promise<Uint8Array>;
   startAudioCapture: () => Promise<{ ok: boolean; sidecarFound?: boolean; port?: number; alreadyRunning?: boolean }>;

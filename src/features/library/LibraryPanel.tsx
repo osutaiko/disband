@@ -16,7 +16,16 @@ const LibraryPanel = () => {
     setSongs(fileList);
   }, []);
 
-  const handleOpenFolder = () => window.electron.openSongsFolder();
+  const handleOpenFolder = useCallback(async () => {
+    const selectedSong = await window.electron.openSongsFolder();
+    if (!selectedSong) return;
+
+    await fetchSongs();
+    setSelectedSong(selectedSong);
+    setSelectedTrackId(null);
+    setConfirming(null);
+  }, [fetchSongs, setSelectedSong, setSelectedTrackId]);
+
   const handleRefresh = useCallback(() => fetchSongs(), [fetchSongs]);
 
   useEffect(() => {
@@ -31,7 +40,7 @@ const LibraryPanel = () => {
       title="Library"
       actions={[
         {
-          title: "Open Songs Folder",
+          title: "Import Song File",
           icon: <FolderOpen />,
           onClick: handleOpenFolder
         },
