@@ -64,6 +64,14 @@ const useAudioAnalysisMarkers = (
 
   const playbackMasterBars = getPlaybackMasterBars(api.score);
 
+  barMarkers.push({
+    variant: 'score-start',
+    timestamp: 0,
+  }, {
+    variant: 'score-end',
+    timestamp: api.endTime,
+  });
+
   playbackMasterBars.forEach((masterBar) => {
     const bar = currentTrack.staves[0].bars.find(
       (b) => b.masterBar === masterBar,
@@ -74,14 +82,6 @@ const useAudioAnalysisMarkers = (
     bar.masterBar.tempoAutomations.forEach((tempoAutomation) => {
       currentBpm = tempoAutomation.value;
       msPerTick = 60000 / (currentBpm * PPQ);
-    });
-
-    barMarkers.push({
-      variant: 'score-start',
-      timestamp: 0,
-    }, {
-      variant: 'score-end',
-      timestamp: api.endTime,
     });
 
     // --- Bar markers ---
