@@ -3,9 +3,11 @@ import WaveSurfer from 'wavesurfer.js';
 
 function RealtimeWaveform({
   audioPath,
+  isRecording = false,
   className,
 }: {
   audioPath: string | null;
+  isRecording?: boolean;
   className?: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -16,7 +18,7 @@ function RealtimeWaveform({
 
     waveSurferRef.current = WaveSurfer.create({
       container: containerRef.current,
-      height: 'auto',
+      height: containerRef.current.clientHeight,
       waveColor: '#a855f7',
       progressColor: '#a855f7',
       cursorWidth: 0,
@@ -30,6 +32,17 @@ function RealtimeWaveform({
       waveSurferRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    const waveSurfer = waveSurferRef.current;
+    if (!waveSurfer) return;
+
+    const color = isRecording ? '#ef4444' : '#a855f7';
+    waveSurfer.setOptions({
+      waveColor: color,
+      progressColor: color,
+    });
+  }, [isRecording]);
 
   useEffect(() => {
     const waveSurfer = waveSurferRef.current;

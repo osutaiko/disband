@@ -210,7 +210,7 @@ function AudioAnalysisPanel({
           {/* Recorded Audio */}
           <div className="relative w-full h-[120px] bg-secondary py-2 z-20">
             <div
-              className="absolute top-0 h-full will-change-transform"
+              className="absolute inset-y-2 will-change-transform"
               style={{
                 transform: `translateX(${waveformStartX}px)`,
                 width: `${waveformWidthPx}px`,
@@ -220,7 +220,8 @@ function AudioAnalysisPanel({
                 <RealtimeWaveform
                   key={`${selectionId ?? 'none'}-${recordingEpoch[selectionId ?? ''] ?? 0}`}
                   audioPath={selectionId ? recordedPaths[selectionId] ?? null : null}
-                  className="w-full h-full"
+                  isRecording={isRecording}
+                  className="w-full h-full bg-rose-300 rounded-md"
                 />
               )}
             </div>
