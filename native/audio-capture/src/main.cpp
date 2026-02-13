@@ -1,28 +1,68 @@
 #include <juce_audio_devices/juce_audio_devices.h>
-#include <juce_audio_utils/juce_audio_utils.h>
+#include <juce_audio_formats/juce_audio_formats.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_core/juce_core.h>
 
-#include <algorithm>
-#include <atomic>
-#include <chrono>
-#include <cmath>
-#include <cstdint>
 #include <cstdio>
+#include <string>
 #include <thread>
-#include <vector>
 
-#if JUCE_WINDOWS
-#include <fcntl.h>
-#include <io.h>
-#endif
-
-class MyAudioCallback : public juce::AudioIODeviceCallback
+class DisbandAudioRecorder : public juce::AudioIODeviceCallback
 {
 public:
-    explicit MyAudioCallback(int ringCapacitySamples)
-        : ringFifo(ringCapacitySamples),
-          ringBuffer(static_cast<size_t>(ringCapacitySamples))
+    DisbandAudioRecorder() : writerThread("DisbandAudioWriter")
     {
+        writerThread.startThread();
+    }
+
+    ~DisbandAudioRecorder() override
+    {
+        stopRecording();
+        writerThread.stopThread(1000);
+    }
+
+    bool startRecording(const juce::File& file)
+    {
+        stopRecording();
+        file.getParentDirectory().createDirectory();
+
+        auto stream = file.createOutputStream();
+        if (!stream || !stream->openedOk())
+            return false;
+
+        juce::WavAudioFormat format;
+        auto* writer = format.createWriterFor(
+            stream.release(),
+            sampleRate,
+            channels,
+            bitsPerSample,
+            {},
+            0
+        );
+
+        if (writer == nullptr)
+            return false;
+
+        auto newThreadedWriter = std::make_unique<juce::AudioFormatWriter::ThreadedWriter>(
+            writer,
+            writerThread,
+            static_cast<int>(sampleRate)
+        );
+
+        {
+            const juce::ScopedLock lock(writerLock);
+            threadedWriter = std::move(newThreadedWriter);
+            activeWriter = threadedWriter.get();
+        }
+
+        return true;
+    }
+
+    void stopRecording()
+    {
+        const juce::ScopedLock lock(writerLock);
+        activeWriter = nullptr;
+        threadedWriter.reset();
     }
 
     void audioDeviceIOCallbackWithContext(
@@ -36,193 +76,152 @@ public:
     {
         if (numInputChannels <= 0 || numSamples <= 0) return;
 
-        if (static_cast<int>(sampleScratch.size()) < numSamples)
-            sampleScratch.resize(static_cast<size_t>(numSamples));
+        monoBuffer.setSize(1, numSamples, false, false, true);
+        monoBuffer.clear();
 
-        float blockPeak = 0.0f;
-        double blockEnergy = 0.0;
-
-        for (int i = 0; i < numSamples; ++i)
+        int contributingChannels = 0;
+        for (int ch = 0; ch < numInputChannels; ++ch)
         {
-            float mixedSample = 0.0f;
-            int contributingChannels = 0;
-
-            for (int ch = 0; ch < numInputChannels; ++ch)
-            {
-                if (inputChannelData[ch] == nullptr) continue;
-                mixedSample += inputChannelData[ch][i];
-                ++contributingChannels;
-            }
-
-            if (contributingChannels > 1)
-                mixedSample /= static_cast<float>(contributingChannels);
-
-            const float clamped = juce::jlimit(-1.0f, 1.0f, mixedSample);
-            blockPeak = std::max(blockPeak, std::abs(clamped));
-            blockEnergy += static_cast<double>(clamped) * static_cast<double>(clamped);
-            const int sample16 = static_cast<int>(std::lround(clamped * 32767.0f));
-            sampleScratch[static_cast<size_t>(i)] = static_cast<int16_t>(sample16);
+            if (inputChannelData[ch] == nullptr) continue;
+            monoBuffer.addFrom(0, 0, inputChannelData[ch], numSamples);
+            ++contributingChannels;
         }
 
-        pushSamples(sampleScratch.data(), numSamples);
+        if (contributingChannels > 1)
+            monoBuffer.applyGain(0, 0, numSamples, 1.0f / static_cast<float>(contributingChannels));
 
-        samplesSinceLog += numSamples;
-        sumSquaresSinceLog += blockEnergy;
-        peakSinceLog = std::max(peakSinceLog, blockPeak);
-        if (samplesSinceLog >= 48000)
+        const juce::ScopedTryLock lock(writerLock);
+        if (lock.isLocked() && activeWriter != nullptr)
         {
-            const double rms = std::sqrt(sumSquaresSinceLog / static_cast<double>(samplesSinceLog));
-            std::fprintf(
-                stderr,
-                "[audio-sidecar] level peak=%.6f rms=%.6f samples=%d dropped=%d\n",
-                static_cast<double>(peakSinceLog),
-                rms,
-                samplesSinceLog,
-                droppedSamples.exchange(0)
-            );
-            std::fflush(stderr);
-
-            samplesSinceLog = 0;
-            sumSquaresSinceLog = 0.0;
-            peakSinceLog = 0.0f;
+            const float* channelsPtr[1] = { monoBuffer.getReadPointer(0) };
+            activeWriter->write(channelsPtr, numSamples);
         }
     }
 
     void audioDeviceAboutToStart(juce::AudioIODevice* /*device*/) override {}
     void audioDeviceStopped() override {}
 
-    int popSamples(int16_t* dst, int maxSamples)
-    {
-        if (maxSamples <= 0) return 0;
-
-        int start1 = 0, size1 = 0, start2 = 0, size2 = 0;
-        ringFifo.prepareToRead(maxSamples, start1, size1, start2, size2);
-
-        if (size1 > 0)
-            std::copy_n(ringBuffer.data() + start1, static_cast<size_t>(size1), dst);
-        if (size2 > 0)
-            std::copy_n(ringBuffer.data() + start2, static_cast<size_t>(size2), dst + size1);
-
-        const int read = size1 + size2;
-        ringFifo.finishedRead(read);
-        return read;
-    }
-
 private:
-    void pushSamples(const int16_t* src, int numSamples)
-    {
-        int start1 = 0, size1 = 0, start2 = 0, size2 = 0;
-        ringFifo.prepareToWrite(numSamples, start1, size1, start2, size2);
+    static constexpr double sampleRate = 48000.0;
+    static constexpr unsigned int channels = 1;
+    static constexpr int bitsPerSample = 16;
 
-        if (size1 > 0)
-            std::copy_n(src, static_cast<size_t>(size1), ringBuffer.data() + start1);
-        if (size2 > 0)
-            std::copy_n(src + size1, static_cast<size_t>(size2), ringBuffer.data() + start2);
+    juce::AudioBuffer<float> monoBuffer;
+    juce::TimeSliceThread writerThread;
+    juce::CriticalSection writerLock;
+    std::unique_ptr<juce::AudioFormatWriter::ThreadedWriter> threadedWriter;
+    juce::AudioFormatWriter::ThreadedWriter* activeWriter = nullptr;
 
-        const int written = size1 + size2;
-        ringFifo.finishedWrite(written);
-        if (written < numSamples)
-            droppedSamples += (numSamples - written);
-    }
-
-    juce::AbstractFifo ringFifo;
-    std::vector<int16_t> ringBuffer;
-    std::vector<int16_t> sampleScratch;
-
-    int samplesSinceLog = 0;
-    double sumSquaresSinceLog = 0.0;
-    float peakSinceLog = 0.0f;
-    std::atomic<int> droppedSamples{ 0 };
 };
 
 class AudioCaptureApp final : public juce::JUCEApplication
 {
 public:
-    AudioCaptureApp() : callback(48000 * 10) {}
+    AudioCaptureApp() = default;
 
     const juce::String getApplicationName() override { return "Disband Audio Capture"; }
     const juce::String getApplicationVersion() override { return "0.1.0"; }
 
     void initialise(const juce::String&) override
     {
-#if JUCE_WINDOWS
-        _setmode(_fileno(stdout), _O_BINARY);
-#endif
-        std::setvbuf(stdout, nullptr, _IONBF, 0);
-        std::fprintf(stderr, "[audio-sidecar] stream=pcm16 sampleRate=48000 channels=1\n");
-        std::fflush(stderr);
-
-        deviceManager.initialise(1, 0, nullptr, true);
-        configureDevice();
-
-        if (auto* device = deviceManager.getCurrentAudioDevice())
+        outputPath = resolveOutputPath();
+        if (outputPath.isEmpty())
         {
-            const auto activeInputs = device->getActiveInputChannels().toString(2);
-            std::fprintf(
-                stderr,
-                "[audio-sidecar] inputDevice=\"%s\" sr=%.1f buffer=%d inMask=%s\n",
-                device->getName().toRawUTF8(),
-                device->getCurrentSampleRate(),
-                device->getCurrentBufferSizeSamples(),
-                activeInputs.toRawUTF8()
-            );
+            std::fprintf(stderr, "[audio-sidecar] missing output path\n");
             std::fflush(stderr);
+            quit();
+            return;
         }
 
-        keepWriting.store(true);
-        writerThread = std::thread([this] { writerLoop(); });
-        deviceManager.addAudioCallback(&callback);
+        if (!recorder.startRecording(juce::File(outputPath)))
+        {
+            std::fprintf(stderr, "[audio-sidecar] failed to open output file\n");
+            std::fflush(stderr);
+            quit();
+            return;
+        }
+
+        std::fprintf(stderr, "[audio-sidecar] recording output=\"%s\"\n", outputPath.toRawUTF8());
+        std::fflush(stderr);
+
+        const auto initResult = deviceManager.initialise(1, 0, nullptr, true);
+        if (initResult.isNotEmpty())
+        {
+            std::fprintf(stderr, "[audio-sidecar] device init failed: %s\n", initResult.toRawUTF8());
+            std::fflush(stderr);
+            quit();
+            return;
+        }
+        configureDevice();
+
+        auto* device = deviceManager.getCurrentAudioDevice();
+        if (device == nullptr)
+        {
+            std::fprintf(stderr, "[audio-sidecar] no audio device available\n");
+            std::fflush(stderr);
+            quit();
+            return;
+        }
+
+        controlThread = std::thread([this] { controlLoop(); });
+        deviceManager.addAudioCallback(&recorder);
     }
 
     void shutdown() override
     {
-        deviceManager.removeAudioCallback(&callback);
+        deviceManager.removeAudioCallback(&recorder);
         deviceManager.closeAudioDevice();
 
-        keepWriting.store(false);
-        if (writerThread.joinable())
-            writerThread.join();
+        if (controlThread.joinable())
+            controlThread.join();
+        recorder.stopRecording();
     }
 
 private:
+    juce::String resolveOutputPath() const
+    {
+        const auto args = juce::JUCEApplication::getInstance()->getCommandLineParameterArray();
+        for (int i = 0; i < args.size(); ++i)
+        {
+            if (args[i] == "--output" && i + 1 < args.size())
+                return args[i + 1];
+        }
+        return {};
+    }
+
     void configureDevice()
     {
         juce::AudioDeviceManager::AudioDeviceSetup setup;
         deviceManager.getAudioDeviceSetup(setup);
         setup.sampleRate = 48000.0;
         setup.bufferSize = 128;
-        deviceManager.setAudioDeviceSetup(setup, true);
+        const auto result = deviceManager.setAudioDeviceSetup(setup, true);
+        if (result.isNotEmpty())
+        {
+            std::fprintf(stderr, "[audio-sidecar] device setup failed: %s\n", result.toRawUTF8());
+            std::fflush(stderr);
+        }
     }
 
-    void writerLoop()
+    void controlLoop()
     {
-        std::vector<int16_t> writeScratch(4096);
-
-        while (keepWriting.load())
+        std::string line;
+        while (std::getline(std::cin, line))
         {
-            const int count = callback.popSamples(writeScratch.data(), static_cast<int>(writeScratch.size()));
-            if (count > 0)
-            {
-                std::fwrite(writeScratch.data(), sizeof(int16_t), static_cast<size_t>(count), stdout);
-            }
-            else
-            {
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            }
+            if (line == "stop")
+                break;
         }
 
-        for (;;)
-        {
-            const int count = callback.popSamples(writeScratch.data(), static_cast<int>(writeScratch.size()));
-            if (count <= 0) break;
-            std::fwrite(writeScratch.data(), sizeof(int16_t), static_cast<size_t>(count), stdout);
-        }
+        juce::MessageManager::callAsync([] {
+            if (auto* app = juce::JUCEApplicationBase::getInstance())
+                app->systemRequestedQuit();
+        });
     }
 
     juce::AudioDeviceManager deviceManager;
-    MyAudioCallback callback;
-    std::atomic<bool> keepWriting{ false };
-    std::thread writerThread;
+    DisbandAudioRecorder recorder;
+    std::thread controlThread;
+    juce::String outputPath;
 };
 
 START_JUCE_APPLICATION(AudioCaptureApp)

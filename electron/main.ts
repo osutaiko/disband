@@ -1,14 +1,13 @@
 import {
   app, BrowserWindow, dialog, ipcMain,
 } from 'electron';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import {
   getSidecarPath,
   makeRecordingFileName,
-  writePcm16WavFile,
 } from './utils';
 
 import { SUPPORTED_EXTENSIONS } from '../shared/constants';
@@ -21,9 +20,8 @@ const { VITE_DEV_SERVER_URL } = process.env;
 
 let win: BrowserWindow | null = null;
 let audioSidecar: ReturnType<typeof spawn> | null = null;
-let audioRemainder = Buffer.alloc(0);
-let recordedAudioChunks: Buffer[] = [];
-let recordedAudioBytes = 0;
+let audioRecordingPath: string | null = null;
+let audioRecordingUrl: string | null = null;
 
 function createWindow() {
   win = new BrowserWindow({
@@ -63,27 +61,18 @@ function startAudioSidecar() {
   if (audioSidecar) return;
 
   const exe = getSidecarPath(process.env.APP_ROOT!);
-  audioRemainder = Buffer.alloc(0);
-  recordedAudioChunks = [];
-  recordedAudioBytes = 0;
+  const outputPath = path.join(RECORDINGS_PATH, makeRecordingFileName());
+  const outputUrl = pathToFileURL(outputPath).toString();
 
-  const sidecar = spawn(exe, [], {
-    stdio: ['ignore', 'pipe', 'pipe'],
+  const sidecar = spawn(exe, ['--output', outputPath], {
+    stdio: ['pipe', 'ignore', 'pipe'],
   });
   audioSidecar = sidecar;
+  audioRecordingPath = outputPath;
+  audioRecordingUrl = outputUrl;
 
-  sidecar.stdout.on('data', (chunk: Buffer) => {
-    audioRemainder = Buffer.concat([audioRemainder, chunk]);
-
-    const usableBytes = audioRemainder.length - (audioRemainder.length % 2);
-    if (usableBytes === 0) return;
-
-    const frame = audioRemainder.subarray(0, usableBytes);
-    audioRemainder = audioRemainder.subarray(usableBytes);
-    recordedAudioChunks.push(Buffer.from(frame));
-    recordedAudioBytes += frame.length;
-
-    win?.webContents.send('audio-capture-chunk', frame);
+  sidecar.stderr?.on('data', (chunk: Buffer) => {
+    console.info(chunk.toString('utf8'));
   });
 
   sidecar.on('exit', () => {
@@ -91,37 +80,54 @@ function startAudioSidecar() {
   });
 }
 
-function stopAudioSidecar() {
+async function stopAudioSidecar() {
   if (!audioSidecar) {
     return { ok: true, alreadyStopped: true };
   }
 
-  const pcmBytes = recordedAudioBytes;
-  const pcm16Data = Buffer.concat(recordedAudioChunks, recordedAudioBytes);
-  const outputPath = path.join(RECORDINGS_PATH, makeRecordingFileName());
+  const sidecar = audioSidecar;
+  const outputPath = audioRecordingPath;
+  const outputUrl = audioRecordingUrl;
 
-  audioSidecar.kill();
+  const exitPromise = new Promise<'exit'>((resolve) => {
+    sidecar.once('exit', () => resolve('exit'));
+  });
+
+  try {
+    sidecar.stdin?.write('stop\n');
+    sidecar.stdin?.end();
+  } catch {
+    // Ignore write failures for now
+  }
+
+  const exitResult = await Promise.race([
+    exitPromise,
+    new Promise<'timeout'>((resolve) => {
+      setTimeout(() => resolve('timeout'), 1000);
+    }),
+  ]);
+
+  if (exitResult === 'timeout') {
+    sidecar.kill();
+  }
+
   audioSidecar = null;
-  writePcm16WavFile(outputPath, pcm16Data);
-
-  audioRemainder = Buffer.alloc(0);
-  recordedAudioChunks = [];
-  recordedAudioBytes = 0;
 
   let fileSize: number | null = null;
-  try {
-    fileSize = fs.statSync(outputPath).size;
-  } catch {
-    fileSize = null;
+  if (outputPath) {
+    try {
+      fileSize = fs.statSync(outputPath).size;
+    } catch {
+      fileSize = null;
+    }
   }
 
   return {
     ok: true,
-    path: outputPath,
+    path: outputPath ?? undefined,
+    url: outputUrl ?? undefined,
     saved: fileSize !== null && fileSize > 44,
     fileSize,
-    pcmBytes,
-    empty: pcmBytes === 0,
   };
 }
 
@@ -131,13 +137,24 @@ app.on('before-quit', () => {
 
 ipcMain.handle('audio-start', async () => {
   startAudioSidecar();
-  return { ok: true };
+  return {
+    ok: true,
+    path: audioRecordingPath ?? undefined,
+    url: audioRecordingUrl ?? undefined,
+  };
 });
 
 ipcMain.handle('audio-stop', async () => stopAudioSidecar());
+ipcMain.handle('audio-read', async (_event, filePath: string) => {
+  if (!filePath || !filePath.startsWith(RECORDINGS_PATH)) {
+    throw new Error('Invalid recording path');
+  }
+  const buffer = await fs.promises.readFile(filePath);
+  return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+});
 
 // --- IPC Handlers --- //
-// Open a song picker and import the chosen file into Songs.
+// Open a song picker and import the chosen file into Songs
 ipcMain.handle('open-songs-folder', async () => {
   if (!fs.existsSync(SONGS_PATH)) {
     fs.mkdirSync(SONGS_PATH, { recursive: true });

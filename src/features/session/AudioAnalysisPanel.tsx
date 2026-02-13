@@ -5,7 +5,6 @@ import {
 import { Circle, Trash } from 'lucide-react';
 import useLibraryStore from '@/store/useLibraryStore';
 import useAudioAnalysisMarkers from './useAudioAnalysisMarkers';
-import useRealtimeAudio from './useRealtimeAudio';
 
 import { handlePlayPause } from '../engine/playback';
 
@@ -28,11 +27,7 @@ function AudioAnalysisPanel({
     barMarkers = [],
   } = useAudioAnalysisMarkers(api, selectedTrackId);
 
-  const {
-    bufferRef: audioBufferRef, reset, start, stop,
-  } = useRealtimeAudio();
   const recordStartMsRef = useRef<Record<string, number | null>>({});
-  const bufferBySelectionRef = useRef<Record<string, Float32Array>>({});
   const wasPlayingRef = useRef(isPlaying);
   const previousSelectionIdRef = useRef<string | null>(null);
 
@@ -40,6 +35,8 @@ function AudioAnalysisPanel({
   const [recordedRanges, setRecordedRanges] = useState<
   Record<string, { startMs: number; endMs: number } | null>
   >({});
+  const [recordedPaths, setRecordedPaths] = useState<Record<string, string | null>>({});
+  const [recordingEpoch, setRecordingEpoch] = useState<Record<string, number>>({});
 
   const selectionId = selectedTrackId === null
     ? null
@@ -96,7 +93,7 @@ function AudioAnalysisPanel({
     return () => cancelAnimationFrame(rafId);
   }, [currentMsRef, setCurrentMs]);
 
-  const stopRecordingForSelection = useCallback((id: string) => {
+  const stopRecordingForSelection = useCallback(async (id: string) => {
     const startMs = recordStartMsRef.current[id];
     if (startMs !== null && startMs !== undefined) {
       setRecordedRanges((prev) => ({
@@ -105,20 +102,25 @@ function AudioAnalysisPanel({
       }));
     }
 
-    stop();
     recordStartMsRef.current[id] = null;
     setRecordingState((prev) => ({ ...prev, [id]: false }));
-
-    bufferBySelectionRef.current[id] = audioBufferRef.current;
+    try {
+      const result = await window.audio.stop();
+      if (result?.path) {
+        setRecordedPaths((prev) => ({ ...prev, [id]: result.path ?? null }));
+      }
+    } catch (error) {
+      console.error('[audio] failed to stop recording', error);
+    }
 
     if (api?.playerState === 1) {
       api.pause();
     }
-  }, [api, audioBufferRef, currentMs, currentMsRef, stop]);
+  }, [api, currentMs, currentMsRef]);
 
   const stopRecording = useCallback(() => {
     if (!selectionId) return;
-    stopRecordingForSelection(selectionId);
+    void stopRecordingForSelection(selectionId);
   }, [selectionId, stopRecordingForSelection]);
 
   let activeWaveformRange = recordedRange;
@@ -155,21 +157,13 @@ function AudioAnalysisPanel({
 
     const previousSelectionId = previousSelectionIdRef.current;
     if (previousSelectionId && previousSelectionId !== selectionId) {
-      bufferBySelectionRef.current[previousSelectionId] = audioBufferRef.current;
       if (recordingState[previousSelectionId]) {
-        stopRecordingForSelection(previousSelectionId);
+        void stopRecordingForSelection(previousSelectionId);
       }
     }
 
-    const savedBuffer = bufferBySelectionRef.current[selectionId];
-    if (savedBuffer) {
-      audioBufferRef.current = savedBuffer;
-    } else {
-      audioBufferRef.current = new Float32Array(audioBufferRef.current.length);
-    }
-
     previousSelectionIdRef.current = selectionId;
-  }, [audioBufferRef, recordingState, selectionId, stopRecordingForSelection]);
+  }, [recordingState, selectionId, stopRecordingForSelection]);
 
   if (!api || selectedTrackId === null) return null;
 
@@ -223,7 +217,11 @@ function AudioAnalysisPanel({
               }}
             >
               {waveformWidthPx > 0 && (
-                <RealtimeWaveform audioBufferRef={audioBufferRef} className="w-full h-full" />
+                <RealtimeWaveform
+                  key={`${selectionId ?? 'none'}-${recordingEpoch[selectionId ?? ''] ?? 0}`}
+                  audioPath={selectionId ? recordedPaths[selectionId] ?? null : null}
+                  className="w-full h-full"
+                />
               )}
             </div>
           </div>
@@ -245,12 +243,19 @@ function AudioAnalysisPanel({
                 [selectionId]: { startMs: currentMs, endMs: currentMs },
               }));
               setRecordingState((prev) => ({ ...prev, [selectionId]: true }));
+              setRecordedPaths((prev) => ({ ...prev, [selectionId]: null }));
+              setRecordingEpoch((prev) => ({
+                ...prev,
+                [selectionId]: (prev[selectionId] ?? 0) + 1,
+              }));
 
               if (!isPlaying) {
                 handlePlayPause(api);
               }
 
-              start();
+              window.audio.start().catch((error) => {
+                console.error('[audio] failed to start recording', error);
+              });
               return;
             }
 
@@ -270,8 +275,7 @@ function AudioAnalysisPanel({
             if (!selectionId) return;
             setRecordedRanges((prev) => ({ ...prev, [selectionId]: null }));
             recordStartMsRef.current[selectionId] = null;
-            bufferBySelectionRef.current[selectionId] = new Float32Array(audioBufferRef.current.length);
-            reset();
+            setRecordedPaths((prev) => ({ ...prev, [selectionId]: null }));
           }}
         >
           <Trash className="text-white" />

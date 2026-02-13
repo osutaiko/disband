@@ -24,7 +24,9 @@ target_sources(disband-audio-capture PRIVATE
 
 target_link_libraries(disband-audio-capture PRIVATE
     juce::juce_audio_devices
+    juce::juce_audio_formats
     juce::juce_audio_utils
+    juce::juce_gui_basics
     juce::juce_core
 )
 

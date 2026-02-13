@@ -36,16 +36,16 @@ export interface IElectronAPI {
 // Used in Renderer process, expose in `preload.ts`
 declare global {
   interface IAudioAPI {
-    start: () => Promise<{ ok: boolean }>;
+    start: () => Promise<{ ok: boolean; path?: string; url?: string }>;
     stop: () => Promise<{
       ok: boolean;
       alreadyStopped?: boolean;
       path?: string;
+      url?: string;
       saved?: boolean;
       fileSize?: number;
-      pcmBytes?: number;
     }>;
-    onChunk: (handler: (data: ArrayBuffer) => void) => () => void;
+    readRecording: (filePath: string) => Promise<ArrayBuffer>;
   }
 
   interface Window {
