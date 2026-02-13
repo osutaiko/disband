@@ -186,9 +186,9 @@ function AudioAnalysisPanel({
             transform: `translateX(${currentTranslation}px)`,
           }}
         >
-          {visibleBarMarkers.map((marker) => (
+          {visibleBarMarkers.map((marker, index) => (
             <BarMarker
-              key={`${marker.variant}-${marker.timestamp}`}
+              key={`${marker.variant}-${marker.timestamp}-${index}`}
               variant={marker.variant}
               timestamp={marker.timestamp}
               pxPerMs={pxPerMs}
