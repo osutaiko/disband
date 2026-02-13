@@ -123,3 +123,5 @@ function TabViewPanel({
     </section>
   );
 }
+
+export default TabViewPanel;
