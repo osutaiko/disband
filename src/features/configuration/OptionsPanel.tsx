@@ -52,9 +52,9 @@ function OptionsPanel() {
             <Slider
               id="scroll-speed"
               value={[pxPerMs]}
-              min={0.05}
+              min={0.03}
               max={2.0}
-              step={0.05}
+              step={0.01}
               onValueChange={(vals) => setPxPerMs(vals[0] ?? pxPerMs)}
             />
           </div>

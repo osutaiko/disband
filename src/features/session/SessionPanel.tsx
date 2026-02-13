@@ -48,20 +48,20 @@ function SessionPanel() {
             <AccordionItem value="OK">
               <AccordionTrigger className="flex flex-row items-center justify-between gap-4">
                 <div className="w-full flex flex-row items-center gap-2">
-                  <Square className="text-green-500" size={12} />
+                  <Square className="text-note-ok" size={12} />
                   <p>OK</p>
                 </div>
-                <p className="text-green-500">123×</p>
+                <p className="text-note-ok">123×</p>
               </AccordionTrigger>
               <AccordionContent>OK</AccordionContent>
             </AccordionItem>
             <AccordionItem value="Inaccurate">
               <AccordionTrigger className="flex flex-row items-center justify-between gap-4">
                 <div className="w-full flex flex-row items-center gap-2">
-                  <Square className="text-yellow-500" size={12} />
+                  <Square className="text-note-inacc" size={12} />
                   <p>Inaccurate</p>
                 </div>
-                <p className="text-yellow-500">44×</p>
+                <p className="text-note-inacc">44×</p>
               </AccordionTrigger>
               <AccordionContent className="flex flex-col gap-2 h-fit">
                 <DataCountRow name="Bad Attack" description="asdfa" content="20×" />
@@ -75,10 +75,10 @@ function SessionPanel() {
             <AccordionItem value="Miss">
               <AccordionTrigger className="flex flex-row items-center justify-between gap-4">
                 <div className="w-full flex flex-row items-center gap-2">
-                  <Square className="text-red-500" size={12} />
+                  <Square className="text-note-miss" size={12} />
                   <p>Miss</p>
                 </div>
-                <p className="text-red-500">0×</p>
+                <p className="text-note-miss">0×</p>
               </AccordionTrigger>
               <AccordionContent>Miss</AccordionContent>
             </AccordionItem>

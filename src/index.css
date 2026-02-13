@@ -37,11 +37,6 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-
-  --note-start: oklch(0.5 0.25 250);
-  --note-middle: oklch(0.7 0.25 250);
-  --note-playing-start: oklch(0.5 0.25 300);
-  --note-playing-middle: oklch(0.7 0.25 300);
 }
 
 .dark {
@@ -127,10 +122,25 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
 
-  --color-note-start: var(--note-start);
-  --color-note-middle: var(--note-middle);
-  --color-note-playing-start: var(--note-playing-start);
-  --color-note-playing-middle: var(--note-playing-middle);
+  --color-playhead: var(--color-rose-500);
+
+  --color-bar-startend: var(--color-cyan-500);
+  --color-bar-1: var(--color-gray-700);
+  --color-bar-4: var(--color-gray-500);
+  --color-bar-16: var(--color-gray-300);
+
+  --color-note-start: var(--color-indigo-700);
+  --color-note-middle: var(--color-indigo-500);
+  --color-note-current-start: var(--color-fuchsia-700);
+  --color-note-current-middle: var(--color-fuchsia-500);
+  --color-note-highlight: var(--color-gray-700);
+  --color-note-ok: var(--color-green-500);
+  --color-note-inacc: var(--color-amber-500);
+  --color-note-miss: var(--color-red-500);
+
+  
+  --color-record-bg: var(--color-indigo-200);
+  --color-record-waveform: var(--color-indigo-700);
 }
 
 @layer base {

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import WaveSurfer from 'wavesurfer.js';
+import { getCssColor } from '@/lib/utils';
 
 function RealtimeWaveform({
   audioPath,
@@ -16,11 +17,12 @@ function RealtimeWaveform({
   useEffect(() => {
     if (!containerRef.current || waveSurferRef.current) return;
 
+    const baseColor = getCssColor('--color-record-waveform', 'red');
     waveSurferRef.current = WaveSurfer.create({
       container: containerRef.current,
       height: containerRef.current.clientHeight,
-      waveColor: '#a855f7',
-      progressColor: '#a855f7',
+      waveColor: baseColor,
+      progressColor: baseColor,
       cursorWidth: 0,
       interact: false,
       dragToSeek: false,
@@ -32,17 +34,6 @@ function RealtimeWaveform({
       waveSurferRef.current = null;
     };
   }, []);
-
-  useEffect(() => {
-    const waveSurfer = waveSurferRef.current;
-    if (!waveSurfer) return;
-
-    const color = isRecording ? '#ef4444' : '#a855f7';
-    waveSurfer.setOptions({
-      waveColor: color,
-      progressColor: color,
-    });
-  }, [isRecording]);
 
   useEffect(() => {
     const waveSurfer = waveSurferRef.current;
