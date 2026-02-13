@@ -1,73 +1,66 @@
 import { useEffect, useRef } from 'react';
+import WaveSurfer from 'wavesurfer.js';
 
 function RealtimeWaveform({
-  audioBufferRef,
+  audioPath,
   className,
 }: {
-  audioBufferRef: React.MutableRefObject<Float32Array>;
+  audioPath: string | null;
   className?: string;
 }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const waveSurferRef = useRef<WaveSurfer | null>(null);
 
   useEffect(() => {
-    const canvas = canvasRef.current!;
-    const ctx = canvas.getContext('2d')!;
-    const dpr = window.devicePixelRatio || 1;
-    let animationId = 0;
+    if (!containerRef.current || waveSurferRef.current) return;
 
-    const resizeCanvas = () => {
-      const width = Math.max(1, Math.floor(canvas.clientWidth));
-      const height = Math.max(1, Math.floor(canvas.clientHeight));
-      const nextWidth = Math.floor(width * dpr);
-      const nextHeight = Math.floor(height * dpr);
-
-      if (canvas.width !== nextWidth || canvas.height !== nextHeight) {
-        canvas.width = nextWidth;
-        canvas.height = nextHeight;
-      }
-    };
-
-    const observer = new ResizeObserver(() => {
-      resizeCanvas();
+    waveSurferRef.current = WaveSurfer.create({
+      container: containerRef.current,
+      height: 'auto',
+      waveColor: '#a855f7',
+      progressColor: '#a855f7',
+      cursorWidth: 0,
+      interact: false,
+      dragToSeek: false,
+      normalize: true,
     });
-    observer.observe(canvas);
-    resizeCanvas();
 
-    const draw = () => {
-      const buffer = audioBufferRef.current;
-      const displayWidth = Math.max(1, Math.floor(canvas.clientWidth));
-      const displayHeight = Math.max(1, Math.floor(canvas.clientHeight));
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.strokeStyle = '#a855f7';
-      ctx.lineWidth = dpr;
-      ctx.beginPath();
-
-      const step = Math.max(1, Math.floor(buffer.length / displayWidth));
-      const mid = displayHeight / 2;
-
-      for (let x = 0; x < displayWidth; x++) {
-        const sample = buffer[x * step] || 0;
-        const y = mid - sample * mid;
-        const px = x * dpr;
-        const py = y * dpr;
-
-        if (x === 0) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
-      }
-
-      ctx.stroke();
-      animationId = requestAnimationFrame(draw);
-    };
-
-    draw();
     return () => {
-      cancelAnimationFrame(animationId);
-      observer.disconnect();
+      waveSurferRef.current?.destroy();
+      waveSurferRef.current = null;
     };
-  }, [audioBufferRef]);
+  }, []);
 
-  return <canvas ref={canvasRef} className={className} />;
+  useEffect(() => {
+    const waveSurfer = waveSurferRef.current;
+    if (!waveSurfer) return;
+
+    if (!audioPath) {
+      waveSurfer.empty();
+      return;
+    }
+
+    let cancelled = false;
+
+    window.audio
+      .readRecording(audioPath)
+      .then((data) => {
+        if (cancelled) return;
+        const blob = new Blob([data], { type: 'audio/wav' });
+        return waveSurfer.loadBlob(blob);
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          console.error('[wavesurfer] failed to load recording', error);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [audioPath]);
+
+  return <div ref={containerRef} className={className} />;
 }
 
 export default RealtimeWaveform;
