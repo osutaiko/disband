@@ -127,7 +127,7 @@
   --color-bar-startend: var(--color-cyan-500);
   --color-bar-1: var(--color-gray-700);
   --color-bar-4: var(--color-gray-500);
-  --color-bar-16: var(--color-gray-300);
+  --color-bar-16: color-mix(in oklch, var(--color-gray-300) 40%, transparent);
 
   --color-note-start: var(--color-indigo-700);
   --color-note-middle: var(--color-indigo-500);
