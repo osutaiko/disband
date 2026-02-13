@@ -21,7 +21,7 @@ function AudioAnalysisPanel({
   currentMsRef: RefObject<number>;
 }) {
   const {
-    api, selectedTrackId, currentMs, setCurrentMs, endMs, isPlaying, pxPerMs,
+    api, selectedSong, selectedTrackId, currentMs, setCurrentMs, endMs, isPlaying, pxPerMs,
   } = useLibraryStore();
   const {
     noteMarkers = [],
@@ -31,13 +31,21 @@ function AudioAnalysisPanel({
   const {
     bufferRef: audioBufferRef, reset, start, stop,
   } = useRealtimeAudio();
-  const recordStartMsRef = useRef<number | null>(null);
+  const recordStartMsRef = useRef<Record<string, number | null>>({});
+  const bufferBySelectionRef = useRef<Record<string, Float32Array>>({});
   const wasPlayingRef = useRef(isPlaying);
+  const previousSelectionIdRef = useRef<string | null>(null);
 
-  const [isRecording, setIsRecording] = useState<boolean>(false);
-  const [recordedRange, setRecordedRange] = useState<
-  { startMs: number; endMs: number } | null
-  >(null);
+  const [recordingState, setRecordingState] = useState<Record<string, boolean>>({});
+  const [recordedRanges, setRecordedRanges] = useState<
+  Record<string, { startMs: number; endMs: number } | null>
+  >({});
+
+  const selectionId = selectedTrackId === null
+    ? null
+    : `${selectedSong ?? 'no-song'}::${selectedTrackId}`;
+  const isRecording = selectionId ? recordingState[selectionId] ?? false : false;
+  const recordedRange = selectionId ? recordedRanges[selectionId] ?? null : null;
 
   const playheadOffset = 200;
 
@@ -88,25 +96,39 @@ function AudioAnalysisPanel({
     return () => cancelAnimationFrame(rafId);
   }, [currentMsRef, setCurrentMs]);
 
-  const stopRecording = useCallback(() => {
-    const startMs = recordStartMsRef.current;
-    if (startMs !== null) {
-      setRecordedRange({ startMs, endMs: currentMsRef.current ?? currentMs });
+  const stopRecordingForSelection = useCallback((id: string) => {
+    const startMs = recordStartMsRef.current[id];
+    if (startMs !== null && startMs !== undefined) {
+      setRecordedRanges((prev) => ({
+        ...prev,
+        [id]: { startMs, endMs: currentMsRef.current ?? currentMs },
+      }));
     }
 
     stop();
-    recordStartMsRef.current = null;
-    setIsRecording(false);
+    recordStartMsRef.current[id] = null;
+    setRecordingState((prev) => ({ ...prev, [id]: false }));
+
+    bufferBySelectionRef.current[id] = audioBufferRef.current;
 
     if (api?.playerState === 1) {
       api.pause();
     }
-  }, [api, currentMs, currentMsRef, stop]);
+  }, [api, audioBufferRef, currentMs, currentMsRef, stop]);
+
+  const stopRecording = useCallback(() => {
+    if (!selectionId) return;
+    stopRecordingForSelection(selectionId);
+  }, [selectionId, stopRecordingForSelection]);
 
   let activeWaveformRange = recordedRange;
 
-  if (isRecording && recordStartMsRef.current !== null) {
-    const startMs = recordStartMsRef.current;
+  const currentRecordStartMs = selectionId
+    ? recordStartMsRef.current[selectionId] ?? null
+    : null;
+
+  if (isRecording && currentRecordStartMs !== null) {
+    const startMs = currentRecordStartMs;
     activeWaveformRange = {
       startMs,
       endMs: getSnappedQuarterEndMs(startMs, currentMs),
@@ -127,6 +149,27 @@ function AudioAnalysisPanel({
     }
     wasPlayingRef.current = isPlaying;
   }, [isPlaying, isRecording, stopRecording]);
+
+  useEffect(() => {
+    if (!selectionId) return;
+
+    const previousSelectionId = previousSelectionIdRef.current;
+    if (previousSelectionId && previousSelectionId !== selectionId) {
+      bufferBySelectionRef.current[previousSelectionId] = audioBufferRef.current;
+      if (recordingState[previousSelectionId]) {
+        stopRecordingForSelection(previousSelectionId);
+      }
+    }
+
+    const savedBuffer = bufferBySelectionRef.current[selectionId];
+    if (savedBuffer) {
+      audioBufferRef.current = savedBuffer;
+    } else {
+      audioBufferRef.current = new Float32Array(audioBufferRef.current.length);
+    }
+
+    previousSelectionIdRef.current = selectionId;
+  }, [audioBufferRef, recordingState, selectionId, stopRecordingForSelection]);
 
   if (!api || selectedTrackId === null) return null;
 
@@ -194,9 +237,14 @@ function AudioAnalysisPanel({
           className="rounded-full w-7 h-7 flex-0 aspect-square"
           onClick={() => {
             if (!isRecording) {
-              recordStartMsRef.current = currentMs;
-              setRecordedRange({ startMs: currentMs, endMs: currentMs });
-              setIsRecording(true);
+              if (!selectionId) return;
+
+              recordStartMsRef.current[selectionId] = currentMs;
+              setRecordedRanges((prev) => ({
+                ...prev,
+                [selectionId]: { startMs: currentMs, endMs: currentMs },
+              }));
+              setRecordingState((prev) => ({ ...prev, [selectionId]: true }));
 
               if (!isPlaying) {
                 handlePlayPause(api);
@@ -219,8 +267,10 @@ function AudioAnalysisPanel({
               stopRecording();
             }
 
-            setRecordedRange(null);
-            recordStartMsRef.current = null;
+            if (!selectionId) return;
+            setRecordedRanges((prev) => ({ ...prev, [selectionId]: null }));
+            recordStartMsRef.current[selectionId] = null;
+            bufferBySelectionRef.current[selectionId] = new Float32Array(audioBufferRef.current.length);
             reset();
           }}
         >
