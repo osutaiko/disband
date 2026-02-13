@@ -52,8 +52,9 @@ function AudioAnalysisPanel({
   // Padding before/after time=0
   const trackStartPadding = 1000;
   const totalTrackWidth = endMs * pxPerMs + (2 * trackStartPadding);
-  const currentTranslation = playheadOffset
-      - (currentMs * pxPerMs + trackStartPadding + panelPadding);
+  const currentTranslation = Math.round(
+    playheadOffset - (currentMs * pxPerMs + trackStartPadding + panelPadding),
+  );
 
   const windowStart = currentMs - 500 / pxPerMs;
   const windowEnd = currentMs + 2000 / pxPerMs;
@@ -221,7 +222,7 @@ function AudioAnalysisPanel({
                   key={`${selectionId ?? 'none'}-${recordingEpoch[selectionId ?? ''] ?? 0}`}
                   audioPath={selectionId ? recordedPaths[selectionId] ?? null : null}
                   isRecording={isRecording}
-                  className="w-full h-full bg-rose-300 rounded-md"
+                  className="w-full h-full bg-record-bg rounded-sm"
                 />
               )}
             </div>
@@ -285,7 +286,7 @@ function AudioAnalysisPanel({
 
       {/* Playhead */}
       <div
-        className="absolute w-[1px] bg-red-500 z-100"
+        className="absolute w-[1px] bg-playhead z-100"
         style={{
           left: `${playheadOffset}px`,
           top: `${panelPadding}px`,
@@ -297,14 +298,14 @@ function AudioAnalysisPanel({
                     w-0 h-0
                     border-l-[6px] border-l-transparent
                     border-r-[6px] border-r-transparent
-                    border-t-[8px] border-t-red-500"
+                    border-t-[8px] border-t-playhead"
         />
         <div
           className="absolute bottom-0 translate-y-full left-1/2 -translate-x-1/2
                     w-0 h-0
                     border-l-[6px] border-l-transparent
                     border-r-[6px] border-r-transparent
-                    border-b-[8px] border-b-red-500"
+                    border-b-[8px] border-b-playhead"
         />
       </div>
     </section>

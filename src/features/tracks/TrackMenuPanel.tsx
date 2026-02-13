@@ -94,7 +94,7 @@ function TrackMenuPanel() {
       ]}
     >
       {!tracks || tracks.length === 0 ? 
-        <p className="p-2 text-gray-500">No tracks found.</p> : 
+        <p className="p-2 text-grayed">No tracks found.</p> : 
         <ScrollArea className="h-full">
           <div className="flex flex-col w-64 gap-1 min-h-full">
             {tracks?.map((track) => {
