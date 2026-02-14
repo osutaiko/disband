@@ -191,7 +191,7 @@ function AudioAnalysisPanel({
             />
           ))}
 
-          <div className="relative w-full h-[40px] bg-secondary py-2 z-20">
+          <div className="relative w-full h-[48px] bg-secondary py-2 z-20">
             {/* Note Markers */}
             {visibleNoteMarkers.map((marker) => (
               <NoteMarker
