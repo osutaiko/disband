@@ -17,7 +17,12 @@ import Panel from '@/components/ui/Panel';
 
 function TrackMenuPanel() {
   const {
-    api, tracks, selectedTrackId, setSelectedTrackId,
+    api,
+    tracks,
+    selectedSong,
+    selectedTrackId,
+    setSelectedTrackId,
+    recordedPaths,
   } = useLibraryStore();
   const [mutedTracks, setMutedTracks] = useState<number[]>([]);
   const [soloTracks, setSoloTracks] = useState<number[]>([]);
@@ -94,27 +99,25 @@ function TrackMenuPanel() {
       ]}
     >
       {!tracks || tracks.length === 0 ? 
-        <p className="p-2 text-grayed">No tracks found.</p> : 
+        <p className="p-2 text-muted-foreground">No tracks found.</p> : 
         <ScrollArea className="h-full">
           <div className="flex flex-col w-64 gap-1 min-h-full">
             {tracks?.map((track) => {
               const isSelected = selectedTrackId === track.index;
               const isMuted = mutedTracks.includes(track.index);
               const isSoloed = soloTracks.includes(track.index);
+              const trackSelectionId = `${selectedSong ?? 'no-song'}::${track.index}`;
+              const hasRecording = Boolean(recordedPaths[trackSelectionId]);
               // FIXME: me too
               const trackVol = 1;
 
               return (
-                <div key={track.index} className="flex items-center gap-1 group w-68">
-                  <Card
-                    className="w-full rounded-sm shadow-none"
-                  >
-                    <CardHeader className="space-y-0 text-sm px-3 pt-2 pb-1 h-full flex flex-row items-center justify-between gap-2">
+                <div key={track.index} className="flex flex-col items-start gap-1 group w-68">
+                  <Card className="w-full flex flex-col gap-1 px-2 py-2 rounded-sm shadow-none">
+                    <div className="h-full flex flex-row items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span>
-                          {getInstrumentIcon(track)}
-                        </span>
-                        <CardTitle title={track.name} className={`truncate ${isSelected ? 'font-bold' : ''}`}>{track.name}</CardTitle>
+                        <span>{getInstrumentIcon(track)}</span>
+                        <span title={track.name} className={`text-sm truncate ${isSelected ? 'font-bold' : ''}`}>{track.name}</span>
                       </div>
                       <Button
                         title={isSelected ? 'Currently Displayed' : 'Show Track Score'}
@@ -125,24 +128,26 @@ function TrackMenuPanel() {
                       >
                         <View />
                       </Button>
-                    </CardHeader>
-                    <CardContent className="px-3 pt-0 pb-2 flex flex-row gap-4 items-center">
+                    </div>
+                    <div className="flex flex-row gap-4 items-center">
                       <div
-                        title="Track Volume"
+                        title="Original Track Volume"
                         className="flex flex-row w-full gap-2 items-center"
                       >
                         {isMuted
                           ? <VolumeX size={14} className="text-muted-foreground shrink-0" />
                           : <Volume2 size={14} className="shrink-0" />}
+                        <span className="text-sm">Original</span>
+                      </div>
+                      <div className="flex flex-row gap-1">
                         <Slider
+                          className="w-[100px] mr-3"
                           defaultValue={[trackVol * 100]}
                           max={100}
                           step={1}
                           disabled={isMuted}
                           onValueChange={(vals) => handleVolumeChange(track, vals)}
                         />
-                      </div>
-                      <div className="flex flex-row gap-1">
                         <Button
                           title={isMuted ? 'Unmute Track' : 'Mute Track'}
                           size="icon"
@@ -162,7 +167,42 @@ function TrackMenuPanel() {
                           S
                         </Button>
                       </div>
-                    </CardContent>
+                    </div>
+                    {hasRecording && 
+                      <div className="flex flex-row gap-4 items-center">
+                        <div
+                          title="Recorded Track Volume"
+                          className="flex flex-row w-full gap-2 items-center"
+                        >
+                          {isMuted
+                            ? <VolumeX size={14} className="text-muted-foreground shrink-0" />
+                            : <Volume2 size={14} className="shrink-0" />}
+                          <span className="text-sm">Recorded</span>
+                        </div>
+                        <div className="flex flex-row gap-1">
+                          <Slider
+                            className="w-[100px] mr-3"
+                            defaultValue={[100]}
+                            max={100}
+                            step={1}
+                          />
+                          <Button
+                            title={isMuted ? 'Unmute Track' : 'Mute Track'}
+                            size="icon"
+                            variant={isMuted ? 'destructive' : 'secondary'}
+                            className={`w-6 h-6 flex-0 aspect-square`}
+                          >
+                          </Button>
+                          <Button
+                            title={isSoloed ? 'Unsolo Track' : 'Solo Track'}
+                            size="icon"
+                            variant={isSoloed ? 'destructive' : 'secondary'}
+                            className={`w-6 h-6 flex-0 aspect-square`}
+                          >
+                          </Button>
+                        </div>
+                      </div>
+                    }
                   </Card>
                 </div>
               );

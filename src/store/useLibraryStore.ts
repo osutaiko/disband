@@ -45,6 +45,11 @@ interface LibraryState {
   isRecording: boolean;
   setIsRecording: (recording: boolean) => void;
 
+  recordedPaths: Record<string, string | null>;
+  setRecordedPaths: (
+    updater: (prev: Record<string, string | null>) => Record<string, string | null>
+  ) => void;
+
   pxPerMs: number;
   setPxPerMs: (ppm: number) => void;
 }
@@ -85,6 +90,11 @@ const useLibraryStore = create<LibraryState>((set) => ({
 
   isRecording: false,
   setIsRecording: (isRecording) => set({ isRecording }),
+
+  recordedPaths: {},
+  setRecordedPaths: (updater) => set((state) => ({
+    recordedPaths: updater(state.recordedPaths),
+  })),
 
   pxPerMs: 0.25,
   setPxPerMs: (ppm) => set({ pxPerMs: ppm }),
