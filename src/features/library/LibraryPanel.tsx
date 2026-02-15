@@ -57,7 +57,7 @@ function LibraryPanel() {
 
       {/* Song Catalog */}
       {songs.length === 0 ? 
-        <p className="p-2 text-grayed">No songs found. Click the "
+        <p className="p-2 text-muted-foreground">No songs found. Click the "
           <FolderOpen className="inline-flex" size={12} />" button above to add a Guitar Pro file from disk.
         </p> : 
         <ScrollArea className="h-full">

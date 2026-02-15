@@ -20,7 +20,16 @@ function AudioAnalysisPanel({
   currentMsRef: RefObject<number>;
 }) {
   const {
-    api, selectedSong, selectedTrackId, currentMs, setCurrentMs, endMs, isPlaying, pxPerMs,
+    api,
+    selectedSong,
+    selectedTrackId,
+    currentMs,
+    setCurrentMs,
+    endMs,
+    isPlaying,
+    pxPerMs,
+    recordedPaths,
+    setRecordedPaths,
   } = useLibraryStore();
   const {
     noteMarkers = [],
@@ -35,7 +44,6 @@ function AudioAnalysisPanel({
   const [recordedRanges, setRecordedRanges] = useState<
   Record<string, { startMs: number; endMs: number } | null>
   >({});
-  const [recordedPaths, setRecordedPaths] = useState<Record<string, string | null>>({});
   const [recordingEpoch, setRecordingEpoch] = useState<Record<string, number>>({});
 
   const selectionId = selectedTrackId === null
