@@ -4,11 +4,9 @@ import { getCssColor } from '@/lib/utils';
 
 function RealtimeWaveform({
   audioPath,
-  isRecording = false,
   className,
 }: {
   audioPath: string | null;
-  isRecording?: boolean;
   className?: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);

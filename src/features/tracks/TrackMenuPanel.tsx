@@ -5,15 +5,12 @@ import { useState } from 'react';
 import useLibraryStore from '@/store/useLibraryStore';
 
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Panel from '@/components/ui/Panel';
+
+type TrackLayer = 'original' | 'recorded';
 
 function TrackMenuPanel() {
   const {
@@ -24,8 +21,9 @@ function TrackMenuPanel() {
     setSelectedTrackId,
     recordedPaths,
   } = useLibraryStore();
-  const [mutedTracks, setMutedTracks] = useState<number[]>([]);
-  const [soloTracks, setSoloTracks] = useState<number[]>([]);
+  const [mutedTracks, setMutedTracks] = useState<string[]>([]);
+  const [soloTracks, setSoloTracks] = useState<string[]>([]);
+  const [recordedVolumes, setRecordedVolumes] = useState<Record<string, number>>({});
 
   const handleReset = () => {
     if (!api || !tracks) return;
@@ -40,6 +38,7 @@ function TrackMenuPanel() {
 
     setMutedTracks([]);
     setSoloTracks([]);
+    setRecordedVolumes({});
   };
 
   const handleVolumeChange = (track: any, values: number[]) => {
@@ -47,33 +46,71 @@ function TrackMenuPanel() {
     api.changeTrackVolume([track], values[0] / 100);
   };
 
-  const handleMuteToggle = (track: any) => {
-    if (!api) return;
-    const isMuted = mutedTracks.includes(track.index);
-    api.changeTrackMute([track], !isMuted);
+  const getTrackSelectionId = (track: any) => `${selectedSong ?? 'no-song'}::${track.index}`;
+  const getLayerSelectionId = (track: any, layer: TrackLayer) => `${getTrackSelectionId(track)}::${layer}`;
+
+  const handleMuteToggle = (track: any, layer: TrackLayer = 'original') => {
+    const layerSelectionId = getLayerSelectionId(track, layer);
+    const isMuted = mutedTracks.includes(layerSelectionId);
+
+    if (layer === 'original') {
+      if (!api) return;
+      api.changeTrackMute([track], !isMuted);
+    }
+
     setMutedTracks((prev) => (
-      isMuted ? prev.filter((id) => id !== track.index) : [...prev, track.index]
+      isMuted ? prev.filter((id) => id !== layerSelectionId) : [...prev, layerSelectionId]
     ));
   };
 
-  const handleSoloToggle = (track: any) => {
-    if (!api) return;
-    const isCurrentlySoloed = soloTracks.includes(track.index);
+  const handleSoloToggle = (track: any, layer: TrackLayer = 'original') => {
+    const layerSelectionId = getLayerSelectionId(track, layer);
+    const isCurrentlySoloed = soloTracks.includes(layerSelectionId);
+    const isCurrentlyMuted = mutedTracks.includes(layerSelectionId);
 
     if (isCurrentlySoloed) {
-      api.changeTrackSolo([track], false);
-      setSoloTracks([]);
-    } else {
-      // Unmute track
-      if (mutedTracks.includes(track.index)) {
-        api.changeTrackMute([track], false);
-        setMutedTracks((prev) => prev.filter((id) => id !== track.index));
+      if (layer === 'original') {
+        if (!api) return;
+        api.changeTrackSolo([track], false);
       }
 
-      // Exclusive solo
-      api.changeTrackSolo([track], true);
-      setSoloTracks([track.index]);
+      setSoloTracks([]);
+      return;
     }
+
+    if (isCurrentlyMuted) {
+      if (layer === 'original') {
+        if (!api) return;
+        api.changeTrackMute([track], false);
+      }
+      setMutedTracks((prev) => prev.filter((id) => id !== layerSelectionId));
+    }
+
+    if (layer === 'original') {
+      if (!api) return;
+      if (tracks) {
+        api.changeTrackSolo(tracks, false);
+      }
+      api.changeTrackSolo([track], true);
+    }
+
+    setSoloTracks([layerSelectionId]);
+  };
+
+  const handleRecordedVolumeChange = (track: any, values: number[]) => {
+    const selectionId = getTrackSelectionId(track);
+    setRecordedVolumes((prev) => ({
+      ...prev,
+      [selectionId]: values[0] / 100,
+    }));
+  };
+
+  const handleRecordedMuteToggle = (track: any) => {
+    handleMuteToggle(track, 'recorded');
+  };
+
+  const handleRecordedSoloToggle = (track: any) => {
+    handleSoloToggle(track, 'recorded');
   };
 
   const getInstrumentIcon = (track: any) => {
@@ -104,10 +141,15 @@ function TrackMenuPanel() {
           <div className="flex flex-col w-64 gap-1 min-h-full">
             {tracks?.map((track) => {
               const isSelected = selectedTrackId === track.index;
-              const isMuted = mutedTracks.includes(track.index);
-              const isSoloed = soloTracks.includes(track.index);
-              const trackSelectionId = `${selectedSong ?? 'no-song'}::${track.index}`;
+              const trackSelectionId = getTrackSelectionId(track);
+              const originalLayerSelectionId = getLayerSelectionId(track, 'original');
+              const recordedLayerSelectionId = getLayerSelectionId(track, 'recorded');
+              const isMuted = mutedTracks.includes(originalLayerSelectionId);
+              const isSoloed = soloTracks.includes(originalLayerSelectionId);
               const hasRecording = Boolean(recordedPaths[trackSelectionId]);
+              const isRecordedMuted = mutedTracks.includes(recordedLayerSelectionId);
+              const isRecordedSoloed = soloTracks.includes(recordedLayerSelectionId);
+              const recordedTrackVolume = recordedVolumes[trackSelectionId] ?? 1;
               // FIXME: me too
               const trackVol = 1;
 
@@ -153,7 +195,7 @@ function TrackMenuPanel() {
                           size="icon"
                           variant={isMuted ? 'destructive' : 'secondary'}
                           className={`w-6 h-6 flex-0 aspect-square ${isMuted ? 'text-white' : 'text-black'}`}
-                          onClick={() => handleMuteToggle(track)}
+                          onClick={() => handleMuteToggle(track, 'original')}
                         >
                           M
                         </Button>
@@ -162,7 +204,7 @@ function TrackMenuPanel() {
                           size="icon"
                           variant={isSoloed ? 'destructive' : 'secondary'}
                           className={`w-6 h-6 flex-0 aspect-square ${isSoloed ? 'text-white' : 'text-black'}`}
-                          onClick={() => handleSoloToggle(track)}
+                          onClick={() => handleSoloToggle(track, 'original')}
                         >
                           S
                         </Button>
@@ -174,7 +216,7 @@ function TrackMenuPanel() {
                           title="Recorded Track Volume"
                           className="flex flex-row w-full gap-2 items-center"
                         >
-                          {isMuted
+                          {isRecordedMuted
                             ? <VolumeX size={14} className="text-muted-foreground shrink-0" />
                             : <Volume2 size={14} className="shrink-0" />}
                           <span className="text-sm">Recorded</span>
@@ -182,23 +224,29 @@ function TrackMenuPanel() {
                         <div className="flex flex-row gap-1">
                           <Slider
                             className="w-[100px] mr-3"
-                            defaultValue={[100]}
+                            value={[recordedTrackVolume * 100]}
                             max={100}
                             step={1}
+                            disabled={isRecordedMuted}
+                            onValueChange={(vals) => handleRecordedVolumeChange(track, vals)}
                           />
                           <Button
-                            title={isMuted ? 'Unmute Track' : 'Mute Track'}
+                            title={isRecordedMuted ? 'Unmute Recorded' : 'Mute Recorded'}
                             size="icon"
-                            variant={isMuted ? 'destructive' : 'secondary'}
-                            className={`w-6 h-6 flex-0 aspect-square`}
+                            variant={isRecordedMuted ? 'destructive' : 'secondary'}
+                            className={`w-6 h-6 flex-0 aspect-square ${isRecordedMuted ? 'text-white' : 'text-black'}`}
+                            onClick={() => handleRecordedMuteToggle(track)}
                           >
+                            M
                           </Button>
                           <Button
-                            title={isSoloed ? 'Unsolo Track' : 'Solo Track'}
+                            title={isRecordedSoloed ? 'Unsolo Recorded' : 'Solo Recorded'}
                             size="icon"
-                            variant={isSoloed ? 'destructive' : 'secondary'}
-                            className={`w-6 h-6 flex-0 aspect-square`}
+                            variant={isRecordedSoloed ? 'destructive' : 'secondary'}
+                            className={`w-6 h-6 flex-0 aspect-square ${isRecordedSoloed ? 'text-white' : 'text-black'}`}
+                            onClick={() => handleRecordedSoloToggle(track)}
                           >
+                            S
                           </Button>
                         </div>
                       </div>
