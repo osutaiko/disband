@@ -229,7 +229,6 @@ function AudioAnalysisPanel({
                 <RealtimeWaveform
                   key={`${selectionId ?? 'none'}-${recordingEpoch[selectionId ?? ''] ?? 0}`}
                   audioPath={selectionId ? recordedPaths[selectionId] ?? null : null}
-                  isRecording={isRecording}
                   className="w-full h-full bg-record-bg rounded-sm"
                 />
               )}
