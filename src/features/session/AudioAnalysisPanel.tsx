@@ -14,6 +14,20 @@ import RealtimeWaveform from './RealtimeWaveform';
 
 import { Button } from '@/components/ui/button';
 
+const FIXTURE_FILENAME_REGEX = /^(.*?)__tr-(\d+)__start-(\d+)__(\d+)\.wav$/i;
+
+function parseFixtureStartFromPath(filePath: string): { startMs: number } | null {
+  const fileName = filePath.split('/').pop() ?? filePath.split('\\').pop();
+  if (!fileName) return null;
+
+  const match = fileName.match(FIXTURE_FILENAME_REGEX);
+  if (!match) return null;
+
+  return {
+    startMs: Number(match[3]),
+  };
+}
+
 function AudioAnalysisPanel({
   currentMsRef,
 }: {
@@ -41,16 +55,15 @@ function AudioAnalysisPanel({
   const previousSelectionIdRef = useRef<string | null>(null);
 
   const [recordingState, setRecordingState] = useState<Record<string, boolean>>({});
-  const [recordedRanges, setRecordedRanges] = useState<
-  Record<string, { startMs: number; endMs: number } | null>
-  >({});
+  const [recordedStartMs, setRecordedStartMs] = useState<Record<string, number | null>>({});
+  const [recordedDurationsMs, setRecordedDurationsMs] = useState<Record<string, number | null>>({});
   const [recordingEpoch, setRecordingEpoch] = useState<Record<string, number>>({});
 
   const selectionId = selectedTrackId === null
     ? null
     : `${selectedSong ?? 'no-song'}::${selectedTrackId}`;
   const isRecording = selectionId ? recordingState[selectionId] ?? false : false;
-  const recordedRange = selectionId ? recordedRanges[selectionId] ?? null : null;
+  const recordedPath = selectionId ? recordedPaths[selectionId] ?? null : null;
 
   const playheadOffset = 200;
 
@@ -103,14 +116,6 @@ function AudioAnalysisPanel({
   }, [currentMsRef, setCurrentMs]);
 
   const stopRecordingForSelection = useCallback(async (id: string) => {
-    const startMs = recordStartMsRef.current[id];
-    if (startMs !== null && startMs !== undefined) {
-      setRecordedRanges((prev) => ({
-        ...prev,
-        [id]: { startMs, endMs: currentMsRef.current ?? currentMs },
-      }));
-    }
-
     recordStartMsRef.current[id] = null;
     setRecordingState((prev) => ({ ...prev, [id]: false }));
     try {
@@ -125,17 +130,28 @@ function AudioAnalysisPanel({
     if (api?.playerState === 1) {
       api.pause();
     }
-  }, [api, currentMs, currentMsRef]);
+  }, [api, setRecordedPaths]);
 
   const stopRecording = useCallback(() => {
     if (!selectionId) return;
     void stopRecordingForSelection(selectionId);
   }, [selectionId, stopRecordingForSelection]);
 
-  let activeWaveformRange = recordedRange;
+  const handleWaveformDurationChange = useCallback((durationMs: number | null) => {
+    if (!selectionId || isRecording) return;
+    setRecordedDurationsMs((prev) => ({ ...prev, [selectionId]: durationMs }));
+  }, [isRecording, selectionId]);
+
+  let activeWaveformRange: { startMs: number; endMs: number } | null = null;
 
   const currentRecordStartMs = selectionId
     ? recordStartMsRef.current[selectionId] ?? null
+    : null;
+  const persistedRecordStartMs = selectionId
+    ? recordedStartMs[selectionId] ?? null
+    : null;
+  const persistedRecordDurationMs = selectionId
+    ? recordedDurationsMs[selectionId] ?? null
     : null;
 
   if (isRecording && currentRecordStartMs !== null) {
@@ -144,14 +160,26 @@ function AudioAnalysisPanel({
       startMs,
       endMs: getSnappedQuarterEndMs(startMs, currentMs),
     };
+  } else if (recordedPath && persistedRecordDurationMs !== null) {
+    const startMs = persistedRecordStartMs ?? 0;
+    activeWaveformRange = {
+      startMs,
+      endMs: startMs + persistedRecordDurationMs,
+    };
   }
 
+  const shouldRenderWaveform = isRecording || Boolean(recordedPath);
+  const fallbackStartMs = persistedRecordStartMs ?? 0;
   const waveformStartX = activeWaveformRange
     ? activeWaveformRange.startMs * pxPerMs + trackStartPadding
-    : trackStartPadding;
+    : shouldRenderWaveform
+      ? fallbackStartMs * pxPerMs + trackStartPadding
+      : trackStartPadding;
   const waveformWidthPx = activeWaveformRange
     ? Math.max(1, (activeWaveformRange.endMs - activeWaveformRange.startMs) * pxPerMs)
-    : 0;
+    : shouldRenderWaveform
+      ? 1
+      : 0;
 
   useEffect(() => {
     const playbackJustStopped = wasPlayingRef.current && !isPlaying;
@@ -173,6 +201,19 @@ function AudioAnalysisPanel({
 
     previousSelectionIdRef.current = selectionId;
   }, [recordingState, selectionId, stopRecordingForSelection]);
+
+  useEffect(() => {
+    if (!selectionId || !recordedPath) return;
+
+    const fixtureStart = parseFixtureStartFromPath(recordedPath);
+    if (!fixtureStart) return;
+
+    setRecordedStartMs((prev) => (
+      prev[selectionId] === null || prev[selectionId] === undefined
+        ? { ...prev, [selectionId]: fixtureStart.startMs }
+        : prev
+    ));
+  }, [recordedPath, selectionId]);
 
   if (!api || selectedTrackId === null) return null;
 
@@ -225,10 +266,11 @@ function AudioAnalysisPanel({
                 width: `${waveformWidthPx}px`,
               }}
             >
-              {waveformWidthPx > 0 && (
+              {shouldRenderWaveform && (
                 <RealtimeWaveform
                   key={`${selectionId ?? 'none'}-${recordingEpoch[selectionId ?? ''] ?? 0}`}
-                  audioPath={selectionId ? recordedPaths[selectionId] ?? null : null}
+                  audioPath={recordedPath}
+                  onDurationMsChange={handleWaveformDurationChange}
                   className="w-full h-full bg-record-bg rounded-sm"
                 />
               )}
@@ -247,10 +289,8 @@ function AudioAnalysisPanel({
               if (!selectionId) return;
 
               recordStartMsRef.current[selectionId] = currentMs;
-              setRecordedRanges((prev) => ({
-                ...prev,
-                [selectionId]: { startMs: currentMs, endMs: currentMs },
-              }));
+              setRecordedStartMs((prev) => ({ ...prev, [selectionId]: currentMs }));
+              setRecordedDurationsMs((prev) => ({ ...prev, [selectionId]: 0 }));
               setRecordingState((prev) => ({ ...prev, [selectionId]: true }));
               setRecordedPaths((prev) => ({ ...prev, [selectionId]: null }));
               setRecordingEpoch((prev) => ({
@@ -282,8 +322,9 @@ function AudioAnalysisPanel({
             }
 
             if (!selectionId) return;
-            setRecordedRanges((prev) => ({ ...prev, [selectionId]: null }));
             recordStartMsRef.current[selectionId] = null;
+            setRecordedStartMs((prev) => ({ ...prev, [selectionId]: null }));
+            setRecordedDurationsMs((prev) => ({ ...prev, [selectionId]: null }));
             setRecordedPaths((prev) => ({ ...prev, [selectionId]: null }));
           }}
         >

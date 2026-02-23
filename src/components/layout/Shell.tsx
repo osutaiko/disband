@@ -10,6 +10,7 @@ import SessionPanel from '@/features/session/SessionPanel';
 
 import TabViewPanel from '@/features/engine/TabViewPanel';
 import AudioAnalysisPanel from '@/features/session/AudioAnalysisPanel';
+import useTestAudioFixtures from '@/features/session/useTestAudioFixtures';
 
 import PlaybackControlPanel from '@/features/engine/PlaybackControlPanel';
 import TrackMenuPanel from '@/features/tracks/TrackMenuPanel';
@@ -17,6 +18,7 @@ import OptionsPanel from '@/features/configuration/OptionsPanel';
 
 function Shell() {
   useSongMetadata();
+  useTestAudioFixtures();
 
   const { selectedSong } = useLibraryStore();
   const containerRef = useRef<HTMLDivElement | null>(null);

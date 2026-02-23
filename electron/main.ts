@@ -17,6 +17,7 @@ const dirName = path.dirname(fileName);
 
 process.env.APP_ROOT = path.join(dirName, '..');
 const { VITE_DEV_SERVER_URL } = process.env;
+const ENABLE_TEST_AUDIO_FIXTURES = process.env.VITE_ENABLE_TEST_AUDIO_FIXTURES === '1';
 
 let win: BrowserWindow | null = null;
 let audioSidecar: ReturnType<typeof spawn> | null = null;
@@ -56,6 +57,12 @@ app.on('window-all-closed', () => {
 
 const SONGS_PATH = path.join(app.getPath('documents'), 'Disband', 'Songs');
 const RECORDINGS_PATH = path.join(app.getPath('documents'), 'Disband', 'Takes');
+const TESTS_DATA_PATH = path.resolve(process.env.APP_ROOT!, 'tests', 'data');
+
+function isPathInside(basePath: string, targetPath: string): boolean {
+  const relativePath = path.relative(basePath, targetPath);
+  return relativePath === '' || (!relativePath.startsWith('..') && !path.isAbsolute(relativePath));
+}
 
 function startAudioSidecar() {
   if (audioSidecar) return;
@@ -146,10 +153,25 @@ ipcMain.handle('audio-start', async () => {
 
 ipcMain.handle('audio-stop', async () => stopAudioSidecar());
 ipcMain.handle('audio-read', async (_event, filePath: string) => {
-  if (!filePath || !filePath.startsWith(RECORDINGS_PATH)) {
+  if (!filePath) {
     throw new Error('Invalid recording path');
   }
-  const buffer = await fs.promises.readFile(filePath);
+
+  const resolvedPath = path.isAbsolute(filePath)
+    ? path.resolve(filePath)
+    : path.resolve(process.env.APP_ROOT!, filePath);
+
+  const allowedBasePaths = [RECORDINGS_PATH];
+  if (ENABLE_TEST_AUDIO_FIXTURES) {
+    allowedBasePaths.push(TESTS_DATA_PATH);
+  }
+
+  const isAllowedPath = allowedBasePaths.some((basePath) => isPathInside(basePath, resolvedPath));
+  if (!isAllowedPath) {
+    throw new Error('Invalid recording path');
+  }
+
+  const buffer = await fs.promises.readFile(resolvedPath);
   return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
 });
 
