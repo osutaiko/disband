@@ -5,9 +5,11 @@ import { getCssColor } from '@/lib/utils';
 function RealtimeWaveform({
   audioPath,
   className,
+  onDurationMsChange,
 }: {
   audioPath: string | null;
   className?: string;
+  onDurationMsChange?: (durationMs: number | null) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const waveSurferRef = useRef<WaveSurfer | null>(null);
@@ -39,6 +41,7 @@ function RealtimeWaveform({
 
     if (!audioPath) {
       waveSurfer.empty();
+      onDurationMsChange?.(null);
       return;
     }
 
@@ -49,10 +52,18 @@ function RealtimeWaveform({
       .then((data) => {
         if (cancelled) return;
         const blob = new Blob([data], { type: 'audio/wav' });
-        return waveSurfer.loadBlob(blob);
+        return waveSurfer.loadBlob(blob).then(() => {
+          if (cancelled) return;
+          const durationSec = waveSurfer.getDuration();
+          const durationMs = Number.isFinite(durationSec) && durationSec > 0
+            ? Math.round(durationSec * 1000)
+            : null;
+          onDurationMsChange?.(durationMs);
+        });
       })
       .catch((error) => {
         if (!cancelled) {
+          onDurationMsChange?.(null);
           console.error('[wavesurfer] failed to load recording', error);
         }
       });
@@ -60,7 +71,7 @@ function RealtimeWaveform({
     return () => {
       cancelled = true;
     };
-  }, [audioPath]);
+  }, [audioPath, onDurationMsChange]);
 
   return <div ref={containerRef} className={className} />;
 }
