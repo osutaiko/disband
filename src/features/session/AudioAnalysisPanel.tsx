@@ -153,6 +153,9 @@ function AudioAnalysisPanel({
   const persistedRecordDurationMs = selectionId
     ? recordedDurationsMs[selectionId] ?? null
     : null;
+  const fixtureStartMs = recordedPath
+    ? parseFixtureStartFromPath(recordedPath)?.startMs ?? null
+    : null;
 
   if (isRecording && currentRecordStartMs !== null) {
     const startMs = currentRecordStartMs;
@@ -161,7 +164,7 @@ function AudioAnalysisPanel({
       endMs: getSnappedQuarterEndMs(startMs, currentMs),
     };
   } else if (recordedPath && persistedRecordDurationMs !== null) {
-    const startMs = persistedRecordStartMs ?? 0;
+    const startMs = fixtureStartMs ?? persistedRecordStartMs ?? 0;
     activeWaveformRange = {
       startMs,
       endMs: startMs + persistedRecordDurationMs,
@@ -169,7 +172,7 @@ function AudioAnalysisPanel({
   }
 
   const shouldRenderWaveform = isRecording || Boolean(recordedPath);
-  const fallbackStartMs = persistedRecordStartMs ?? 0;
+  const fallbackStartMs = fixtureStartMs ?? persistedRecordStartMs ?? 0;
   const waveformStartX = activeWaveformRange
     ? activeWaveformRange.startMs * pxPerMs + trackStartPadding
     : shouldRenderWaveform
@@ -201,19 +204,6 @@ function AudioAnalysisPanel({
 
     previousSelectionIdRef.current = selectionId;
   }, [recordingState, selectionId, stopRecordingForSelection]);
-
-  useEffect(() => {
-    if (!selectionId || !recordedPath) return;
-
-    const fixtureStart = parseFixtureStartFromPath(recordedPath);
-    if (!fixtureStart) return;
-
-    setRecordedStartMs((prev) => (
-      prev[selectionId] === null || prev[selectionId] === undefined
-        ? { ...prev, [selectionId]: fixtureStart.startMs }
-        : prev
-    ));
-  }, [recordedPath, selectionId]);
 
   if (!api || selectedTrackId === null) return null;
 
@@ -260,9 +250,9 @@ function AudioAnalysisPanel({
           {/* Recorded Audio */}
           <div className="relative w-full h-[120px] bg-secondary py-2 z-20">
             <div
-              className="absolute inset-y-2 will-change-transform"
+              className="absolute inset-y-2 will-change-[left,width]"
               style={{
-                transform: `translateX(${waveformStartX}px)`,
+                left: `${waveformStartX}px`,
                 width: `${waveformWidthPx}px`,
               }}
             >
