@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react';
-import { AlphaTabApi, Settings } from '@coderline/alphatab';
+import { importer, Settings } from '@coderline/alphatab';
 import useLibraryStore from '@/store/useLibraryStore';
 
 const useSongMetadata = () => {
@@ -7,41 +7,30 @@ const useSongMetadata = () => {
 
   const loadAllMetadata = useCallback(async () => {
     const songFiles: string[] = await window.electron.getSongs();
-    const result: Record<string, any> = {};
-
-    songFiles.map(async (id) => {
+    const entries = await Promise.all(songFiles.map(async (id) => {
       try {
         const data = await window.electron.getSongData(id);
+        const score = importer.ScoreLoader.loadScoreFromBytes(new Uint8Array(data), new Settings());
 
-        const container = document.createElement('div');
-        container.style.display = 'none';
-        document.body.appendChild(container);
-
-        const api = new AlphaTabApi(container, new Settings());
-        await api.load(new Uint8Array(data));
-
-        const { score } = api;
-
-        result[id] = {
+        return [id, {
           id,
           title: score?.title || 'Unknown Title',
           artist: score?.artist || 'Unknown Artist',
           album: score?.album || '',
           tempo: score?.tempo || 0,
-        };
-
-        api.destroy();
-        document.body.removeChild(container);
+        }] as const;
       } catch {
-        result[id] = {
+        return [id, {
           id,
           title: '',
           artist: '',
           album: '',
           tempo: 0,
-        };
+        }] as const;
       }
-    });
+    }));
+
+    const result = Object.fromEntries(entries);
 
     setSongsMetadata(result);
   }, [setSongsMetadata]);
