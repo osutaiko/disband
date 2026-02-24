@@ -137,10 +137,11 @@
   --color-note-ok: var(--color-green-500);
   --color-note-inacc: var(--color-amber-500);
   --color-note-miss: var(--color-red-500);
-
   
   --color-record-bg: var(--color-indigo-200);
   --color-record-waveform: var(--color-indigo-700);
+  --color-record-note-bg: var(--color-blue-800);
+  --color-record-note-start: var(--color-blue-700);
 }
 
 @layer base {
