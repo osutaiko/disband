@@ -232,9 +232,9 @@ function AudioAnalysisPanel({
 
           <div className="relative w-full h-[48px] bg-secondary py-2 z-20">
             {/* Note Markers */}
-            {visibleNoteMarkers.map((marker) => (
+            {visibleNoteMarkers.map((marker, index) => (
               <NoteMarker
-                key={`${marker.timestamp}::${marker.length}`}
+                key={`note-${marker.timestamp}-${marker.length}-${index}`}
                 timestamp={marker.timestamp}
                 length={marker.length}
                 offsetBase={trackStartPadding}
