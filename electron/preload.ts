@@ -10,4 +10,5 @@ contextBridge.exposeInMainWorld('audio', {
   start: () => ipcRenderer.invoke('audio-start'),
   stop: () => ipcRenderer.invoke('audio-stop'),
   readRecording: (filePath: string) => ipcRenderer.invoke('audio-read', filePath),
+  analyzeRecording: (filePath: string) => ipcRenderer.invoke('audio-analyze', filePath),
 });

@@ -1,4 +1,5 @@
 /// <reference types="vite-plugin-electron/electron-env" />
+import type { AnalyzedNote } from '../shared/types';
 
 declare namespace NodeJS {
   interface ProcessEnv {
@@ -36,6 +37,7 @@ export interface IElectronAPI {
 // Used in Renderer process, expose in `preload.ts`
 declare global {
   interface IAudioAPI {
+    analyzeRecording: (filePath: string) => Promise<AnalyzedNote[]>;
     start: () => Promise<{ ok: boolean; path?: string; url?: string }>;
     stop: () => Promise<{
       ok: boolean;

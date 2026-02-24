@@ -12,6 +12,32 @@ export function getSidecarPath(appRoot: string) {
   return path.join(base, exe);
 }
 
+export function isPathInside(basePath: string, targetPath: string): boolean {
+  const relativePath = path.relative(basePath, targetPath);
+  return relativePath === '' || (!relativePath.startsWith('..') && !path.isAbsolute(relativePath));
+}
+
+export function resolveAndValidateRecordingPath(
+  filePath: string,
+  appRoot: string,
+  allowedBasePaths: string[],
+): string {
+  if (!filePath) {
+    throw new Error('Invalid recording path');
+  }
+
+  const resolvedPath = path.isAbsolute(filePath)
+    ? path.resolve(filePath)
+    : path.resolve(appRoot, filePath);
+
+  const isAllowedPath = allowedBasePaths.some((basePath) => isPathInside(basePath, resolvedPath));
+  if (!isAllowedPath) {
+    throw new Error('Invalid recording path');
+  }
+
+  return resolvedPath;
+}
+
 export function pad2(value: number) {
   return value.toString().padStart(2, '0');
 }

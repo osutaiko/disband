@@ -1,14 +1,18 @@
 import {
   app, BrowserWindow, dialog, ipcMain,
 } from 'electron';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
 import {
-  getSidecarPath,
-  makeRecordingFileName,
+  resolveAndValidateRecordingPath,
 } from './utils';
+import { createWindow } from './window';
+import {
+  analyzeRecordingFile,
+  startAudioSidecar,
+  stopAudioSidecar,
+} from './audio-sidecar';
 
 import { SUPPORTED_EXTENSIONS } from '../shared/constants';
 
@@ -20,35 +24,16 @@ const { VITE_DEV_SERVER_URL } = process.env;
 const ENABLE_TEST_AUDIO_FIXTURES = process.env.VITE_ENABLE_TEST_AUDIO_FIXTURES === '1';
 
 let win: BrowserWindow | null = null;
-let audioSidecar: ReturnType<typeof spawn> | null = null;
+let audioSidecar: ReturnType<typeof import('node:child_process').spawn> | null = null;
 let audioRecordingPath: string | null = null;
 let audioRecordingUrl: string | null = null;
 
-function createWindow() {
-  win = new BrowserWindow({
-    minWidth: 1280,
-    minHeight: 720,
-    show: false,
-    autoHideMenuBar: true,
-    webPreferences: {
-      preload: path.join(dirName, 'preload.mjs'),
-      contextIsolation: true,
-      nodeIntegration: false,
-    },
-  });
-
-  win.maximize();
-  win.show();
-
-  if (VITE_DEV_SERVER_URL) {
-    win.loadURL(VITE_DEV_SERVER_URL);
-  } else {
-    win.loadFile(path.join(process.env.APP_ROOT!, 'dist', 'index.html'));
-  }
-}
-
 app.whenReady().then(() => {
-  createWindow();
+  win = createWindow({
+    dirName,
+    viteDevServerUrl: VITE_DEV_SERVER_URL,
+    appRoot: process.env.APP_ROOT!,
+  });
 });
 
 app.on('window-all-closed', () => {
@@ -59,120 +44,31 @@ const SONGS_PATH = path.join(app.getPath('documents'), 'Disband', 'Songs');
 const RECORDINGS_PATH = path.join(app.getPath('documents'), 'Disband', 'Takes');
 const TESTS_DATA_PATH = path.resolve(process.env.APP_ROOT!, 'tests', 'data');
 
-function isPathInside(basePath: string, targetPath: string): boolean {
-  const relativePath = path.relative(basePath, targetPath);
-  return relativePath === '' || (!relativePath.startsWith('..') && !path.isAbsolute(relativePath));
-}
+const audioState = {
+  getAudioSidecar: () => audioSidecar,
+  setAudioSidecar: (value: ReturnType<typeof import('node:child_process').spawn> | null) => {
+    audioSidecar = value;
+  },
+  getAudioRecordingPath: () => audioRecordingPath,
+  setAudioRecordingPath: (value: string | null) => {
+    audioRecordingPath = value;
+  },
+  getAudioRecordingUrl: () => audioRecordingUrl,
+  setAudioRecordingUrl: (value: string | null) => {
+    audioRecordingUrl = value;
+  },
+};
 
-function startAudioSidecar() {
-  if (audioSidecar) return;
-
-  const exe = getSidecarPath(process.env.APP_ROOT!);
-  const outputPath = path.join(RECORDINGS_PATH, makeRecordingFileName());
-  const outputUrl = pathToFileURL(outputPath).toString();
-
-  const sidecar = spawn(exe, ['--output', outputPath], {
-    stdio: ['pipe', 'ignore', 'pipe'],
-  });
-  audioSidecar = sidecar;
-  audioRecordingPath = outputPath;
-  audioRecordingUrl = outputUrl;
-
-  sidecar.stderr?.on('data', (chunk: Buffer) => {
-    console.info(chunk.toString('utf8'));
-  });
-
-  sidecar.on('exit', () => {
-    audioSidecar = null;
-  });
-}
-
-async function stopAudioSidecar() {
-  if (!audioSidecar) {
-    return { ok: true, alreadyStopped: true };
-  }
-
-  const sidecar = audioSidecar;
-  const outputPath = audioRecordingPath;
-  const outputUrl = audioRecordingUrl;
-
-  const exitPromise = new Promise<'exit'>((resolve) => {
-    sidecar.once('exit', () => resolve('exit'));
-  });
-
-  try {
-    sidecar.stdin?.write('stop\n');
-    sidecar.stdin?.end();
-  } catch {
-    // Ignore write failures for now
-  }
-
-  const exitResult = await Promise.race([
-    exitPromise,
-    new Promise<'timeout'>((resolve) => {
-      setTimeout(() => resolve('timeout'), 1000);
-    }),
-  ]);
-
-  if (exitResult === 'timeout') {
-    sidecar.kill();
-  }
-
-  audioSidecar = null;
-
-  let fileSize: number | null = null;
-  if (outputPath) {
-    try {
-      fileSize = fs.statSync(outputPath).size;
-    } catch {
-      fileSize = null;
-    }
-  }
-
-  return {
-    ok: true,
-    path: outputPath ?? undefined,
-    url: outputUrl ?? undefined,
-    saved: fileSize !== null && fileSize > 44,
-    fileSize,
-  };
-}
-
-app.on('before-quit', () => {
-  stopAudioSidecar();
-});
-
-ipcMain.handle('audio-start', async () => {
-  startAudioSidecar();
-  return {
-    ok: true,
-    path: audioRecordingPath ?? undefined,
-    url: audioRecordingUrl ?? undefined,
-  };
-});
-
-ipcMain.handle('audio-stop', async () => stopAudioSidecar());
-ipcMain.handle('audio-read', async (_event, filePath: string) => {
-  if (!filePath) {
-    throw new Error('Invalid recording path');
-  }
-
-  const resolvedPath = path.isAbsolute(filePath)
-    ? path.resolve(filePath)
-    : path.resolve(process.env.APP_ROOT!, filePath);
-
+function resolveRecordingPath(filePath: string): string {
   const allowedBasePaths = [RECORDINGS_PATH];
   if (ENABLE_TEST_AUDIO_FIXTURES) {
     allowedBasePaths.push(TESTS_DATA_PATH);
   }
 
-  const isAllowedPath = allowedBasePaths.some((basePath) => isPathInside(basePath, resolvedPath));
-  if (!isAllowedPath) {
-    throw new Error('Invalid recording path');
-  }
-
-  const buffer = await fs.promises.readFile(resolvedPath);
-  return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+  return resolveAndValidateRecordingPath(filePath, process.env.APP_ROOT!, allowedBasePaths);
+}
+app.on('before-quit', () => {
+  void stopAudioSidecar({ state: audioState });
 });
 
 // --- IPC Handlers --- //
@@ -245,3 +141,36 @@ ipcMain.handle('get-song-data', async (_, filename: string) => {
   const buffer = await fs.promises.readFile(filePath);
   return buffer;
 });
+
+// Start audio recording
+ipcMain.handle('audio-start', async () => {
+  startAudioSidecar({
+    state: audioState,
+    recordingsPath: RECORDINGS_PATH,
+    appRoot: process.env.APP_ROOT!,
+  });
+  return {
+    ok: true,
+    path: audioRecordingPath ?? undefined,
+    url: audioRecordingUrl ?? undefined,
+  };
+});
+
+// Stop audio recording
+ipcMain.handle('audio-stop', async () => stopAudioSidecar({ state: audioState }));
+
+// Read recorded audio from path
+ipcMain.handle('audio-read', async (_event, filePath: string) => {
+  const resolvedPath = resolveRecordingPath(filePath);
+  const buffer = await fs.promises.readFile(resolvedPath);
+  return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+});
+
+// Analyze recording
+ipcMain.handle('audio-analyze', async (_event, filePath: string) => (
+  analyzeRecordingFile({
+    filePath,
+    appRoot: process.env.APP_ROOT!,
+    resolveRecordingPath: resolveRecordingPath,
+  })
+));

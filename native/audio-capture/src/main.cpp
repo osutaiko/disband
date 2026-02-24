@@ -3,6 +3,8 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_core/juce_core.h>
 
+#include "session.h"
+
 #include <cstdio>
 #include <string>
 #include <thread>
@@ -124,6 +126,14 @@ public:
 
     void initialise(const juce::String&) override
     {
+        juce::String analysisPath;
+        if (resolveAnalysisPath(analysisPath))
+        {
+            runBaselineAnalysis(analysisPath);
+            quit();
+            return;
+        }
+
         outputPath = resolveOutputPath();
         if (outputPath.isEmpty())
         {
@@ -187,6 +197,54 @@ private:
                 return args[i + 1];
         }
         return {};
+    }
+
+    bool resolveAnalysisPath(juce::String& outPath) const
+    {
+        outPath.clear();
+        const auto args = juce::JUCEApplication::getInstance()->getCommandLineParameterArray();
+        for (int i = 0; i < args.size(); ++i)
+        {
+            if (args[i] == "--analyze-wav" && i + 1 < args.size())
+            {
+                outPath = args[i + 1];
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void runBaselineAnalysis(const juce::String& wavPath)
+    {
+        juce::AudioBuffer<float> monoBuffer;
+        double sampleRate = 0.0;
+        juce::String error;
+
+        if (!disband::session::loadMonoWavFile(juce::File(wavPath), monoBuffer, sampleRate, error))
+        {
+            std::fprintf(stderr, "[audio-sidecar] analysis failed: %s\n", error.toRawUTF8());
+            std::fflush(stderr);
+            setApplicationReturnValue(1);
+            return;
+        }
+
+        const auto notes = disband::session::extractMonophonicNotes(monoBuffer, sampleRate);
+
+        juce::Array<juce::var> jsonNotes;
+        for (const auto& note : notes)
+        {
+            auto* obj = new juce::DynamicObject();
+            obj->setProperty("startMs", note.startMs);
+            obj->setProperty("endMs", note.endMs);
+            obj->setProperty("midi", note.midi);
+            obj->setProperty("hz", note.frequencyHz);
+            obj->setProperty("confidence", note.confidence);
+            jsonNotes.add(juce::var(obj));
+        }
+
+        const auto payload = juce::JSON::toString(juce::var(jsonNotes));
+        std::fprintf(stdout, "%s\n", payload.toRawUTF8());
+        std::fflush(stdout);
     }
 
     void configureDevice()

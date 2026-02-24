@@ -20,6 +20,7 @@ juce_add_console_app(disband-audio-capture
 
 target_sources(disband-audio-capture PRIVATE
     src/main.cpp
+    src/session.cpp
 )
 
 target_link_libraries(disband-audio-capture PRIVATE
