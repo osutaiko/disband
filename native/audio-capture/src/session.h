@@ -27,14 +27,16 @@ struct PlayedNote
 
 struct DetectionSettings
 {
-    double frameSizeMs = 20.0;
-    double hopSizeMs = 10.0;
-    double rmsOnThreshold = 0.008;
-    double rmsOffThreshold = 0.005;
+    double hopSizeMs = 5.0;
+    double pitchFrameSizeMs = 80.0;
+    double pitchMinHz = 30.0;
+    double pitchMaxHz = 3000.0;
+    double onsetThreshold = 0.35;
+    double silenceDb = -40.0;
     double minNoteMs = 60.0;
-    int minMidi = 36;
-    int maxMidi = 96;
-    double minPitchConfidence = 0.35;
+    int minMidi = 24; // C1
+    int maxMidi = 96; // C7
+    double minPitchConfidence = 0.15;
 };
 
 enum class NoteJudgmentKind
