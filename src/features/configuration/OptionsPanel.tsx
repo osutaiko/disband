@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import useLibraryStore from '@/store/useLibraryStore';
 
@@ -19,6 +19,11 @@ function OptionsPanel() {
   const [judgmentHarshness, setJudgmentHarshness] = useState(6);
   const [judgeByMode, setJudgeByMode] = useState('reference-notes');
   const [soundfontPreset, setSoundfontPreset] = useState('sonivox');
+  const [draftPxPerMs, setDraftPxPerMs] = useState(pxPerMs);
+
+  useEffect(() => {
+    setDraftPxPerMs(pxPerMs);
+  }, [pxPerMs]);
 
   return (
     <Panel title="Options" className="h-fit border-b" isCollapsible>
@@ -44,18 +49,19 @@ function OptionsPanel() {
             <div className="flex flex-row items-center justify-between gap-4">
               <Label htmlFor="scroll-speed">Scroll Speed</Label>
               <span className="text-sm text-muted-foreground">
-                {pxPerMs.toFixed(2)}
+                {draftPxPerMs.toFixed(2)}
                 {' '}
                 px/ms
               </span>
             </div>
             <Slider
               id="scroll-speed"
-              value={[pxPerMs]}
+              value={[draftPxPerMs]}
               min={0.03}
-              max={2.0}
+              max={1.0}
               step={0.01}
-              onValueChange={(vals) => setPxPerMs(vals[0] ?? pxPerMs)}
+              onValueChange={(vals) => setDraftPxPerMs(vals[0] ?? draftPxPerMs)}
+              onValueCommit={(vals) => setPxPerMs(vals[0] ?? pxPerMs)}
             />
           </div>
         </div>
