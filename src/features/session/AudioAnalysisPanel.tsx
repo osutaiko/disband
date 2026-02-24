@@ -260,6 +260,8 @@ function AudioAnalysisPanel({
                 <RealtimeWaveform
                   key={`${selectionId ?? 'none'}-${recordingEpoch[selectionId ?? ''] ?? 0}`}
                   audioPath={recordedPath}
+                  currentMs={currentMs}
+                  timelineStartMs={activeWaveformRange?.startMs ?? fallbackStartMs}
                   onDurationMsChange={handleWaveformDurationChange}
                   className="w-full h-full bg-record-bg rounded-sm"
                 />

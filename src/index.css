@@ -138,10 +138,12 @@
   --color-note-inacc: var(--color-amber-500);
   --color-note-miss: var(--color-red-500);
   
-  --color-record-bg: var(--color-indigo-200);
+  --color-record-bg: var(--color-indigo-100);
   --color-record-waveform: var(--color-indigo-700);
-  --color-record-note-bg: var(--color-blue-800);
-  --color-record-note-start: var(--color-blue-700);
+  --color-record-note-bg: var(--color-indigo-500);
+  --color-record-note-start: var(--color-indigo-500);
+  --color-record-note-current-bg: var(--color-fuchsia-500);
+  --color-record-note-current-start: var(--color-fuchsia-500);
 }
 
 @layer base {

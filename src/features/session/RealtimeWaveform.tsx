@@ -7,10 +7,14 @@ function RealtimeWaveform({
   audioPath,
   className,
   onDurationMsChange,
+  currentMs,
+  timelineStartMs = 0,
 }: {
   audioPath: string | null;
   className?: string;
   onDurationMsChange?: (durationMs: number | null) => void;
+  currentMs?: number;
+  timelineStartMs?: number;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const waveSurferRef = useRef<WaveSurfer | null>(null);
@@ -106,6 +110,9 @@ function RealtimeWaveform({
               const endRatio = Math.max(startRatio, Math.min(1, note.endMs / durationMs));
               const left = `${startRatio * 100}%`;
               const width = `${Math.max((endRatio - startRatio) * 100, 0.25)}%`;
+              const isCurrent = currentMs !== undefined
+                && currentMs >= timelineStartMs + note.startMs
+                && currentMs < timelineStartMs + note.endMs;
 
               return (
                 <div
@@ -114,7 +121,9 @@ function RealtimeWaveform({
                   style={{
                     left,
                     width,
-                    backgroundColor: 'var(--color-record-note-bg)',
+                    backgroundColor: isCurrent
+                      ? 'var(--color-record-note-current-bg)'
+                      : 'var(--color-record-note-bg)',
                     opacity: 0.35,
                   }}
                 />
@@ -126,6 +135,9 @@ function RealtimeWaveform({
             {analyzedNotes.map((note, index) => {
               const startRatio = Math.max(0, Math.min(1, note.startMs / durationMs));
               const left = `${startRatio * 100}%`;
+              const isCurrent = currentMs !== undefined
+                && currentMs >= timelineStartMs + note.startMs
+                && currentMs < timelineStartMs + note.endMs;
 
               return (
                 <div
@@ -137,7 +149,9 @@ function RealtimeWaveform({
                              border-t-[7px]"
                   style={{
                     left,
-                    borderTopColor: 'var(--color-record-note-start)',
+                    borderTopColor: isCurrent
+                      ? 'var(--color-record-note-current-start)'
+                      : 'var(--color-record-note-start)',
                   }}
                 />
               );
