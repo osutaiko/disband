@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
 import { getCssColor } from '@/lib/utils';
+import type { AnalyzedNote } from '../../../shared/types';
 
 function RealtimeWaveform({
   audioPath,
@@ -13,6 +14,8 @@ function RealtimeWaveform({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const waveSurferRef = useRef<WaveSurfer | null>(null);
+  const [durationMs, setDurationMs] = useState<number | null>(null);
+  const [analyzedNotes, setAnalyzedNotes] = useState<AnalyzedNote[]>([]);
 
   useEffect(() => {
     if (!containerRef.current || waveSurferRef.current) return;
@@ -41,6 +44,8 @@ function RealtimeWaveform({
 
     if (!audioPath) {
       waveSurfer.empty();
+      setDurationMs(null);
+      setAnalyzedNotes([]);
       onDurationMsChange?.(null);
       return;
     }
@@ -58,13 +63,30 @@ function RealtimeWaveform({
           const durationMs = Number.isFinite(durationSec) && durationSec > 0
             ? Math.round(durationSec * 1000)
             : null;
+          setDurationMs(durationMs);
           onDurationMsChange?.(durationMs);
         });
       })
       .catch((error) => {
         if (!cancelled) {
+          setDurationMs(null);
+          setAnalyzedNotes([]);
           onDurationMsChange?.(null);
           console.error('[wavesurfer] failed to load recording', error);
+        }
+      });
+
+    window.audio
+      .analyzeRecording(audioPath)
+      .then((notes) => {
+        if (!cancelled) {
+          setAnalyzedNotes(notes);
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setAnalyzedNotes([]);
+          console.error('[audio] failed to analyze recording', error);
         }
       });
 
@@ -73,7 +95,58 @@ function RealtimeWaveform({
     };
   }, [audioPath, onDurationMsChange]);
 
-  return <div ref={containerRef} className={className} />;
+  return (
+    <div className={`relative ${className ?? ''}`}>
+      <div ref={containerRef} className="w-full h-full" />
+      {durationMs !== null && durationMs > 0 && analyzedNotes.length > 0 && (
+        <>
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            {analyzedNotes.map((note, index) => {
+              const startRatio = Math.max(0, Math.min(1, note.startMs / durationMs));
+              const endRatio = Math.max(startRatio, Math.min(1, note.endMs / durationMs));
+              const left = `${startRatio * 100}%`;
+              const width = `${Math.max((endRatio - startRatio) * 100, 0.25)}%`;
+
+              return (
+                <div
+                  key={`note-bg-${note.startMs}-${note.endMs}-${index}`}
+                  className="absolute top-0 bottom-0"
+                  style={{
+                    left,
+                    width,
+                    backgroundColor: 'var(--color-record-note-bg)',
+                    opacity: 0.35,
+                  }}
+                />
+              );
+            })}
+          </div>
+
+          <div className="pointer-events-none absolute inset-0 overflow-visible">
+            {analyzedNotes.map((note, index) => {
+              const startRatio = Math.max(0, Math.min(1, note.startMs / durationMs));
+              const left = `${startRatio * 100}%`;
+
+              return (
+                <div
+                  key={`note-start-triangle-${note.startMs}-${index}`}
+                  className="absolute top-0 -translate-y-full -translate-x-1/2
+                             w-0 h-0
+                             border-l-[5px] border-l-transparent
+                             border-r-[5px] border-r-transparent
+                             border-t-[7px]"
+                  style={{
+                    left,
+                    borderTopColor: 'var(--color-record-note-start)',
+                  }}
+                />
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  );
 }
 
 export default RealtimeWaveform;
