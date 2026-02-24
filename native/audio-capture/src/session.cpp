@@ -1,5 +1,6 @@
 #include "session.h"
 
+#include <aubio.h>
 #include <juce_audio_formats/juce_audio_formats.h>
 
 #include <algorithm>
@@ -13,13 +14,6 @@ namespace disband::session
 namespace
 {
 constexpr double kA4Hz = 440.0;
-constexpr double kMinHz = 40.0;
-constexpr double kMaxHz = 1600.0;
-
-double clamp01(double value)
-{
-    return std::max(0.0, std::min(1.0, value));
-}
 
 double frequencyToMidi(double hz)
 {
@@ -28,60 +22,20 @@ double frequencyToMidi(double hz)
     return 69.0 + 12.0 * std::log2(hz / kA4Hz);
 }
 
-double computeRms(const float* samples, int count)
+uint_t nextPowerOfTwo(uint_t value)
 {
-    if (samples == nullptr || count <= 0)
-        return 0.0;
+    if (value <= 2u)
+        return 2u;
 
-    double sum = 0.0;
-    for (int i = 0; i < count; ++i)
-        sum += static_cast<double>(samples[i]) * static_cast<double>(samples[i]);
-
-    return std::sqrt(sum / static_cast<double>(count));
+    --value;
+    value |= value >> 1u;
+    value |= value >> 2u;
+    value |= value >> 4u;
+    value |= value >> 8u;
+    value |= value >> 16u;
+    return value + 1u;
 }
 
-std::pair<double, double> estimatePitchHzAutocorrelation(
-    const float* samples,
-    int count,
-    double sampleRate)
-{
-    if (samples == nullptr || count <= 0 || sampleRate <= 0.0)
-        return { 0.0, 0.0 };
-
-    const int minLag = std::max(1, static_cast<int>(std::floor(sampleRate / kMaxHz)));
-    const int maxLag = std::max(minLag + 1, static_cast<int>(std::ceil(sampleRate / kMinHz)));
-    if (maxLag >= count)
-        return { 0.0, 0.0 };
-
-    double zeroLag = 0.0;
-    for (int i = 0; i < count; ++i)
-        zeroLag += static_cast<double>(samples[i]) * static_cast<double>(samples[i]);
-    if (zeroLag <= std::numeric_limits<double>::epsilon())
-        return { 0.0, 0.0 };
-
-    int bestLag = -1;
-    double bestCorrelation = 0.0;
-
-    for (int lag = minLag; lag <= maxLag; ++lag)
-    {
-        double corr = 0.0;
-        for (int i = 0; i < count - lag; ++i)
-            corr += static_cast<double>(samples[i]) * static_cast<double>(samples[i + lag]);
-
-        if (corr > bestCorrelation)
-        {
-            bestCorrelation = corr;
-            bestLag = lag;
-        }
-    }
-
-    if (bestLag <= 0)
-        return { 0.0, 0.0 };
-
-    const auto confidence = clamp01(bestCorrelation / zeroLag);
-    const auto hz = sampleRate / static_cast<double>(bestLag);
-    return { hz, confidence };
-}
 } // namespace
 
 bool loadMonoWavFile(
@@ -170,13 +124,38 @@ std::vector<PlayedNote> extractMonophonicNotes(
         workingBuffer.applyGain(gain);
     }
 
-    const int frameSize = std::max(16, static_cast<int>(std::round(settings.frameSizeMs * sampleRate / 1000.0)));
     const int hopSize = std::max(1, static_cast<int>(std::round(settings.hopSizeMs * sampleRate / 1000.0)));
-    if (frameSize >= workingBuffer.getNumSamples())
+    if (hopSize >= workingBuffer.getNumSamples())
         return notes;
 
     const float* samples = workingBuffer.getReadPointer(0);
-    const int maxStart = workingBuffer.getNumSamples() - frameSize;
+    const int maxStart = workingBuffer.getNumSamples() - hopSize;
+
+    const auto aubioHopSize = static_cast<uint_t>(hopSize);
+    const auto aubioBufferSize = nextPowerOfTwo(std::max<uint_t>(
+        aubioHopSize * 4u,
+        static_cast<uint_t>(std::round(settings.pitchFrameSizeMs * sampleRate / 1000.0))));
+    auto* pitchInput = new_fvec(aubioHopSize);
+    auto* pitchOutput = new_fvec(1);
+    auto* onsetOutput = new_fvec(1);
+    auto* pitch = new_aubio_pitch("yinfft", aubioBufferSize, aubioHopSize, static_cast<uint_t>(sampleRate));
+    auto* onset = new_aubio_onset("hfc", aubioBufferSize, aubioHopSize, static_cast<uint_t>(sampleRate));
+
+    if (pitchInput == nullptr || pitchOutput == nullptr || onsetOutput == nullptr || pitch == nullptr || onset == nullptr)
+    {
+        if (onset != nullptr) del_aubio_onset(onset);
+        if (onsetOutput != nullptr) del_fvec(onsetOutput);
+        if (pitch != nullptr) del_aubio_pitch(pitch);
+        if (pitchOutput != nullptr) del_fvec(pitchOutput);
+        if (pitchInput != nullptr) del_fvec(pitchInput);
+        return notes;
+    }
+
+    aubio_pitch_set_unit(pitch, "Hz");
+    aubio_pitch_set_silence(pitch, static_cast<smpl_t>(settings.silenceDb));
+    aubio_pitch_set_tolerance(pitch, 0.75f);
+    aubio_onset_set_threshold(onset, static_cast<smpl_t>(settings.onsetThreshold));
+    aubio_onset_set_silence(onset, static_cast<smpl_t>(settings.silenceDb));
 
     bool inNote = false;
     int noteStartSample = 0;
@@ -197,14 +176,9 @@ std::vector<PlayedNote> extractMonophonicNotes(
         if (durationMs >= settings.minNoteMs)
         {
             const auto hz = totalWeight > 0.0 ? (weightedHz / totalWeight) : 0.0;
-            int midiRounded = -1;
-            if (hz > 0.0)
-            {
-                const auto midiRaw = frequencyToMidi(hz);
-                const int midiCandidate = static_cast<int>(std::lround(midiRaw));
-                if (midiCandidate >= settings.minMidi && midiCandidate <= settings.maxMidi)
-                    midiRounded = midiCandidate;
-            }
+            const int midiRounded = hz > 0.0
+                ? static_cast<int>(std::lround(frequencyToMidi(hz)))
+                : -1;
 
             notes.push_back({
                 startMs,
@@ -226,22 +200,40 @@ std::vector<PlayedNote> extractMonophonicNotes(
 
     for (int frameStart = 0; frameStart <= maxStart; frameStart += hopSize)
     {
-        const auto* frame = samples + frameStart;
-        const auto rms = computeRms(frame, frameSize);
-        const auto [hz, confidence] = estimatePitchHzAutocorrelation(frame, frameSize, sampleRate);
-        const bool hasPitch = hz >= kMinHz && hz <= kMaxHz && confidence >= settings.minPitchConfidence;
+        for (int i = 0; i < hopSize; ++i)
+        {
+            const int sampleIndex = frameStart + i;
+            const float value = sampleIndex < workingBuffer.getNumSamples()
+                ? samples[sampleIndex]
+                : 0.0f;
+            fvec_set_sample(pitchInput, static_cast<smpl_t>(value), static_cast<uint_t>(i));
+        }
+
+        aubio_onset_do(onset, pitchInput, onsetOutput);
+        aubio_pitch_do(pitch, pitchInput, pitchOutput);
+
+        const bool onsetDetected = fvec_get_sample(onsetOutput, 0) > 0.0f;
+        const auto levelDb = static_cast<double>(aubio_db_spl(pitchInput));
+        const bool isSilent = !std::isfinite(levelDb) || levelDb <= settings.silenceDb;
+        const auto hz = static_cast<double>(fvec_get_sample(pitchOutput, 0));
+        const auto confidence = static_cast<double>(aubio_pitch_get_confidence(pitch));
+        const bool hasPitch = std::isfinite(hz)
+            && hz >= settings.pitchMinHz
+            && hz <= settings.pitchMaxHz
+            && confidence >= settings.minPitchConfidence;
 
         if (!inNote)
         {
-            if (rms >= settings.rmsOnThreshold)
+            if (onsetDetected || !isSilent)
             {
                 inNote = true;
                 noteStartSample = frameStart;
                 lowEnergyFrames = 0;
                 if (hasPitch)
                 {
-                    weightedHz = hz * confidence;
-                    totalWeight = confidence;
+                    const auto weight = std::max(confidence, 0.05);
+                    weightedHz = hz * weight;
+                    totalWeight = weight;
                     confidenceSum = confidence;
                     confidentFrames = 1;
                 }
@@ -256,17 +248,30 @@ std::vector<PlayedNote> extractMonophonicNotes(
             continue;
         }
 
-        if (rms < settings.rmsOffThreshold)
+        if (isSilent)
         {
             ++lowEnergyFrames;
         }
         else
         {
             lowEnergyFrames = 0;
+            if (onsetDetected)
+            {
+                // Split legato/re-articulated notes while sustaining.
+                flushCurrentNote(frameStart);
+                inNote = true;
+                noteStartSample = frameStart;
+                lowEnergyFrames = 0;
+                weightedHz = 0.0;
+                totalWeight = 0.0;
+                confidenceSum = 0.0;
+                confidentFrames = 0;
+            }
             if (hasPitch)
             {
-                weightedHz += hz * confidence;
-                totalWeight += confidence;
+                const auto weight = std::max(confidence, 0.05);
+                weightedHz += hz * weight;
+                totalWeight += weight;
                 confidenceSum += confidence;
                 ++confidentFrames;
             }
@@ -277,6 +282,13 @@ std::vector<PlayedNote> extractMonophonicNotes(
     }
 
     flushCurrentNote(workingBuffer.getNumSamples() - 1);
+
+    del_aubio_pitch(pitch);
+    del_aubio_onset(onset);
+    del_fvec(onsetOutput);
+    del_fvec(pitchOutput);
+    del_fvec(pitchInput);
+
     return notes;
 }
 
