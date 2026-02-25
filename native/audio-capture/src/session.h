@@ -28,12 +28,12 @@ struct PlayedNote
 struct DetectionSettings
 {
     double hopSizeMs = 5.0;
-    double pitchFrameSizeMs = 80.0;
-    double pitchMinHz = 30.0;
+    double pitchFrameSizeMs = 110.0;
+    double pitchMinHz = 28.0;
     double pitchMaxHz = 3000.0;
-    double onsetThreshold = 0.35;
+    double onsetThreshold = 0.22;
     double silenceDb = -40.0;
-    double minNoteMs = 60.0;
+    double minNoteMs = 50.0;
     int minMidi = 24; // C1
     int maxMidi = 96; // C7
     double minPitchConfidence = 0.15;

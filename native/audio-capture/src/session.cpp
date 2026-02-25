@@ -139,7 +139,7 @@ std::vector<PlayedNote> extractMonophonicNotes(
     auto* pitchOutput = new_fvec(1);
     auto* onsetOutput = new_fvec(1);
     auto* pitch = new_aubio_pitch("yinfft", aubioBufferSize, aubioHopSize, static_cast<uint_t>(sampleRate));
-    auto* onset = new_aubio_onset("hfc", aubioBufferSize, aubioHopSize, static_cast<uint_t>(sampleRate));
+    auto* onset = new_aubio_onset("specflux", aubioBufferSize, aubioHopSize, static_cast<uint_t>(sampleRate));
 
     if (pitchInput == nullptr || pitchOutput == nullptr || onsetOutput == nullptr || pitch == nullptr || onset == nullptr)
     {
@@ -160,6 +160,13 @@ std::vector<PlayedNote> extractMonophonicNotes(
     bool inNote = false;
     int noteStartSample = 0;
     int lowEnergyFrames = 0;
+    int pitchChangeFrames = 0;
+    int pitchChangeStartSample = 0;
+    int framesSinceLastSplit = std::numeric_limits<int>::max();
+    bool dipTrackingActive = false;
+    double dipLevelDb = 0.0;
+    int dipAgeFrames = 0;
+    double previousLevelDb = settings.silenceDb;
     double weightedHz = 0.0;
     double totalWeight = 0.0;
     double confidenceSum = 0.0;
@@ -192,6 +199,13 @@ std::vector<PlayedNote> extractMonophonicNotes(
         inNote = false;
         noteStartSample = 0;
         lowEnergyFrames = 0;
+        pitchChangeFrames = 0;
+        pitchChangeStartSample = 0;
+        framesSinceLastSplit = std::numeric_limits<int>::max();
+        dipTrackingActive = false;
+        dipLevelDb = 0.0;
+        dipAgeFrames = 0;
+        previousLevelDb = settings.silenceDb;
         weightedHz = 0.0;
         totalWeight = 0.0;
         confidenceSum = 0.0;
@@ -229,6 +243,13 @@ std::vector<PlayedNote> extractMonophonicNotes(
                 inNote = true;
                 noteStartSample = frameStart;
                 lowEnergyFrames = 0;
+                pitchChangeFrames = 0;
+                pitchChangeStartSample = 0;
+                framesSinceLastSplit = 0;
+                dipTrackingActive = false;
+                dipLevelDb = 0.0;
+                dipAgeFrames = 0;
+                previousLevelDb = levelDb;
                 if (hasPitch)
                 {
                     const auto weight = std::max(confidence, 0.05);
@@ -251,21 +272,122 @@ std::vector<PlayedNote> extractMonophonicNotes(
         if (isSilent)
         {
             ++lowEnergyFrames;
+            ++framesSinceLastSplit;
+            dipTrackingActive = false;
+            dipAgeFrames = 0;
         }
         else
         {
             lowEnergyFrames = 0;
-            if (onsetDetected)
+            ++framesSinceLastSplit;
+
+            // Detect a short dip->rise envelope pattern even while pitch stays stable
+            bool reAttackDetected = false;
+            if (hasPitch && totalWeight > 0.0)
             {
-                // Split legato/re-articulated notes while sustaining.
-                flushCurrentNote(frameStart);
+                const auto noteHz = weightedHz / totalWeight;
+                const auto midiDelta = std::abs(frequencyToMidi(hz) - frequencyToMidi(noteHz));
+                const bool pitchStable = midiDelta <= 0.6;
+                if (pitchStable)
+                {
+                    if (levelDb <= previousLevelDb - 1.2)
+                    {
+                        if (!dipTrackingActive)
+                        {
+                            dipTrackingActive = true;
+                            dipLevelDb = levelDb;
+                            dipAgeFrames = 0;
+                        }
+                        else
+                        {
+                            dipLevelDb = std::min(dipLevelDb, levelDb);
+                            ++dipAgeFrames;
+                        }
+                    }
+                    else if (dipTrackingActive)
+                    {
+                        ++dipAgeFrames;
+                        dipLevelDb = std::min(dipLevelDb, levelDb);
+                        if (dipAgeFrames <= 6 && levelDb - dipLevelDb >= 3.8)
+                        {
+                            reAttackDetected = true;
+                        }
+                        else if (dipAgeFrames > 8)
+                        {
+                            dipTrackingActive = false;
+                            dipAgeFrames = 0;
+                        }
+                    }
+                }
+                else
+                {
+                    dipTrackingActive = false;
+                    dipAgeFrames = 0;
+                }
+            }
+            else
+            {
+                dipTrackingActive = false;
+                dipAgeFrames = 0;
+            }
+
+            if (hasPitch && totalWeight > 0.0)
+            {
+                const auto noteHz = weightedHz / totalWeight;
+                const auto midiDelta = std::abs(frequencyToMidi(hz) - frequencyToMidi(noteHz));
+                if (midiDelta >= 0.9)
+                {
+                    if (pitchChangeFrames == 0)
+                        pitchChangeStartSample = frameStart;
+                    ++pitchChangeFrames;
+                }
+                else
+                {
+                    pitchChangeFrames = 0;
+                    pitchChangeStartSample = 0;
+                }
+            }
+            else
+            {
+                pitchChangeFrames = 0;
+                pitchChangeStartSample = 0;
+            }
+
+            const bool pitchTransitionDetected = pitchChangeFrames >= 2;
+            const int minSplitFrames = std::max(1, static_cast<int>(std::round(25.0 / settings.hopSizeMs)));
+            const bool canSplitNow = framesSinceLastSplit >= minSplitFrames;
+            if (canSplitNow && (onsetDetected || pitchTransitionDetected || reAttackDetected))
+            {
+                // Split legato/re-articulated notes while sustaining
+                int splitSample = frameStart;
+                if (pitchTransitionDetected)
+                    splitSample = pitchChangeStartSample;
+                flushCurrentNote(splitSample);
                 inNote = true;
-                noteStartSample = frameStart;
+                noteStartSample = splitSample;
                 lowEnergyFrames = 0;
-                weightedHz = 0.0;
-                totalWeight = 0.0;
-                confidenceSum = 0.0;
-                confidentFrames = 0;
+                pitchChangeFrames = 0;
+                pitchChangeStartSample = 0;
+                framesSinceLastSplit = 0;
+                dipTrackingActive = false;
+                dipAgeFrames = 0;
+                previousLevelDb = levelDb;
+                if (hasPitch)
+                {
+                    const auto weight = std::max(confidence, 0.05);
+                    weightedHz = hz * weight;
+                    totalWeight = weight;
+                    confidenceSum = confidence;
+                    confidentFrames = 1;
+                }
+                else
+                {
+                    weightedHz = 0.0;
+                    totalWeight = 0.0;
+                    confidenceSum = 0.0;
+                    confidentFrames = 0;
+                }
+                continue;
             }
             if (hasPitch)
             {
@@ -275,6 +397,7 @@ std::vector<PlayedNote> extractMonophonicNotes(
                 confidenceSum += confidence;
                 ++confidentFrames;
             }
+            previousLevelDb = levelDb;
         }
 
         if (lowEnergyFrames >= 2)
