@@ -1,13 +1,53 @@
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_audio_formats/juce_audio_formats.h>
-#include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_core/juce_core.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 
 #include "session.h"
 
+#include <cstdarg>
 #include <cstdio>
 #include <string>
 #include <thread>
+
+namespace disband::audio_capture
+{
+namespace
+{
+constexpr double kSampleRate = 48000.0;
+constexpr unsigned int kChannels = 1;
+constexpr int kBitsPerSample = 16;
+
+struct CommandLineOptions
+{
+    juce::String outputPath;
+    juce::String analysisPath;
+};
+
+void log(const char* format, ...)
+{
+    std::fprintf(stderr, "[audio-sidecar] ");
+    va_list args;
+    va_start(args, format);
+    std::vfprintf(stderr, format, args);
+    va_end(args);
+    std::fflush(stderr);
+}
+
+CommandLineOptions parseCommandLineOptions()
+{
+    CommandLineOptions options;
+    const auto args = juce::JUCEApplication::getInstance()->getCommandLineParameterArray();
+    for (int i = 0; i < args.size(); ++i)
+    {
+        if (args[i] == "--output" && i + 1 < args.size())
+            options.outputPath = args[i + 1];
+        if (args[i] == "--analyze-wav" && i + 1 < args.size())
+            options.analysisPath = args[i + 1];
+    }
+    return options;
+}
+} // namespace
 
 class DisbandAudioRecorder : public juce::AudioIODeviceCallback
 {
@@ -35,9 +75,9 @@ public:
         juce::WavAudioFormat format;
         auto* writer = format.createWriterFor(
             stream.release(),
-            sampleRate,
-            channels,
-            bitsPerSample,
+            kSampleRate,
+            kChannels,
+            kBitsPerSample,
             {},
             0
         );
@@ -48,7 +88,7 @@ public:
         auto newThreadedWriter = std::make_unique<juce::AudioFormatWriter::ThreadedWriter>(
             writer,
             writerThread,
-            static_cast<int>(sampleRate)
+            static_cast<int>(kSampleRate)
         );
 
         {
@@ -104,16 +144,11 @@ public:
     void audioDeviceStopped() override {}
 
 private:
-    static constexpr double sampleRate = 48000.0;
-    static constexpr unsigned int channels = 1;
-    static constexpr int bitsPerSample = 16;
-
     juce::AudioBuffer<float> monoBuffer;
     juce::TimeSliceThread writerThread;
     juce::CriticalSection writerLock;
     std::unique_ptr<juce::AudioFormatWriter::ThreadedWriter> threadedWriter;
     juce::AudioFormatWriter::ThreadedWriter* activeWriter = nullptr;
-
 };
 
 class AudioCaptureApp final : public juce::JUCEApplication
@@ -126,55 +161,12 @@ public:
 
     void initialise(const juce::String&) override
     {
-        juce::String analysisPath;
-        if (resolveAnalysisPath(analysisPath))
-        {
-            runBaselineAnalysis(analysisPath);
-            quit();
+        const auto options = parseCommandLineOptions();
+        if (startAnalysisModeIfRequested(options))
             return;
-        }
 
-        outputPath = resolveOutputPath();
-        if (outputPath.isEmpty())
-        {
-            std::fprintf(stderr, "[audio-sidecar] missing output path\n");
-            std::fflush(stderr);
+        if (!startRecordingMode(options.outputPath))
             quit();
-            return;
-        }
-
-        if (!recorder.startRecording(juce::File(outputPath)))
-        {
-            std::fprintf(stderr, "[audio-sidecar] failed to open output file\n");
-            std::fflush(stderr);
-            quit();
-            return;
-        }
-
-        std::fprintf(stderr, "[audio-sidecar] recording output=\"%s\"\n", outputPath.toRawUTF8());
-        std::fflush(stderr);
-
-        const auto initResult = deviceManager.initialise(1, 0, nullptr, true);
-        if (initResult.isNotEmpty())
-        {
-            std::fprintf(stderr, "[audio-sidecar] device init failed: %s\n", initResult.toRawUTF8());
-            std::fflush(stderr);
-            quit();
-            return;
-        }
-        configureDevice();
-
-        auto* device = deviceManager.getCurrentAudioDevice();
-        if (device == nullptr)
-        {
-            std::fprintf(stderr, "[audio-sidecar] no audio device available\n");
-            std::fflush(stderr);
-            quit();
-            return;
-        }
-
-        controlThread = std::thread([this] { controlLoop(); });
-        deviceManager.addAudioCallback(&recorder);
     }
 
     void shutdown() override
@@ -188,30 +180,58 @@ public:
     }
 
 private:
-    juce::String resolveOutputPath() const
+    bool startAnalysisModeIfRequested(const CommandLineOptions& options)
     {
-        const auto args = juce::JUCEApplication::getInstance()->getCommandLineParameterArray();
-        for (int i = 0; i < args.size(); ++i)
-        {
-            if (args[i] == "--output" && i + 1 < args.size())
-                return args[i + 1];
-        }
-        return {};
+        if (options.analysisPath.isEmpty())
+            return false;
+
+        runBaselineAnalysis(options.analysisPath);
+        quit();
+        return true;
     }
 
-    bool resolveAnalysisPath(juce::String& outPath) const
+    bool startRecordingMode(const juce::String& output)
     {
-        outPath.clear();
-        const auto args = juce::JUCEApplication::getInstance()->getCommandLineParameterArray();
-        for (int i = 0; i < args.size(); ++i)
+        outputPath = output;
+        if (outputPath.isEmpty())
         {
-            if (args[i] == "--analyze-wav" && i + 1 < args.size())
-            {
-                outPath = args[i + 1];
-                return true;
-            }
+            log("missing output path\n");
+            return false;
         }
-        return false;
+
+        if (!recorder.startRecording(juce::File(outputPath)))
+        {
+            log("failed to open output file\n");
+            return false;
+        }
+
+        log("recording output=\"%s\"\n", outputPath.toRawUTF8());
+
+        if (!initialiseInputDevice())
+            return false;
+
+        controlThread = std::thread([this] { controlLoop(); });
+        deviceManager.addAudioCallback(&recorder);
+        return true;
+    }
+
+    bool initialiseInputDevice()
+    {
+        const auto initResult = deviceManager.initialise(1, 0, nullptr, true);
+        if (initResult.isNotEmpty())
+        {
+            log("device init failed: %s\n", initResult.toRawUTF8());
+            return false;
+        }
+
+        configureDevice();
+        if (deviceManager.getCurrentAudioDevice() == nullptr)
+        {
+            log("no audio device available\n");
+            return false;
+        }
+
+        return true;
     }
 
     void runBaselineAnalysis(const juce::String& wavPath)
@@ -222,8 +242,7 @@ private:
 
         if (!disband::session::loadMonoWavFile(juce::File(wavPath), monoBuffer, sampleRate, error))
         {
-            std::fprintf(stderr, "[audio-sidecar] analysis failed: %s\n", error.toRawUTF8());
-            std::fflush(stderr);
+            log("analysis failed: %s\n", error.toRawUTF8());
             setApplicationReturnValue(1);
             return;
         }
@@ -251,13 +270,12 @@ private:
     {
         juce::AudioDeviceManager::AudioDeviceSetup setup;
         deviceManager.getAudioDeviceSetup(setup);
-        setup.sampleRate = 48000.0;
+        setup.sampleRate = kSampleRate;
         setup.bufferSize = 128;
         const auto result = deviceManager.setAudioDeviceSetup(setup, true);
         if (result.isNotEmpty())
         {
-            std::fprintf(stderr, "[audio-sidecar] device setup failed: %s\n", result.toRawUTF8());
-            std::fflush(stderr);
+            log("device setup failed: %s\n", result.toRawUTF8());
         }
     }
 
@@ -281,5 +299,6 @@ private:
     std::thread controlThread;
     juce::String outputPath;
 };
+} // namespace disband::audio_capture
 
-START_JUCE_APPLICATION(AudioCaptureApp)
+START_JUCE_APPLICATION(disband::audio_capture::AudioCaptureApp)
