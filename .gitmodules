@@ -1,0 +1,6 @@
+[submodule "native/audio-engine/JUCE"]
+	path = native/audio-engine/JUCE
+	url = https://github.com/juce-framework/JUCE.git
+[submodule "native/audio-engine/aubio"]
+	path = native/audio-engine/aubio
+	url = https://github.com/aubio/aubio.git

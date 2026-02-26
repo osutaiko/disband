@@ -25,4 +25,4 @@ dist-ssr
 *.sw?
 
 # CMake build directories
-native/audio-capture/build/
+native/audio-engine/build/

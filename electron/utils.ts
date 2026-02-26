@@ -7,8 +7,8 @@ export const AUDIO_BITS_PER_SAMPLE = 16;
 export const AUDIO_FORMAT_PCM = 1;
 
 export function getSidecarPath(appRoot: string) {
-  const base = path.join(appRoot, 'native', 'audio-capture', 'bin', process.platform);
-  const exe = process.platform === 'win32' ? 'disband-audio-capture.exe' : 'disband-audio-capture';
+  const base = path.join(appRoot, 'native', 'audio-engine', 'bin', process.platform);
+  const exe = process.platform === 'win32' ? 'disband-audio-engine.exe' : 'disband-audio-engine';
   return path.join(base, exe);
 }
 

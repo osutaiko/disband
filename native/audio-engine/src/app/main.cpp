@@ -3,7 +3,7 @@
 #include <juce_core/juce_core.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "session.h"
+#include "analysis/session.h"
 
 #include <cstdarg>
 #include <cstdio>
