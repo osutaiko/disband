@@ -6,7 +6,7 @@ endif()
 
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 
-project(disband-audio-capture
+project(disband-audio-engine
         VERSION 0.1.0
         LANGUAGES CXX)
 
@@ -20,17 +20,22 @@ endif()
 add_subdirectory(JUCE)
 add_subdirectory(aubio/src)
 
-juce_add_console_app(disband-audio-capture
-    PRODUCT_NAME "Disband Audio Capture"
+if(MSVC)
+    target_compile_definitions(aubio PRIVATE HAVE_WIN_HACKS=1)
+    target_compile_definitions(aubio PRIVATE HAVE_C99_VARARGS_MACROS=1)
+endif()
+
+juce_add_console_app(disband-audio-engine
+    PRODUCT_NAME "Disband Audio Engine"
     VERSION 0.1.0
 )
 
-target_sources(disband-audio-capture PRIVATE
-    src/main.cpp
-    src/session.cpp
+target_sources(disband-audio-engine PRIVATE
+    src/app/main.cpp
+    src/analysis/session.cpp
 )
 
-target_link_libraries(disband-audio-capture PRIVATE
+target_link_libraries(disband-audio-engine PRIVATE
     juce::juce_audio_devices
     juce::juce_audio_formats
     juce::juce_audio_utils
@@ -39,14 +44,15 @@ target_link_libraries(disband-audio-capture PRIVATE
     aubio
 )
 
-target_include_directories(disband-audio-capture PRIVATE
+target_include_directories(disband-audio-engine PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/aubio/src
 )
 
-add_custom_command(TARGET disband-audio-capture POST_BUILD
+add_custom_command(TARGET disband-audio-engine POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory
         "${CMAKE_SOURCE_DIR}/bin/win32"
     COMMAND ${CMAKE_COMMAND} -E copy
-        $<TARGET_FILE:disband-audio-capture>
-        "${CMAKE_SOURCE_DIR}/bin/win32/disband-audio-capture.exe"
+        $<TARGET_FILE:disband-audio-engine>
+        "${CMAKE_SOURCE_DIR}/bin/win32/disband-audio-engine.exe"
 )
