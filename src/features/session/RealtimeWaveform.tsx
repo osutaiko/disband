@@ -24,6 +24,10 @@ function RealtimeWaveform({
   const [analyzedNotes, setAnalyzedNotes] = useState<AnalyzedNote[]>([]);
 
   useEffect(() => {
+    onAnalyzedNotesChange?.(analyzedNotes);
+  }, [analyzedNotes, onAnalyzedNotesChange]);
+
+  useEffect(() => {
     if (!containerRef.current || waveSurferRef.current) return;
 
     const baseColor = getCssColor('--color-record-waveform', 'red');
@@ -52,7 +56,6 @@ function RealtimeWaveform({
       waveSurfer.empty();
       setDurationMs(null);
       setAnalyzedNotes([]);
-      onAnalyzedNotesChange?.([]);
       onDurationMsChange?.(null);
       return;
     }
@@ -78,7 +81,6 @@ function RealtimeWaveform({
         if (!cancelled) {
           setDurationMs(null);
           setAnalyzedNotes([]);
-          onAnalyzedNotesChange?.([]);
           onDurationMsChange?.(null);
           console.error('[wavesurfer] failed to load recording', error);
         }
@@ -88,14 +90,16 @@ function RealtimeWaveform({
       .analyzeRecording(audioPath)
       .then((notes) => {
         if (!cancelled) {
-          setAnalyzedNotes(notes);
-          onAnalyzedNotesChange?.(notes);
+          setAnalyzedNotes(notes.map((note) => ({
+            ...note,
+            startMs: note.startMs + timelineStartMs,
+            endMs: note.endMs + timelineStartMs,
+          })));
         }
       })
       .catch((error) => {
         if (!cancelled) {
           setAnalyzedNotes([]);
-          onAnalyzedNotesChange?.([]);
           console.error('[audio] failed to analyze recording', error);
         }
       });
@@ -103,7 +107,7 @@ function RealtimeWaveform({
     return () => {
       cancelled = true;
     };
-  }, [audioPath, onAnalyzedNotesChange, onDurationMsChange]);
+  }, [audioPath, onDurationMsChange, timelineStartMs]);
 
   return (
     <div className={`relative ${className ?? ''}`}>
@@ -112,13 +116,15 @@ function RealtimeWaveform({
         <>
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
             {analyzedNotes.map((note, index) => {
-              const startRatio = Math.max(0, Math.min(1, note.startMs / durationMs));
-              const endRatio = Math.max(startRatio, Math.min(1, note.endMs / durationMs));
+              const localStartMs = note.startMs - timelineStartMs;
+              const localEndMs = note.endMs - timelineStartMs;
+              const startRatio = Math.max(0, Math.min(1, localStartMs / durationMs));
+              const endRatio = Math.max(startRatio, Math.min(1, localEndMs / durationMs));
               const left = `${startRatio * 100}%`;
               const width = `${Math.max((endRatio - startRatio) * 100, 0.25)}%`;
               const isCurrent = currentMs !== undefined
-                && currentMs >= timelineStartMs + note.startMs
-                && currentMs < timelineStartMs + note.endMs;
+                && currentMs >= note.startMs
+                && currentMs < note.endMs;
 
               return (
                 <div
@@ -139,11 +145,12 @@ function RealtimeWaveform({
 
           <div className="pointer-events-none absolute inset-0 overflow-visible">
             {analyzedNotes.map((note, index) => {
-              const startRatio = Math.max(0, Math.min(1, note.startMs / durationMs));
+              const localStartMs = note.startMs - timelineStartMs;
+              const startRatio = Math.max(0, Math.min(1, localStartMs / durationMs));
               const left = `${startRatio * 100}%`;
               const isCurrent = currentMs !== undefined
-                && currentMs >= timelineStartMs + note.startMs
-                && currentMs < timelineStartMs + note.endMs;
+                && currentMs >= note.startMs
+                && currentMs < note.endMs;
 
               return (
                 <div
@@ -163,6 +170,7 @@ function RealtimeWaveform({
               );
             })}
           </div>
+
         </>
       )}
     </div>
