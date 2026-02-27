@@ -101,8 +101,8 @@ function AudioAnalysisPanel({
     noteMarkers.forEach((reference, referenceIndex) => {
       const referenceAttackMs = reference.timestamp;
       const referenceReleaseMs = reference.timestamp + reference.length;
-      const isWithinDetectedWindow = referenceAttackMs >= firstDetectedAttackMs
-        && referenceReleaseMs <= lastDetectedReleaseMs;
+      const isWithinDetectedWindow = referenceAttackMs >= (firstDetectedAttackMs - matchWindowMs)
+        && referenceReleaseMs <= (lastDetectedReleaseMs + matchWindowMs);
 
       if (!isWithinDetectedWindow) {
         return;
