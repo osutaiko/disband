@@ -72,13 +72,30 @@ function SessionPanel() {
     const matchWindowMs = 120.0;
     const attackToleranceMs = 50.0;
     const used = new Array(playedNotes.length).fill(false);
+    const firstDetectedAttackMs = playedNotes.length > 0
+      ? Math.min(...playedNotes.map((note) => note.startMs))
+      : Number.POSITIVE_INFINITY;
+    const lastDetectedReleaseMs = playedNotes.length > 0
+      ? Math.max(...playedNotes.map((note) => note.endMs))
+      : Number.NEGATIVE_INFINITY;
     let ok = 0;
     let inaccurate = 0;
     let miss = 0;
     let badAttack = 0;
+    let judgedReferenceCount = 0;
     const matchedAttackErrors: number[] = [];
 
     for (const reference of noteMarkers) {
+      const referenceAttackMs = reference.timestamp;
+      const referenceReleaseMs = reference.timestamp + reference.length;
+      const isWithinDetectedWindow = referenceAttackMs >= firstDetectedAttackMs
+        && referenceReleaseMs <= lastDetectedReleaseMs;
+
+      if (!isWithinDetectedWindow) {
+        continue;
+      }
+
+      judgedReferenceCount += 1;
       let bestIndex = -1;
       let bestScore = Number.POSITIVE_INFINITY;
 
@@ -116,7 +133,7 @@ function SessionPanel() {
     }
 
     const recordingLength = playedNotes.reduce((max, note) => Math.max(max, note.endMs), 0);
-    const totalReference = noteMarkers.length;
+    const totalReference = judgedReferenceCount;
     const accuracy = totalReference > 0 ? (ok / totalReference) * 100 : 0;
 
     return {
