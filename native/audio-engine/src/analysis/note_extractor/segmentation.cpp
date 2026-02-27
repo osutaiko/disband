@@ -8,6 +8,20 @@
 
 namespace disband::session::note_extractor
 {
+namespace
+{
+constexpr double kPitchStableMidiDelta = 0.6;
+constexpr double kPitchTransitionMidiDelta = 0.9;
+constexpr double kMinimumPitchWeight = 0.05;
+constexpr double kDipDetectDropDb = 1.2;
+constexpr double kReAttackRiseDb = 3.8;
+constexpr int kMaxReAttackDipFrames = 6;
+constexpr int kDipResetFrames = 8;
+constexpr double kMinSplitIntervalMs = 25.0;
+constexpr int kPitchTransitionFrames = 2;
+constexpr int kLowEnergyEndFrames = 2;
+} // namespace
+
 std::vector<PlayedNote> detectNotes(
     const juce::AudioBuffer<float>& workingBuffer,
     int hopSize,
@@ -115,7 +129,7 @@ std::vector<PlayedNote> detectNotes(
                 previousLevelDb = levelDb;
                 if (hasPitch)
                 {
-                    const auto weight = std::max(confidence, 0.05);
+                    const auto weight = std::max(confidence, kMinimumPitchWeight);
                     weightedHz = hz * weight;
                     totalWeight = weight;
                     confidenceSum = confidence;
@@ -150,10 +164,10 @@ std::vector<PlayedNote> detectNotes(
             {
                 const auto noteHz = weightedHz / totalWeight;
                 const auto midiDelta = std::abs(frequencyToMidi(hz) - frequencyToMidi(noteHz));
-                const bool pitchStable = midiDelta <= 0.6;
+                const bool pitchStable = midiDelta <= kPitchStableMidiDelta;
                 if (pitchStable)
                 {
-                    if (levelDb <= previousLevelDb - 1.2)
+                    if (levelDb <= previousLevelDb - kDipDetectDropDb)
                     {
                         if (!dipTrackingActive)
                         {
@@ -171,11 +185,11 @@ std::vector<PlayedNote> detectNotes(
                     {
                         ++dipAgeFrames;
                         dipLevelDb = std::min(dipLevelDb, levelDb);
-                        if (dipAgeFrames <= 6 && levelDb - dipLevelDb >= 3.8)
+                        if (dipAgeFrames <= kMaxReAttackDipFrames && levelDb - dipLevelDb >= kReAttackRiseDb)
                         {
                             reAttackDetected = true;
                         }
-                        else if (dipAgeFrames > 8)
+                        else if (dipAgeFrames > kDipResetFrames)
                         {
                             dipTrackingActive = false;
                             dipAgeFrames = 0;
@@ -198,7 +212,7 @@ std::vector<PlayedNote> detectNotes(
             {
                 const auto noteHz = weightedHz / totalWeight;
                 const auto midiDelta = std::abs(frequencyToMidi(hz) - frequencyToMidi(noteHz));
-                if (midiDelta >= 0.9)
+                if (midiDelta >= kPitchTransitionMidiDelta)
                 {
                     if (pitchChangeFrames == 0)
                         pitchChangeStartSample = frameStart;
@@ -216,8 +230,8 @@ std::vector<PlayedNote> detectNotes(
                 pitchChangeStartSample = 0;
             }
 
-            const bool pitchTransitionDetected = pitchChangeFrames >= 2;
-            const int minSplitFrames = std::max(1, static_cast<int>(std::round(25.0 / settings.hopSizeMs)));
+            const bool pitchTransitionDetected = pitchChangeFrames >= kPitchTransitionFrames;
+            const int minSplitFrames = std::max(1, static_cast<int>(std::round(kMinSplitIntervalMs / settings.hopSizeMs)));
             const bool canSplitNow = framesSinceLastSplit >= minSplitFrames;
             if (canSplitNow && (onsetDetected || pitchTransitionDetected || reAttackDetected))
             {
@@ -237,7 +251,7 @@ std::vector<PlayedNote> detectNotes(
                 previousLevelDb = levelDb;
                 if (hasPitch)
                 {
-                    const auto weight = std::max(confidence, 0.05);
+                    const auto weight = std::max(confidence, kMinimumPitchWeight);
                     weightedHz = hz * weight;
                     totalWeight = weight;
                     confidenceSum = confidence;
@@ -254,7 +268,7 @@ std::vector<PlayedNote> detectNotes(
             }
             if (hasPitch)
             {
-                const auto weight = std::max(confidence, 0.05);
+                const auto weight = std::max(confidence, kMinimumPitchWeight);
                 weightedHz += hz * weight;
                 totalWeight += weight;
                 confidenceSum += confidence;
@@ -263,7 +277,7 @@ std::vector<PlayedNote> detectNotes(
             previousLevelDb = levelDb;
         }
 
-        if (lowEnergyFrames >= 2)
+        if (lowEnergyFrames >= kLowEnergyEndFrames)
             flushCurrentNote(frameStart);
     }
 
