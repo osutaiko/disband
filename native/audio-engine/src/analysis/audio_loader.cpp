@@ -1,3 +1,9 @@
+// WAV loading and decoding for analysis.
+//
+//    - Validates WAV file
+//    - Decodes audio with JUCE
+//    - Mixes to mono
+
 #include "session.h"
 
 #include <juce_audio_formats/juce_audio_formats.h>

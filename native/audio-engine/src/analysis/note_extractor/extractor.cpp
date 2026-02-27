@@ -1,3 +1,9 @@
+// Note extraction with aubio.
+//
+//    - Create aubio context
+//    - Run detection loop over audio frames
+//    - Return notes
+
 #include "internal.h"
 
 #include <algorithm>

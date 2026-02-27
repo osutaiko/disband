@@ -1,3 +1,7 @@
+// Preprocessing of audio for note extraction.
+//
+//    - Normalizes audio for consistency.
+
 #include "internal.h"
 
 #include <algorithm>

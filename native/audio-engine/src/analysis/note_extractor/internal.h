@@ -1,3 +1,5 @@
+// Internal utilities for note extraction with aubio.
+
 #pragma once
 
 #include "../session.h"

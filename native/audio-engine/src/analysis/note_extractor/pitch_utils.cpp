@@ -1,3 +1,5 @@
+// Miscellaneous utilities for note_extractor.
+
 #include "internal.h"
 
 #include <cmath>
