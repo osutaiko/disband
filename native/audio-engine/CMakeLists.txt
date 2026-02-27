@@ -32,7 +32,13 @@ juce_add_console_app(disband-audio-engine
 
 target_sources(disband-audio-engine PRIVATE
     src/app/main.cpp
-    src/analysis/session.cpp
+    src/analysis/audio_loader.cpp
+    src/analysis/note_judger.cpp
+    src/analysis/note_extractor/extractor.cpp
+    src/analysis/note_extractor/preprocess.cpp
+    src/analysis/note_extractor/pitch_utils.cpp
+    src/analysis/note_extractor/aubio_context.cpp
+    src/analysis/note_extractor/segmentation.cpp
 )
 
 target_link_libraries(disband-audio-engine PRIVATE
