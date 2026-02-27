@@ -1,5 +1,5 @@
 import {
-  RefObject, useCallback, useEffect, useRef, useState,
+  RefObject, useCallback, useEffect, useMemo, useRef, useState,
 } from 'react';
 
 import { Circle, Trash } from 'lucide-react';
@@ -44,6 +44,7 @@ function AudioAnalysisPanel({
     pxPerMs,
     recordedPaths,
     setRecordedPaths,
+    analyzedNotesBySelection,
     setAnalyzedNotesBySelection,
   } = useLibraryStore();
   const {
@@ -81,13 +82,68 @@ function AudioAnalysisPanel({
   const windowStart = currentMs - 500 / pxPerMs;
   const windowEnd = currentMs + 2000 / pxPerMs;
 
-  const visibleNoteMarkers = noteMarkers.filter(
-    (m) => m.timestamp + m.length >= windowStart
-      && m.timestamp <= windowEnd,
-  );
   const visibleBarMarkers = barMarkers.slice(1).filter(
     (m) => m.timestamp >= windowStart && m.timestamp <= windowEnd,
   );
+
+  const playedNotes = selectionId ? (analyzedNotesBySelection[selectionId] ?? []) : [];
+
+  const noteMarkerStatuses = useMemo(() => {
+    const statuses: ('ok' | 'inaccurate' | 'miss' | 'unjudged')[] = new Array(noteMarkers.length).fill('unjudged');
+    if (playedNotes.length === 0 || noteMarkers.length === 0) return statuses;
+
+    const matchWindowMs = 120.0;
+    const attackToleranceMs = 50.0;
+    const used = new Array(playedNotes.length).fill(false);
+    const firstDetectedAttackMs = Math.min(...playedNotes.map((note) => note.startMs));
+    const lastDetectedReleaseMs = Math.max(...playedNotes.map((note) => note.endMs));
+
+    noteMarkers.forEach((reference, referenceIndex) => {
+      const referenceAttackMs = reference.timestamp;
+      const referenceReleaseMs = reference.timestamp + reference.length;
+      const isWithinDetectedWindow = referenceAttackMs >= firstDetectedAttackMs
+        && referenceReleaseMs <= lastDetectedReleaseMs;
+
+      if (!isWithinDetectedWindow) {
+        return;
+      }
+
+      let bestIndex = -1;
+      let bestScore = Number.POSITIVE_INFINITY;
+
+      for (let i = 0; i < playedNotes.length; i += 1) {
+        if (used[i]) continue;
+
+        const played = playedNotes[i];
+        const attackErrorMs = played.startMs - referenceAttackMs;
+        if (Math.abs(attackErrorMs) > matchWindowMs) continue;
+
+        const score = Math.abs(attackErrorMs);
+        if (score < bestScore) {
+          bestScore = score;
+          bestIndex = i;
+        }
+      }
+
+      if (bestIndex < 0) {
+        statuses[referenceIndex] = 'miss';
+        return;
+      }
+
+      used[bestIndex] = true;
+      const attackErrorMs = playedNotes[bestIndex].startMs - referenceAttackMs;
+      statuses[referenceIndex] = Math.abs(attackErrorMs) > attackToleranceMs ? 'inaccurate' : 'ok';
+    });
+
+    return statuses;
+  }, [noteMarkers, playedNotes]);
+
+  const visibleNoteMarkersWithIndex = noteMarkers
+    .map((marker, index) => ({ marker, index }))
+    .filter(({ marker }) => (
+      marker.timestamp + marker.length >= windowStart
+      && marker.timestamp <= windowEnd
+    ));
 
   const quarterBarTimestamps = barMarkers
     .filter((m) => m.variant === 'whole' || m.variant === 'quarter')
@@ -244,13 +300,14 @@ function AudioAnalysisPanel({
 
           <div className="relative w-full h-[48px] bg-secondary py-2 z-20">
             {/* Note Markers */}
-            {visibleNoteMarkers.map((marker, index) => (
+            {visibleNoteMarkersWithIndex.map(({ marker, index }) => (
               <NoteMarker
                 key={`note-${marker.timestamp}-${marker.length}-${index}`}
                 timestamp={marker.timestamp}
                 length={marker.length}
                 offsetBase={trackStartPadding}
                 pxPerMs={pxPerMs}
+                status={noteMarkerStatuses[index]}
                 isCurrentlyPlaying={
                   currentMs >= marker.timestamp
                   && currentMs < marker.timestamp + marker.length
