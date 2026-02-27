@@ -62,7 +62,11 @@ struct NoteJudgment
 struct JudgmentSettings
 {
     double matchWindowMs = 120.0;
-    double attackToleranceMs = 50.0;
+    double attackToleranceMs = 20.0;
+    double releaseToleranceMs = 40.0;
+    double pitchToleranceSemitones = 0.3;
+    double velocityToleranceMult = 0.6;
+    double articulationToleranceMult = 0.4;
 };
 
 bool loadMonoWavFile(
