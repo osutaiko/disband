@@ -129,10 +129,10 @@
   --color-bar-4: var(--color-gray-500);
   --color-bar-16: color-mix(in oklch, var(--color-gray-300) 40%, transparent);
 
-  --color-note-start: var(--color-indigo-700);
-  --color-note-middle: var(--color-indigo-500);
-  --color-note-ok: var(--color-emerald-500);
-  --color-note-ok-bg: var(--color-emerald-400);
+  --color-note-start: var(--color-gray-700);
+  --color-note-middle: var(--color-gray-500);
+  --color-note-ok: var(--color-indigo-500);
+  --color-note-ok-bg: var(--color-indigo-400);
   --color-note-inacc: var(--color-amber-500);
   --color-note-inacc-bg: var(--color-amber-400);
   --color-note-miss: var(--color-red-500);
