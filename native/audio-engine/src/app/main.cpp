@@ -1,3 +1,13 @@
+// Disband app entry point.
+//
+// 1) Recording mode (`--output <wavPath>`)
+//    - Capture mono mic input into <wavPath> as WAV
+//    - Stop capture on "stop" recieved in stdin
+//
+// 2) Analysis mode (`--analyze-wav <wavPath>`) 
+//    - Load & extract notes with aubio from WAV
+//    - Print notes as JSON to stdout
+
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_audio_formats/juce_audio_formats.h>
 #include <juce_core/juce_core.h>

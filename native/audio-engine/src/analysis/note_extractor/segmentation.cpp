@@ -1,3 +1,5 @@
+// Core note segmentation logic.
+
 #include "internal.h"
 
 #include <algorithm>

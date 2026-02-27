@@ -1,3 +1,18 @@
+// Note judgment logic for session analysis.
+// 
+// Compares reference notes (music score in frontend) to played notes and assigns judgments.
+// Uses greedy matching and labels as:
+//    - Ok
+//    - Inaccurate: within window but at least one of the following is bad
+//      - attack timing
+//      - release timing (duration)
+//      - pitch (midi or Hz)
+//      - muting
+//      - Compared with while recorded file...
+//        - velocity
+//        - timbre
+//    - Miss: no note input within window
+
 #include "session.h"
 
 #include <cmath>

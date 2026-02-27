@@ -1,3 +1,7 @@
+// Session analysis utilities for Disband.
+//
+// Defines data models & functions used in audio analysis.
+
 #pragma once
 
 #include <juce_audio_basics/juce_audio_basics.h>

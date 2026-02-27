@@ -1,3 +1,5 @@
+// Aubio context management for note extraction.
+
 #include "internal.h"
 
 #include <algorithm>
