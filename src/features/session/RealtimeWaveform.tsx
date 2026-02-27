@@ -8,6 +8,7 @@ function RealtimeWaveform({
   className,
   onDurationMsChange,
   onAnalyzedNotesChange,
+  onAnalysisRunningChange,
   currentMs,
   timelineStartMs = 0,
 }: {
@@ -15,6 +16,7 @@ function RealtimeWaveform({
   className?: string;
   onDurationMsChange?: (durationMs: number | null) => void;
   onAnalyzedNotesChange?: (notes: AnalyzedNote[]) => void;
+  onAnalysisRunningChange?: (isRunning: boolean) => void;
   currentMs?: number;
   timelineStartMs?: number;
 }) {
@@ -57,6 +59,7 @@ function RealtimeWaveform({
       setDurationMs(null);
       setAnalyzedNotes([]);
       onDurationMsChange?.(null);
+      onAnalysisRunningChange?.(false);
       return;
     }
 
@@ -95,19 +98,23 @@ function RealtimeWaveform({
             startMs: note.startMs + timelineStartMs,
             endMs: note.endMs + timelineStartMs,
           })));
+          onAnalysisRunningChange?.(false);
         }
       })
       .catch((error) => {
         if (!cancelled) {
           setAnalyzedNotes([]);
           console.error('[audio] failed to analyze recording', error);
+          onAnalysisRunningChange?.(false);
         }
       });
+    onAnalysisRunningChange?.(true);
 
     return () => {
       cancelled = true;
+      onAnalysisRunningChange?.(false);
     };
-  }, [audioPath, onDurationMsChange, timelineStartMs]);
+  }, [audioPath, onAnalysisRunningChange, onDurationMsChange, timelineStartMs]);
 
   return (
     <div className={`relative ${className ?? ''}`}>

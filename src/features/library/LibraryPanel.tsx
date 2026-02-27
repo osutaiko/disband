@@ -77,7 +77,7 @@ function LibraryPanel() {
               >
                 <Button
                   variant={selectedSong === song ? 'default' : 'ghost'}
-                  className="px-3 py-1 h-min flex-1 justify-start overflow-hidden"
+                  className="px-2 py-1 h-min flex-1 justify-start overflow-hidden"
                   onClick={() => { if (selectedSong !== song) setConfirming(song); }}
                   title={song}
                 >
