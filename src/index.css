@@ -135,8 +135,11 @@
   --color-note-current-middle: var(--color-fuchsia-500);
   --color-note-highlight: var(--color-gray-700);
   --color-note-ok: var(--color-green-500);
+  --color-note-ok-bg: var(--color-green-300);
   --color-note-inacc: var(--color-amber-500);
+  --color-note-inacc-bg: var(--color-amber-300);
   --color-note-miss: var(--color-red-500);
+  --color-note-miss-bg: var(--color-red-300);
   
   --color-record-bg: var(--color-indigo-100);
   --color-record-waveform: var(--color-indigo-700);
