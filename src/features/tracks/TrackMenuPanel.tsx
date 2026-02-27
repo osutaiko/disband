@@ -137,7 +137,7 @@ function TrackMenuPanel() {
     >
       {!tracks || tracks.length === 0 ? 
         <p className="p-2 text-muted-foreground">No tracks found.</p> : 
-        <div className="flex flex-col w-64 gap-1 min-h-full">
+        <div className="flex flex-col w-72 gap-2 min-h-full">
           {tracks?.map((track) => {
             const isSelected = selectedTrackId === track.index;
             const trackSelectionId = getTrackSelectionId(track);
@@ -153,8 +153,8 @@ function TrackMenuPanel() {
             const trackVol = 1;
 
             return (
-              <div key={track.index} className="flex flex-col items-start gap-1 group w-68">
-                <Card className="w-full flex flex-col gap-1 px-2 py-2 rounded-sm shadow-none">
+              <div key={track.index} className="flex flex-col items-start gap-2 group">
+                <Card className="w-full flex flex-col gap-1 px-3 py-2 rounded-sm shadow-none">
                   <div className="h-full flex flex-row items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
                       <span>{getInstrumentIcon(track)}</span>
