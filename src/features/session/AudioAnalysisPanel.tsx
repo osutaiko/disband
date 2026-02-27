@@ -44,6 +44,7 @@ function AudioAnalysisPanel({
     pxPerMs,
     recordedPaths,
     setRecordedPaths,
+    setAnalyzedNotesBySelection,
   } = useLibraryStore();
   const {
     noteMarkers = [],
@@ -141,6 +142,17 @@ function AudioAnalysisPanel({
     if (!selectionId || isRecording) return;
     setRecordedDurationsMs((prev) => ({ ...prev, [selectionId]: durationMs }));
   }, [isRecording, selectionId]);
+
+  const handleAnalyzedNotesChange = useCallback((notes: {
+    startMs: number;
+    endMs: number;
+    midi: number;
+    hz: number;
+    confidence: number;
+  }[]) => {
+    if (!selectionId) return;
+    setAnalyzedNotesBySelection((prev) => ({ ...prev, [selectionId]: notes }));
+  }, [selectionId, setAnalyzedNotesBySelection]);
 
   let activeWaveformRange: { startMs: number; endMs: number } | null = null;
 
@@ -263,6 +275,7 @@ function AudioAnalysisPanel({
                   currentMs={currentMs}
                   timelineStartMs={activeWaveformRange?.startMs ?? fallbackStartMs}
                   onDurationMsChange={handleWaveformDurationChange}
+                  onAnalyzedNotesChange={handleAnalyzedNotesChange}
                   className="w-full h-full bg-record-bg rounded-sm"
                 />
               )}
@@ -318,6 +331,7 @@ function AudioAnalysisPanel({
             setRecordedStartMs((prev) => ({ ...prev, [selectionId]: null }));
             setRecordedDurationsMs((prev) => ({ ...prev, [selectionId]: null }));
             setRecordedPaths((prev) => ({ ...prev, [selectionId]: null }));
+            setAnalyzedNotesBySelection((prev) => ({ ...prev, [selectionId]: [] }));
           }}
         >
           <Trash className="text-white" />

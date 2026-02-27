@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { AnalyzedNote } from '../../shared/types';
 
 interface SongMetadata {
   id: string;
@@ -50,6 +51,11 @@ interface LibraryState {
     updater: (prev: Record<string, string | null>) => Record<string, string | null>
   ) => void;
 
+  analyzedNotesBySelection: Record<string, AnalyzedNote[]>;
+  setAnalyzedNotesBySelection: (
+    updater: (prev: Record<string, AnalyzedNote[]>) => Record<string, AnalyzedNote[]>
+  ) => void;
+
   pxPerMs: number;
   setPxPerMs: (ppm: number) => void;
 }
@@ -94,6 +100,11 @@ const useLibraryStore = create<LibraryState>((set) => ({
   recordedPaths: {},
   setRecordedPaths: (updater) => set((state) => ({
     recordedPaths: updater(state.recordedPaths),
+  })),
+
+  analyzedNotesBySelection: {},
+  setAnalyzedNotesBySelection: (updater) => set((state) => ({
+    analyzedNotesBySelection: updater(state.analyzedNotesBySelection),
   })),
 
   pxPerMs: 0.25,
