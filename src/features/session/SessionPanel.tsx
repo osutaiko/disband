@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Square } from 'lucide-react';
+import { Circle, Square } from 'lucide-react';
 
 import Panel from '@/components/ui/Panel';
 import { Card } from '@/components/ui/card';
@@ -49,6 +49,7 @@ function SessionPanel() {
     api,
     selectedSong,
     selectedTrackId,
+    recordedPaths,
     analyzedNotesBySelection,
   } = useLibraryStore();
   const { noteMarkers } = useAudioAnalysisMarkers(api, selectedTrackId);
@@ -56,6 +57,7 @@ function SessionPanel() {
   const selectionId = selectedTrackId === null
     ? null
     : `${selectedSong ?? 'no-song'}::${selectedTrackId}`;
+  const hasRecording = selectionId ? Boolean(recordedPaths[selectionId]) : false;
   const playedNotes = selectionId ? (analyzedNotesBySelection[selectionId] ?? []) : [];
 
   const {
@@ -134,99 +136,113 @@ function SessionPanel() {
       isCollapsible
       className="border-b"
     >
-      <div className="flex flex-col gap-4 p-2 select-text">
-        <div className="w-full flex flex-col gap-2">
-          <DataCountRow
-            name="Recording Length"
-            description="Total recording duration"
-            content={formatDurationMs(recordingLengthMs)}
-          />
-          <DataCountRow
-            name="Accuracy"
-            description="OK notes / total reference notes"
-            content={`${accuracyPercent.toFixed(1)}%`}
-          />
-          <DataCountRow
-            name="Timing Bias"
-            description="Overall rushing/dragging tendency"
-            content={`20.0 ms dragging`}
-          />
-          <DataCountRow
-            name="Rhythm Instability (std. dev)"
-            description="Standard deviation of note attack error"
-            content={`${rhythmStdDevMs.toFixed(1)} ms`}
-          />
+      {!hasRecording ? (
+        <p className="p-2 text-sm text-muted-foreground">
+          No recording for this track yet. Record audio with the "
+          <Circle className="inline-flex" stroke="red" size={12} />" button to see analysis results.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-4 p-2 select-text">
+          <div className="w-full flex flex-col gap-2">
+            <DataCountRow
+              name="Recording Length"
+              description="Total recording duration"
+              content={formatDurationMs(recordingLengthMs)}
+            />
+            <DataCountRow
+              name="Accuracy"
+              description="OK notes / total reference notes"
+              content={`${accuracyPercent.toFixed(1)}%`}
+            />
+            <DataCountRow
+              name="Timing Bias"
+              description="Overall rushing/dragging tendency"
+              content={`20.0 ms dragging`}
+            />
+            <DataCountRow
+              name="Rhythm Instability (std. dev)"
+              description="Standard deviation of note attack error"
+              content={`${rhythmStdDevMs.toFixed(1)} ms`}
+            />
+          </div>
+          <Card className="flex flex-col gap-2 px-4 py-2">
+            <Accordion
+              type="multiple"
+              className="max-w-lg"
+              defaultValue={[]}
+            >
+              <AccordionItem value="OK">
+                <AccordionTrigger className="flex flex-row items-center justify-between gap-4">
+                  <div className="w-full flex flex-row items-center gap-2">
+                    <Square className="text-note-ok" size={12} />
+                    <p>OK</p>
+                  </div>
+                  <p className="text-note-ok">{`${okCount}×`}</p>
+                </AccordionTrigger>
+                <AccordionContent>
+                  Notes that pass all grading criteria!
+                  <br />
+                  If you think some of these notes don't deserve an <span className="text-note-ok">OK</span>,
+                  adjust your tolerance settings in the <h2 className="underline text-sm inline-flex">OPTIONS</h2> panel.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="Inaccurate">
+                <AccordionTrigger className="flex flex-row items-center justify-between gap-4">
+                  <div className="w-full flex flex-row items-center gap-2">
+                    <Square className="text-note-inacc" size={12} />
+                    <p>Inaccurate</p>
+                  </div>
+                  <p className="text-note-inacc">{`${inaccurateCount}×`}</p>
+                </AccordionTrigger>
+                <AccordionContent className="flex flex-col gap-2 h-fit">
+                  <DataCountRow
+                    name="Bad Attack"
+                    description="Notes played with bad attack (start of note) timing"
+                    content={`${badAttackCount}×`}
+                  />
+                  <DataCountRow
+                    name="Bad Release"
+                    description="N/A"
+                    content="0×"
+                  />
+                  <DataCountRow
+                    name="Wrong Pitch"
+                    description="N/A"
+                    content="0×"
+                  />
+                  <DataCountRow
+                    name="Inconsistent Velocity"
+                    description="N/A"
+                    content="0×"
+                  />
+                  <DataCountRow
+                    name="Bad Muting"
+                    description="N/A"
+                    content="0×"
+                  />
+                  <DataCountRow
+                    name="Bad Articulation"
+                    description="N/A"
+                    content="0×"
+                  />
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="Miss">
+                <AccordionTrigger className="flex flex-row items-center justify-between gap-4">
+                  <div className="w-full flex flex-row items-center gap-2">
+                    <Square className="text-note-miss" size={12} />
+                    <p>Miss</p>
+                  </div>
+                  <p className="text-note-miss">{`${missCount}×`}</p>
+                </AccordionTrigger>
+                <AccordionContent>
+                  Notes in the original score that were missed.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </Card>
         </div>
-        <Card className="flex flex-col gap-2 px-4 py-2">
-          <Accordion
-            type="multiple"
-            className="max-w-lg"
-            defaultValue={[]}
-          >
-            <AccordionItem value="OK">
-              <AccordionTrigger className="flex flex-row items-center justify-between gap-4">
-                <div className="w-full flex flex-row items-center gap-2">
-                  <Square className="text-note-ok" size={12} />
-                  <p>OK</p>
-                </div>
-                <p className="text-note-ok">{`${okCount}×`}</p>
-              </AccordionTrigger>
-              <AccordionContent>OK</AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="Inaccurate">
-              <AccordionTrigger className="flex flex-row items-center justify-between gap-4">
-                <div className="w-full flex flex-row items-center gap-2">
-                  <Square className="text-note-inacc" size={12} />
-                  <p>Inaccurate</p>
-                </div>
-                <p className="text-note-inacc">{`${inaccurateCount}×`}</p>
-              </AccordionTrigger>
-              <AccordionContent className="flex flex-col gap-2 h-fit">
-                <DataCountRow
-                  name="Bad Attack"
-                  description="Notes played with bad attack (start of note) timing"
-                  content={`${badAttackCount}×`}
-                />
-                <DataCountRow
-                  name="Bad Duration"
-                  description="N/A"
-                  content="0×"
-                />
-                <DataCountRow
-                  name="Wrong Pitch"
-                  description="N/A"
-                  content="0×"
-                />
-                <DataCountRow
-                  name="Inconsistent Velocity"
-                  description="N/A"
-                  content="0×"
-                />
-                <DataCountRow
-                  name="Bad Muting"
-                  description="N/A"
-                  content="0×"
-                />
-                <DataCountRow
-                  name="Bad Articulation"
-                  description="N/A"
-                  content="0×"
-                />
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="Miss">
-              <AccordionTrigger className="flex flex-row items-center justify-between gap-4">
-                <div className="w-full flex flex-row items-center gap-2">
-                  <Square className="text-note-miss" size={12} />
-                  <p>Miss</p>
-                </div>
-                <p className="text-note-miss">{`${missCount}×`}</p>
-              </AccordionTrigger>
-              <AccordionContent>Miss</AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </Card>
-      </div>
+      )}
     </Panel>
   );
 }
