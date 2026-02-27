@@ -186,7 +186,7 @@ function RealtimeWaveform({
       <div ref={containerRef} className="absolute inset-0 z-20" />
       {durationMs !== null && durationMs > 0 && analyzedNotes.length > 0 && (
         <>
-          <div className="pointer-events-none absolute inset-0 overflow-hidden z-10 opacity-[0.5]">
+          <div className="pointer-events-none absolute inset-0 overflow-hidden z-10">
             {noteVisuals.map(({ note, index, bgClass }) => {
               const localStartMs = note.startMs - timelineStartMs;
               const localEndMs = note.endMs - timelineStartMs;
