@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 type PanelAction = {
   title: string;
@@ -15,6 +16,7 @@ const Panel = ({
   actions = [],
   isCollapsible = false,
   defaultCollapsed = false,
+  isScrollable = false,
   className,
   contentClassName,
   children,
@@ -23,6 +25,7 @@ const Panel = ({
   actions?: PanelAction[];
   isCollapsible?: boolean;
   defaultCollapsed?: boolean;
+  isScrollable?: boolean;
   className?: string;
   contentClassName?: string;
   children: React.ReactNode;
@@ -61,7 +64,19 @@ const Panel = ({
         </div>
       )}
 
-      {!isCollapsed && <div className={contentClassName}>{children}</div>}
+      {!isCollapsed && (
+        isScrollable ? (
+          <div className={cn('-mr-3 min-h-0', contentClassName)}>
+            <ScrollArea className="h-full">
+              {children}
+            </ScrollArea>
+          </div>
+        ) : (
+          <div className={contentClassName}>
+            {children}
+          </div>
+        )
+      )}
     </section>
   );
 }
