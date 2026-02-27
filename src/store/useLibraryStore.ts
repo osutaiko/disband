@@ -55,6 +55,10 @@ interface LibraryState {
   setAnalyzedNotesBySelection: (
     updater: (prev: Record<string, AnalyzedNote[]>) => Record<string, AnalyzedNote[]>
   ) => void;
+  analysisInProgressBySelection: Record<string, boolean>;
+  setAnalysisInProgressBySelection: (
+    updater: (prev: Record<string, boolean>) => Record<string, boolean>
+  ) => void;
 
   pxPerMs: number;
   setPxPerMs: (ppm: number) => void;
@@ -105,6 +109,10 @@ const useLibraryStore = create<LibraryState>((set) => ({
   analyzedNotesBySelection: {},
   setAnalyzedNotesBySelection: (updater) => set((state) => ({
     analyzedNotesBySelection: updater(state.analyzedNotesBySelection),
+  })),
+  analysisInProgressBySelection: {},
+  setAnalysisInProgressBySelection: (updater) => set((state) => ({
+    analysisInProgressBySelection: updater(state.analysisInProgressBySelection),
   })),
 
   pxPerMs: 0.25,

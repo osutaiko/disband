@@ -46,6 +46,7 @@ function AudioAnalysisPanel({
     setRecordedPaths,
     analyzedNotesBySelection,
     setAnalyzedNotesBySelection,
+    setAnalysisInProgressBySelection,
   } = useLibraryStore();
   const {
     noteMarkers = [],
@@ -210,6 +211,11 @@ function AudioAnalysisPanel({
     setAnalyzedNotesBySelection((prev) => ({ ...prev, [selectionId]: notes }));
   }, [selectionId, setAnalyzedNotesBySelection]);
 
+  const handleAnalysisRunningChange = useCallback((isRunning: boolean) => {
+    if (!selectionId) return;
+    setAnalysisInProgressBySelection((prev) => ({ ...prev, [selectionId]: isRunning }));
+  }, [selectionId, setAnalysisInProgressBySelection]);
+
   let activeWaveformRange: { startMs: number; endMs: number } | null = null;
 
   const currentRecordStartMs = selectionId
@@ -333,6 +339,7 @@ function AudioAnalysisPanel({
                   timelineStartMs={activeWaveformRange?.startMs ?? fallbackStartMs}
                   onDurationMsChange={handleWaveformDurationChange}
                   onAnalyzedNotesChange={handleAnalyzedNotesChange}
+                  onAnalysisRunningChange={handleAnalysisRunningChange}
                   className="w-full h-full bg-record-bg rounded-sm"
                 />
               )}
@@ -389,6 +396,7 @@ function AudioAnalysisPanel({
             setRecordedDurationsMs((prev) => ({ ...prev, [selectionId]: null }));
             setRecordedPaths((prev) => ({ ...prev, [selectionId]: null }));
             setAnalyzedNotesBySelection((prev) => ({ ...prev, [selectionId]: [] }));
+            setAnalysisInProgressBySelection((prev) => ({ ...prev, [selectionId]: false }));
           }}
         >
           <Trash className="text-white" />

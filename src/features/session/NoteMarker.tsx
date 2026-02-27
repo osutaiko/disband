@@ -28,7 +28,7 @@ function NoteMarker({
       className={`
         absolute h-[calc(100%-16px)] border-l-4 rounded-r-full
         ${statusClass}
-        ${isCurrentlyPlaying ? 'brightness-115' : ''}
+        ${isCurrentlyPlaying ? 'brightness-125' : ''}
       `}
       style={{
         left: `${left}px`,
