@@ -60,7 +60,7 @@ function LibraryPanel() {
         <p className="p-2 text-muted-foreground">No songs found. Click the "
           <FolderOpen className="inline-flex" size={12} />" button above to add a Guitar Pro file from disk.
         </p> : 
-        <div className="flex flex-col w-68 min-h-full">
+        <div className="flex flex-col w-72 min-h-full gap-1">
           {songs.map((song) => {
             const meta = songsMetadata[song];
             return (
@@ -77,7 +77,7 @@ function LibraryPanel() {
               >
                 <Button
                   variant={selectedSong === song ? 'default' : 'ghost'}
-                  className="px-2 flex-1 justify-start overflow-hidden truncate"
+                  className="px-3 py-1 h-min flex-1 justify-start overflow-hidden"
                   onClick={() => { if (selectedSong !== song) setConfirming(song); }}
                   title={song}
                 >
@@ -89,16 +89,15 @@ function LibraryPanel() {
                 {/* Confirmation Button (appears when the song item is clicked) */}
                 {confirming === song && (
                   <Button
-                    size="icon"
                     variant="secondary"
-                    className="shrink-0 animate-in fade-in zoom-in duration-200"
+                    className="shrink-0 w-8 h-6 animate-in fade-in zoom-in duration-200"
                     onClick={() => {
                       setSelectedSong(song);
                       setSelectedTrackId(null);
                       setConfirming(null);
                     }}
                   >
-                    <ChevronRight size={16} />
+                    <ChevronRight size={12} />
                   </Button>
                 )}
               </div>

@@ -66,7 +66,7 @@ const Panel = ({
 
       {!isCollapsed && (
         isScrollable ? (
-          <div className={cn('-mr-3 min-h-0', contentClassName)}>
+          <div className={cn('-mr-4 min-h-0', contentClassName)}>
             <ScrollArea className="h-full">
               {children}
             </ScrollArea>
