@@ -129,21 +129,19 @@
   --color-bar-4: var(--color-gray-500);
   --color-bar-16: color-mix(in oklch, var(--color-gray-300) 40%, transparent);
 
-  --color-note-start: var(--color-gray-700);
-  --color-note-middle: var(--color-gray-500);
+  --color-note-unj: var(--color-gray-700);
+  --color-note-unj-bg: var(--color-gray-500);
   --color-note-ok: var(--color-indigo-500);
   --color-note-ok-bg: var(--color-indigo-400);
   --color-note-inacc: var(--color-amber-500);
   --color-note-inacc-bg: var(--color-amber-400);
   --color-note-miss: var(--color-red-500);
   --color-note-miss-bg: var(--color-red-400);
-  
-  --color-record-bg: var(--color-indigo-100);
-  --color-record-waveform: var(--color-indigo-700);
-  --color-record-note-bg: var(--color-indigo-500);
-  --color-record-note-start: var(--color-indigo-500);
-  --color-record-note-current-bg: var(--color-fuchsia-500);
-  --color-record-note-current-start: var(--color-fuchsia-500);
+  --color-rec-track-bg: var(--color-indigo-100);
+  --color-rec-waveform: var(--color-indigo-700);
+  --color-rec-note-unj-bg: var(--color-gray-500);
+  --color-rec-note-ok-bg: var(--color-indigo-500);
+  --color-rec-note-inacc-bg: var(--color-amber-500);
 }
 
 @layer base {
@@ -177,6 +175,6 @@
   }
 
   .at-highlight {
-    @apply fill-note-middle
+    @apply fill-note-ok
   }
 }

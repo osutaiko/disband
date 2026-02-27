@@ -21,7 +21,7 @@ function NoteMarker({
       ? 'border-note-inacc bg-note-inacc-bg'
       : status === 'miss'
         ? 'border-note-miss bg-note-miss-bg'
-        : 'border-note-start bg-note-middle';
+        : 'border-note-unj bg-note-unj-bg';
 
   return (
     <div
