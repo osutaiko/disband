@@ -7,12 +7,14 @@ function RealtimeWaveform({
   audioPath,
   className,
   onDurationMsChange,
+  onAnalyzedNotesChange,
   currentMs,
   timelineStartMs = 0,
 }: {
   audioPath: string | null;
   className?: string;
   onDurationMsChange?: (durationMs: number | null) => void;
+  onAnalyzedNotesChange?: (notes: AnalyzedNote[]) => void;
   currentMs?: number;
   timelineStartMs?: number;
 }) {
@@ -50,6 +52,7 @@ function RealtimeWaveform({
       waveSurfer.empty();
       setDurationMs(null);
       setAnalyzedNotes([]);
+      onAnalyzedNotesChange?.([]);
       onDurationMsChange?.(null);
       return;
     }
@@ -75,6 +78,7 @@ function RealtimeWaveform({
         if (!cancelled) {
           setDurationMs(null);
           setAnalyzedNotes([]);
+          onAnalyzedNotesChange?.([]);
           onDurationMsChange?.(null);
           console.error('[wavesurfer] failed to load recording', error);
         }
@@ -85,11 +89,13 @@ function RealtimeWaveform({
       .then((notes) => {
         if (!cancelled) {
           setAnalyzedNotes(notes);
+          onAnalyzedNotesChange?.(notes);
         }
       })
       .catch((error) => {
         if (!cancelled) {
           setAnalyzedNotes([]);
+          onAnalyzedNotesChange?.([]);
           console.error('[audio] failed to analyze recording', error);
         }
       });
@@ -97,7 +103,7 @@ function RealtimeWaveform({
     return () => {
       cancelled = true;
     };
-  }, [audioPath, onDurationMsChange]);
+  }, [audioPath, onAnalyzedNotesChange, onDurationMsChange]);
 
   return (
     <div className={`relative ${className ?? ''}`}>
