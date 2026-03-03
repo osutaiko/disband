@@ -22,7 +22,7 @@
 #include <string>
 #include <thread>
 
-namespace disband::audio_capture
+namespace disband::audio_engine
 {
 namespace
 {
@@ -163,12 +163,12 @@ private:
     juce::AudioFormatWriter::ThreadedWriter* activeWriter = nullptr;
 };
 
-class AudioCaptureApp final : public juce::JUCEApplication
+class AudioEngineApp final : public juce::JUCEApplication
 {
 public:
-    AudioCaptureApp() = default;
+    AudioEngineApp() = default;
 
-    const juce::String getApplicationName() override { return "Disband Audio Capture"; }
+    const juce::String getApplicationName() override { return "Disband Audio Engine"; }
     const juce::String getApplicationVersion() override { return "0.1.0"; }
 
     void initialise(const juce::String&) override
@@ -388,6 +388,6 @@ private:
     std::thread controlThread;
     juce::String outputPath;
 };
-} // namespace disband::audio_capture
+} // namespace disband::audio_engine
 
-START_JUCE_APPLICATION(disband::audio_capture::AudioCaptureApp)
+START_JUCE_APPLICATION(disband::audio_engine::AudioEngineApp)

@@ -26,3 +26,4 @@ dist-ssr
 
 # CMake build directories
 native/audio-engine/build/
+native/audio-engine/bin/
