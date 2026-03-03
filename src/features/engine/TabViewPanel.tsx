@@ -1,11 +1,13 @@
 import {
   useEffect, RefObject, useRef, useState, useCallback,
 } from 'react';
-import { ZoomIn, ZoomOut } from 'lucide-react';
+
 import useLibraryStore from '@/store/useLibraryStore';
+import useEngineStore from '@/store/useEngineStore';
 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Slider } from '@/components/ui/slider';
+import { ZoomIn, ZoomOut } from 'lucide-react';
 
 function TabViewPanel({
   containerRef,
@@ -17,7 +19,8 @@ function TabViewPanel({
   const ZOOM_MIN = 0.25;
   const ZOOM_MAX = 2.0;
 
-  const { api, selectedSong, selectedTrackId } = useLibraryStore();
+  const { selectedSong, selectedTrackId } = useLibraryStore();
+  const { api } = useEngineStore();
   const [zoom, setZoom] = useState<number>(1.0);
   const scrollAreaRef = useRef<HTMLDivElement | null>(null);
 
