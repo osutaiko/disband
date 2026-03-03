@@ -71,7 +71,7 @@ struct SessionJudgmentResult
 
 struct JudgmentSettings
 {
-    double matchWindowMs = 120.0;
+    double matchWindowMs = 500.0;
     double attackToleranceMs = 20.0;
     double releaseToleranceMs = 40.0;
     double pitchToleranceSemitones = 0.3;

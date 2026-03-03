@@ -4,6 +4,11 @@
 #include <cmath>
 #include <limits>
 
+namespace disband::session::note_extractor
+{
+double frequencyToMidi(double hz);
+}
+
 namespace disband::session
 {
 
@@ -62,6 +67,7 @@ SessionJudgmentResult judgeSession(
 
         int bestPlayedIndex = -1;
         double bestScore = std::numeric_limits<double>::infinity();
+        const auto refMidi = static_cast<double>(reference.midi);
 
         for (size_t playedIndex = 0; playedIndex < playedNotes.size(); ++playedIndex)
         {
@@ -75,7 +81,23 @@ SessionJudgmentResult judgeSession(
             if (std::abs(attackErrorMs) > settings.matchWindowMs)
                 continue;
 
-            const double score = std::abs(attackErrorMs);
+            double playedMidi = static_cast<double>(played.midi);
+            if (playedMidi < 0.0 && played.frequencyHz > 0.0)
+                playedMidi = note_extractor::frequencyToMidi(played.frequencyHz);
+
+            const double pitchErrorSemitones =
+                (refMidi >= 0.0 && playedMidi >= 0.0)
+                ? std::abs(playedMidi - refMidi)
+                : 0.0;
+
+            const double playedDurationMs = std::max(0.0, played.endMs - played.startMs);
+            const double durationErrorMs = std::abs(playedDurationMs - reference.durationMs);
+            const double attackTerm =
+                std::abs(attackErrorMs) / std::max(1.0, settings.attackToleranceMs);
+            const double pitchTerm = pitchErrorSemitones;
+            const double durationTerm =
+                durationErrorMs / std::max(1.0, reference.durationMs);
+            const double score = attackTerm + pitchTerm + durationTerm;
 
             if (score < bestScore)
             {
