@@ -1,10 +1,13 @@
 import { useEffect } from 'react';
 import { model } from '@coderline/alphatab';
-import useLibraryStore from '@/store/useLibraryStore';
 import { handlePlayPause } from './playback';
 
+import useLibraryStore from '@/store/useLibraryStore';
+import useEngineStore from '@/store/useEngineStore';
+
 function PlaybackHotkeys() {
-  const { api, selectedTrackId } = useLibraryStore();
+  const { selectedTrackId } = useLibraryStore();
+  const { api } = useEngineStore();
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
