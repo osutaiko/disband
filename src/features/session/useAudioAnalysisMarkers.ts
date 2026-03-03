@@ -51,7 +51,7 @@ const useAudioAnalysisMarkers = (
 
   const currentTrack = api.score.tracks[selectedTrackId ?? 0];
 
-  const noteMarkers: { timestamp: number, length: number }[] = [];
+  const noteMarkers: { timestamp: number, length: number, midi: number }[] = [];
   const barMarkers: {
     variant: 'score-start' | 'score-end' | 'whole' | 'quarter' | 'sixteenth', timestamp: number
   }[] = [];
@@ -133,6 +133,7 @@ const useAudioAnalysisMarkers = (
           noteMarkers.push({
             timestamp: currentBarStartMs + beat.playbackStart * msPerTick,
             length: totalDuration * msPerTick,
+            midi: note.calculateRealValue(true, true),
           });
         });
       });
