@@ -17,6 +17,8 @@
 
 #include <cstdarg>
 #include <cstdio>
+#include <iostream>
+#include <iterator>
 #include <string>
 #include <thread>
 
@@ -250,29 +252,106 @@ private:
         double sampleRate = 0.0;
         juce::String error;
 
-        if (!disband::session::loadMonoWavFile(juce::File(wavPath), monoBuffer, sampleRate, error))
+        if (!disband::session::loadMonoWavFile(
+                juce::File(wavPath), monoBuffer, sampleRate, error))
         {
             log("analysis failed: %s\n", error.toRawUTF8());
             setApplicationReturnValue(1);
             return;
         }
 
-        const auto notes = disband::session::extractMonophonicNotes(monoBuffer, sampleRate);
+        const auto played =
+            disband::session::extractMonophonicNotes(monoBuffer, sampleRate);
 
-        juce::Array<juce::var> jsonNotes;
-        for (const auto& note : notes)
+        std::string input;
+        input.assign(
+            std::istreambuf_iterator<char>(std::cin),
+            std::istreambuf_iterator<char>());
+
+        std::vector<disband::session::ReferenceNote> referenceNotes;
+
+        if (!input.empty())
         {
-            auto* obj = new juce::DynamicObject();
-            obj->setProperty("startMs", note.startMs);
-            obj->setProperty("endMs", note.endMs);
-            obj->setProperty("midi", note.midi);
-            obj->setProperty("hz", note.frequencyHz);
-            obj->setProperty("confidence", note.confidence);
-            jsonNotes.add(juce::var(obj));
+            const juce::var parsed = juce::JSON::parse(juce::String(input));
+            if (parsed.isArray())
+            {
+                for (const auto& v : *parsed.getArray())
+                {
+                    if (!v.isObject()) continue;
+                    const auto* obj = v.getDynamicObject();
+
+                    disband::session::ReferenceNote r;
+                    r.id = int(obj->getProperty("id"));
+                    r.timestampMs = double(obj->getProperty("timestamp"));
+                    r.durationMs = double(obj->getProperty("length"));
+                    r.midi = int(obj->getProperty("midi"));
+                    referenceNotes.push_back(r);
+                }
+            }
         }
 
-        const auto payload = juce::JSON::toString(juce::var(jsonNotes));
-        std::fprintf(stdout, "%s\n", payload.toRawUTF8());
+        disband::session::SessionJudgmentResult judgment;
+
+        if (!referenceNotes.empty())
+        {
+            judgment =
+                disband::session::judgeSession(referenceNotes, played);
+        }
+
+        auto* rootObj = new juce::DynamicObject();
+        juce::var root(rootObj);
+
+        juce::Array<juce::var> jsonPlayed;
+        for (const auto& p : played)
+        {
+            auto* obj = new juce::DynamicObject();
+            obj->setProperty("startMs", p.startMs);
+            obj->setProperty("endMs", p.endMs);
+            obj->setProperty("midi", p.midi);
+            obj->setProperty("hz", p.frequencyHz);
+            obj->setProperty("confidence", p.confidence);
+            jsonPlayed.add(juce::var(obj));
+        }
+        rootObj->setProperty("playedNotes", juce::var(jsonPlayed));
+
+        juce::Array<juce::var> jsonRefs;
+        juce::Array<juce::var> jsonMap;
+
+        if (!referenceNotes.empty())
+        {
+            for (const auto& r : judgment.referenceResults)
+            {
+                auto* obj = new juce::DynamicObject();
+                obj->setProperty("referenceIndex", r.referenceIndex);
+                obj->setProperty("playedIndex",
+                    r.playedIndex.has_value() ? juce::var(*r.playedIndex)
+                                            : juce::var());
+                obj->setProperty("kind",
+                    r.kind == disband::session::NoteJudgmentKind::Unjudged ? "unjudged" :
+                    r.kind == disband::session::NoteJudgmentKind::Ok ? "ok" :
+                    r.kind == disband::session::NoteJudgmentKind::Inaccurate ? "inaccurate" :
+                    "miss");
+                obj->setProperty("attackErrorMs", r.attackErrorMs);
+                jsonRefs.add(juce::var(obj));
+            }
+
+            for (const auto& p : judgment.playedToReference)
+                jsonMap.add(p.has_value() ? juce::var(*p) : juce::var());
+        }
+
+        juce::Array<juce::var> jsonReferenceToPlayed;
+        if (!referenceNotes.empty())
+        {
+            for (const auto& r : judgment.referenceToPlayed)
+                jsonReferenceToPlayed.add(r.has_value() ? juce::var(*r) : juce::var());
+        }
+
+        rootObj->setProperty("referenceJudgments", juce::var(jsonRefs));
+        rootObj->setProperty("referenceToPlayed", juce::var(jsonReferenceToPlayed));
+        rootObj->setProperty("playedToReference", juce::var(jsonMap));
+
+        std::fprintf(stdout, "%s\n",
+            juce::JSON::toString(root).toRawUTF8());
         std::fflush(stdout);
     }
 

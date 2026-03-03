@@ -1,69 +1,43 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
 import { getCssColor } from '@/lib/utils';
-import type { AnalyzedNote } from '../../../shared/types';
+import type {
+  NoteStatus,
+  SessionAnalysisResult,
+} from '../../../shared/types';
 
 function RealtimeWaveform({
   audioPath,
   className,
   onDurationMsChange,
-  onAnalyzedNotesChange,
+  onAnalysisResultChange,
   onAnalysisRunningChange,
   referenceNotes = [],
+  analyzedNoteStatuses = [],
   currentMs,
   timelineStartMs = 0,
 }: {
   audioPath: string | null;
   className?: string;
   onDurationMsChange?: (durationMs: number | null) => void;
-  onAnalyzedNotesChange?: (notes: AnalyzedNote[]) => void;
+  onAnalysisResultChange?: (result: SessionAnalysisResult | null) => void;
   onAnalysisRunningChange?: (isRunning: boolean) => void;
-  referenceNotes?: { timestamp: number; length: number }[];
+  referenceNotes?: Array<{
+    id: number;
+    timestamp: number;
+    length: number;
+    midi: number;
+  }>;
+  analyzedNoteStatuses?: NoteStatus[];
   currentMs?: number;
   timelineStartMs?: number;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const waveSurferRef = useRef<WaveSurfer | null>(null);
   const [durationMs, setDurationMs] = useState<number | null>(null);
-  const [analyzedNotes, setAnalyzedNotes] = useState<AnalyzedNote[]>([]);
-  const analyzedNoteStatuses = useMemo(() => {
-    const matchWindowMs = 120.0;
-    const attackToleranceMs = 50.0;
-    const statuses: ('ok' | 'inaccurate' | 'miss' | 'unjudged')[] = new Array(analyzedNotes.length).fill('unjudged');
-    if (analyzedNotes.length === 0 || referenceNotes.length === 0) return statuses;
+  const [analysisResult, setAnalysisResult] = useState<SessionAnalysisResult | null>(null);
+  const analyzedNotes = analysisResult?.playedNotes ?? [];
 
-    const usedReferences = new Array(referenceNotes.length).fill(false);
-
-    for (let i = 0; i < analyzedNotes.length; i += 1) {
-      const played = analyzedNotes[i];
-      let bestReferenceIndex = -1;
-      let bestScore = Number.POSITIVE_INFINITY;
-
-      for (let j = 0; j < referenceNotes.length; j += 1) {
-        if (usedReferences[j]) continue;
-
-        const attackErrorMs = played.startMs - referenceNotes[j].timestamp;
-        if (Math.abs(attackErrorMs) > matchWindowMs) continue;
-
-        const score = Math.abs(attackErrorMs);
-        if (score < bestScore) {
-          bestScore = score;
-          bestReferenceIndex = j;
-        }
-      }
-
-      if (bestReferenceIndex < 0) {
-        statuses[i] = 'unjudged';
-        continue;
-      }
-
-      usedReferences[bestReferenceIndex] = true;
-      const attackErrorMs = played.startMs - referenceNotes[bestReferenceIndex].timestamp;
-      statuses[i] = Math.abs(attackErrorMs) > attackToleranceMs ? 'inaccurate' : 'ok';
-    }
-
-    return statuses;
-  }, [analyzedNotes, referenceNotes]);
   const noteVisuals = useMemo(() => analyzedNotes.map((note, index) => {
     const status = analyzedNoteStatuses[index] ?? 'unjudged';
     const bgClass = status === 'ok'
@@ -91,8 +65,8 @@ function RealtimeWaveform({
   }), [analyzedNoteStatuses, analyzedNotes]);
 
   useEffect(() => {
-    onAnalyzedNotesChange?.(analyzedNotes);
-  }, [analyzedNotes, onAnalyzedNotesChange]);
+    onAnalysisResultChange?.(analysisResult);
+  }, [analysisResult, onAnalysisResultChange]);
 
   useEffect(() => {
     if (!containerRef.current || waveSurferRef.current) return;
@@ -122,7 +96,7 @@ function RealtimeWaveform({
     if (!audioPath) {
       waveSurfer.empty();
       setDurationMs(null);
-      setAnalyzedNotes([]);
+      setAnalysisResult(null);
       onDurationMsChange?.(null);
       onAnalysisRunningChange?.(false);
       return;
@@ -148,27 +122,36 @@ function RealtimeWaveform({
       .catch((error) => {
         if (!cancelled) {
           setDurationMs(null);
-          setAnalyzedNotes([]);
+          setAnalysisResult(null);
           onDurationMsChange?.(null);
           console.error('[wavesurfer] failed to load recording', error);
         }
       });
 
     window.audio
-      .analyzeRecording(audioPath)
-      .then((notes) => {
+      .analyzeRecording(
+        audioPath,
+        referenceNotes.map((note) => ({
+          ...note,
+          timestamp: note.timestamp - timelineStartMs,
+        })),
+      )
+      .then((result) => {
         if (!cancelled) {
-          setAnalyzedNotes(notes.map((note) => ({
-            ...note,
-            startMs: note.startMs + timelineStartMs,
-            endMs: note.endMs + timelineStartMs,
-          })));
+          setAnalysisResult({
+            ...result,
+            playedNotes: result.playedNotes.map((note) => ({
+              ...note,
+              startMs: note.startMs + timelineStartMs,
+              endMs: note.endMs + timelineStartMs,
+            })),
+          });
           onAnalysisRunningChange?.(false);
         }
       })
       .catch((error) => {
         if (!cancelled) {
-          setAnalyzedNotes([]);
+          setAnalysisResult(null);
           console.error('[audio] failed to analyze recording', error);
           onAnalysisRunningChange?.(false);
         }
@@ -179,7 +162,13 @@ function RealtimeWaveform({
       cancelled = true;
       onAnalysisRunningChange?.(false);
     };
-  }, [audioPath, onAnalysisRunningChange, onDurationMsChange, timelineStartMs]);
+  }, [
+    audioPath,
+    onAnalysisRunningChange,
+    onDurationMsChange,
+    referenceNotes,
+    timelineStartMs,
+  ]);
 
   return (
     <div className={`relative ${className ?? ''}`}>

@@ -45,18 +45,28 @@ struct DetectionSettings
 
 enum class NoteJudgmentKind
 {
+    Unjudged,
     Ok,
     Inaccurate,
     Miss
 };
 
-struct NoteJudgment
+// Judgment for a single reference note
+struct ReferenceJudgmentResult
 {
-    ReferenceNote reference;
-    std::optional<PlayedNote> played;
+    int referenceIndex = -1;
+    std::optional<int> playedIndex;
     NoteJudgmentKind kind = NoteJudgmentKind::Miss;
     bool badAttack = false;
     double attackErrorMs = 0.0;
+};
+
+// Judgments for the whole session
+struct SessionJudgmentResult
+{
+    std::vector<ReferenceJudgmentResult> referenceResults;
+    std::vector<std::optional<int>> referenceToPlayed;
+    std::vector<std::optional<int>> playedToReference;
 };
 
 struct JudgmentSettings
@@ -69,6 +79,11 @@ struct JudgmentSettings
     double articulationToleranceMult = 0.4;
 };
 
+SessionJudgmentResult judgeSession(
+    const std::vector<ReferenceNote>& referenceNotes,
+    const std::vector<PlayedNote>& playedNotes,
+    const JudgmentSettings& settings = {});
+
 bool loadMonoWavFile(
     const juce::File& file,
     juce::AudioBuffer<float>& outMono,
@@ -80,7 +95,7 @@ std::vector<PlayedNote> extractMonophonicNotes(
     double sampleRate,
     const DetectionSettings& settings = {});
 
-std::vector<NoteJudgment> judgeReferenceNotes(
+std::vector<ReferenceJudgmentResult> judgeReferenceNotes(
     const std::vector<ReferenceNote>& referenceNotes,
     const std::vector<PlayedNote>& playedNotes,
     const JudgmentSettings& settings = {});

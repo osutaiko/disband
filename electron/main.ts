@@ -167,9 +167,19 @@ ipcMain.handle('audio-read', async (_event, filePath: string) => {
 });
 
 // Analyze recording
-ipcMain.handle('audio-analyze', async (_event, filePath: string) => (
+ipcMain.handle('audio-analyze', async (
+  _event,
+  filePath: string,
+  referenceNotes?: Array<{
+    id: number;
+    timestamp: number;
+    length: number;
+    midi: number;
+  }>,
+) => (
   analyzeRecordingFile({
     filePath,
+    referenceNotes,
     appRoot: process.env.APP_ROOT!,
     resolveRecordingPath: resolveRecordingPath,
   })

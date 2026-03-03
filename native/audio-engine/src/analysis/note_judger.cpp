@@ -20,18 +20,19 @@
 
 namespace disband::session
 {
-std::vector<NoteJudgment> judgeReferenceNotes(
+std::vector<ReferenceJudgmentResult> judgeReferenceNotes(
     const std::vector<ReferenceNote>& referenceNotes,
     const std::vector<PlayedNote>& playedNotes,
     const JudgmentSettings& settings)
 {
-    std::vector<NoteJudgment> judgments;
+    std::vector<ReferenceJudgmentResult> judgments;
     judgments.reserve(referenceNotes.size());
 
     std::vector<bool> used(playedNotes.size(), false);
 
-    for (const auto& reference : referenceNotes)
+    for (size_t referenceIndex = 0; referenceIndex < referenceNotes.size(); ++referenceIndex)
     {
+        const auto& reference = referenceNotes[referenceIndex];
         int bestIndex = -1;
         double bestScore = std::numeric_limits<double>::infinity();
 
@@ -57,7 +58,7 @@ std::vector<NoteJudgment> judgeReferenceNotes(
         if (bestIndex < 0)
         {
             judgments.push_back({
-                reference,
+                static_cast<int>(referenceIndex),
                 std::nullopt,
                 NoteJudgmentKind::Miss,
                 false,
@@ -75,8 +76,8 @@ std::vector<NoteJudgment> judgeReferenceNotes(
         const bool inaccurate = badAttack;
 
         judgments.push_back({
-            reference,
-            played,
+            static_cast<int>(referenceIndex),
+            bestIndex,
             inaccurate ? NoteJudgmentKind::Inaccurate : NoteJudgmentKind::Ok,
             badAttack,
             attackErrorMs

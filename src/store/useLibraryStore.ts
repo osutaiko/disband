@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { AnalyzedNote } from '../../shared/types';
+import type { SessionAnalysisResult } from '../../shared/types';
 
 interface SongMetadata {
   id: string;
@@ -51,9 +51,11 @@ interface LibraryState {
     updater: (prev: Record<string, string | null>) => Record<string, string | null>
   ) => void;
 
-  analyzedNotesBySelection: Record<string, AnalyzedNote[]>;
-  setAnalyzedNotesBySelection: (
-    updater: (prev: Record<string, AnalyzedNote[]>) => Record<string, AnalyzedNote[]>
+  sessionAnalysisBySelection: Record<string, SessionAnalysisResult | null>;
+  setSessionAnalysisBySelection: (
+    updater: (
+      prev: Record<string, SessionAnalysisResult | null>
+    ) => Record<string, SessionAnalysisResult | null>
   ) => void;
   analysisInProgressBySelection: Record<string, boolean>;
   setAnalysisInProgressBySelection: (
@@ -106,9 +108,9 @@ const useLibraryStore = create<LibraryState>((set) => ({
     recordedPaths: updater(state.recordedPaths),
   })),
 
-  analyzedNotesBySelection: {},
-  setAnalyzedNotesBySelection: (updater) => set((state) => ({
-    analyzedNotesBySelection: updater(state.analyzedNotesBySelection),
+  sessionAnalysisBySelection: {},
+  setSessionAnalysisBySelection: (updater) => set((state) => ({
+    sessionAnalysisBySelection: updater(state.sessionAnalysisBySelection),
   })),
   analysisInProgressBySelection: {},
   setAnalysisInProgressBySelection: (updater) => set((state) => ({
