@@ -4,7 +4,6 @@ import { Circle, Square } from 'lucide-react';
 import Panel from '@/components/ui/Panel';
 import { Card } from '@/components/ui/card';
 import useLibraryStore from '@/store/useLibraryStore';
-import useAudioAnalysisMarkers from './useAudioAnalysisMarkers';
 import {
   Accordion,
   AccordionContent,
@@ -46,21 +45,20 @@ function standardDeviation(values: number[]): number {
 
 function SessionPanel() {
   const {
-    api,
     selectedSong,
     selectedTrackId,
     recordedPaths,
-    analyzedNotesBySelection,
+    sessionAnalysisBySelection,
     analysisInProgressBySelection,
   } = useLibraryStore();
-  const { noteMarkers } = useAudioAnalysisMarkers(api, selectedTrackId);
 
   const selectionId = selectedTrackId === null
     ? null
     : `${selectedSong ?? 'no-song'}::${selectedTrackId}`;
   const hasRecording = selectionId ? Boolean(recordedPaths[selectionId]) : false;
   const isAnalysisRunning = selectionId ? Boolean(analysisInProgressBySelection[selectionId]) : false;
-  const playedNotes = selectionId ? (analyzedNotesBySelection[selectionId] ?? []) : [];
+  const sessionAnalysis = selectionId ? (sessionAnalysisBySelection[selectionId] ?? null) : null;
+  const playedNotes = sessionAnalysis?.playedNotes ?? [];
 
   const {
     okCount,
@@ -71,71 +69,19 @@ function SessionPanel() {
     accuracyPercent,
     recordingLengthMs,
   } = useMemo(() => {
-    const matchWindowMs = 120.0;
-    const attackToleranceMs = 50.0;
-    const used = new Array(playedNotes.length).fill(false);
-    const firstDetectedAttackMs = playedNotes.length > 0
-      ? Math.min(...playedNotes.map((note) => note.startMs))
-      : Number.POSITIVE_INFINITY;
-    const lastDetectedReleaseMs = playedNotes.length > 0
-      ? Math.max(...playedNotes.map((note) => note.endMs))
-      : Number.NEGATIVE_INFINITY;
-    let ok = 0;
-    let inaccurate = 0;
-    let miss = 0;
-    let badAttack = 0;
-    let judgedReferenceCount = 0;
-    const matchedAttackErrors: number[] = [];
-
-    for (const reference of noteMarkers) {
-      const referenceAttackMs = reference.timestamp;
-      const referenceReleaseMs = reference.timestamp + reference.length;
-      const isWithinDetectedWindow = referenceAttackMs >= (firstDetectedAttackMs - matchWindowMs)
-        && referenceReleaseMs <= (lastDetectedReleaseMs + matchWindowMs);
-
-      if (!isWithinDetectedWindow) {
-        continue;
-      }
-
-      judgedReferenceCount += 1;
-      let bestIndex = -1;
-      let bestScore = Number.POSITIVE_INFINITY;
-
-      for (let i = 0; i < playedNotes.length; i += 1) {
-        if (used[i]) continue;
-
-        const played = playedNotes[i];
-        const attackErrorMs = played.startMs - reference.timestamp;
-        if (Math.abs(attackErrorMs) > matchWindowMs) continue;
-
-        const score = Math.abs(attackErrorMs);
-        if (score < bestScore) {
-          bestScore = score;
-          bestIndex = i;
-        }
-      }
-
-      if (bestIndex < 0) {
-        miss += 1;
-        continue;
-      }
-
-      used[bestIndex] = true;
-      const played = playedNotes[bestIndex];
-      const attackErrorMs = played.startMs - reference.timestamp;
-      matchedAttackErrors.push(attackErrorMs);
-
-      const badAttackForNote = Math.abs(attackErrorMs) > attackToleranceMs;
-      if (badAttackForNote) {
-        badAttack += 1;
-        inaccurate += 1;
-      } else {
-        ok += 1;
-      }
-    }
-
     const recordingLength = playedNotes.reduce((max, note) => Math.max(max, note.endMs), 0);
-    const totalReference = judgedReferenceCount;
+    const judgments = (sessionAnalysis?.referenceJudgments ?? [])
+      .filter((judgment) => judgment.kind !== 'unjudged');
+    const ok = judgments.filter((judgment) => judgment.kind === 'ok').length;
+    const inaccurate = judgments.filter((judgment) => judgment.kind === 'inaccurate').length;
+    const miss = judgments.filter((judgment) => judgment.kind === 'miss').length;
+    const badAttack = judgments
+      .filter((judgment) => judgment.kind === 'inaccurate')
+      .length;
+    const matchedAttackErrors = judgments
+      .filter((judgment) => judgment.playedIndex !== null)
+      .map((judgment) => judgment.attackErrorMs);
+    const totalReference = judgments.length;
     const accuracy = totalReference > 0 ? (ok / totalReference) * 100 : 0;
 
     return {
@@ -147,7 +93,7 @@ function SessionPanel() {
       accuracyPercent: accuracy,
       recordingLengthMs: recordingLength,
     };
-  }, [noteMarkers, playedNotes]);
+  }, [playedNotes, sessionAnalysis]);
 
   return (
     <Panel

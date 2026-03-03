@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { spawn } from 'node:child_process';
-import type { AnalyzedNote } from '../shared/types';
+import type { SessionAnalysisResult } from '../shared/types';
 import {
   getSidecarPath,
   makeRecordingFileName,
@@ -107,26 +107,34 @@ export async function stopAudioSidecar({
   };
 }
 
-function parseAnalyzedNotes(stdout: string): AnalyzedNote[] {
-  return JSON.parse(stdout) as AnalyzedNote[];
-}
-
 export function analyzeRecordingFile({
   filePath,
+  referenceNotes,
   appRoot,
   resolveRecordingPath,
 }: {
-  filePath: string;
-  appRoot: string;
-  resolveRecordingPath: (filePath: string) => string;
-}): Promise<AnalyzedNote[]> {
+  filePath: string
+  referenceNotes?: Array<{
+    id: number;
+    timestamp: number;
+    length: number;
+    midi: number;
+  }>
+  appRoot: string
+  resolveRecordingPath: (filePath: string) => string
+}): Promise<SessionAnalysisResult> {
   const resolvedPath = resolveRecordingPath(filePath);
   const exe = getSidecarPath(appRoot);
 
   return new Promise((resolve, reject) => {
     const analyzer = spawn(exe, ['--analyze-wav', resolvedPath], {
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
+      stdio: ['pipe', 'pipe', 'pipe'],
+    })
+
+    if (referenceNotes?.length) {
+      analyzer.stdin?.write(JSON.stringify(referenceNotes));
+    }
+    analyzer.stdin?.end();
 
     let stdoutOutput = '';
     let stderrOutput = '';
@@ -139,21 +147,13 @@ export function analyzeRecordingFile({
       stderrOutput += chunk.toString('utf8');
     });
 
-    analyzer.once('error', (error) => {
-      reject(error);
-    });
-
     analyzer.once('exit', (code) => {
       if (code !== 0) {
         reject(new Error(stderrOutput || `audio analyzer exited with code ${code}`));
         return;
       }
 
-      try {
-        resolve(parseAnalyzedNotes(stdoutOutput));
-      } catch (error) {
-        reject(new Error(stderrOutput || `Invalid analyzer JSON output: ${String(error)}`));
-      }
-    });
-  });
+      resolve(JSON.parse(stdoutOutput));
+    })
+  })
 }

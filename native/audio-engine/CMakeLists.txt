@@ -34,6 +34,7 @@ target_sources(disband-audio-engine PRIVATE
     src/app/main.cpp
     src/analysis/audio_loader.cpp
     src/analysis/note_judger.cpp
+    src/analysis/session_matching.cpp
     src/analysis/note_extractor/extractor.cpp
     src/analysis/note_extractor/preprocess.cpp
     src/analysis/note_extractor/pitch_utils.cpp

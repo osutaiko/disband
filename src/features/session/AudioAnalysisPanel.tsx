@@ -11,6 +11,7 @@ import { handlePlayPause } from '../engine/playback';
 import BarMarker from './BarMarker';
 import NoteMarker from './NoteMarker';
 import RealtimeWaveform from './RealtimeWaveform';
+import type { NoteStatus, SessionAnalysisResult } from '../../../shared/types';
 
 import { Button } from '@/components/ui/button';
 
@@ -44,8 +45,8 @@ function AudioAnalysisPanel({
     pxPerMs,
     recordedPaths,
     setRecordedPaths,
-    analyzedNotesBySelection,
-    setAnalyzedNotesBySelection,
+    sessionAnalysisBySelection,
+    setSessionAnalysisBySelection,
     setAnalysisInProgressBySelection,
   } = useLibraryStore();
   const {
@@ -87,57 +88,36 @@ function AudioAnalysisPanel({
     (m) => m.timestamp >= windowStart && m.timestamp <= windowEnd,
   );
 
-  const playedNotes = selectionId ? (analyzedNotesBySelection[selectionId] ?? []) : [];
+  const sessionAnalysis = selectionId ? (sessionAnalysisBySelection[selectionId] ?? null) : null;
 
   const noteMarkerStatuses = useMemo(() => {
-    const statuses: ('ok' | 'inaccurate' | 'miss' | 'unjudged')[] = new Array(noteMarkers.length).fill('unjudged');
-    if (playedNotes.length === 0 || noteMarkers.length === 0) return statuses;
+    const statuses: NoteStatus[] = new Array(noteMarkers.length).fill('unjudged');
+    if (!sessionAnalysis) return statuses;
 
-    const matchWindowMs = 120.0;
-    const attackToleranceMs = 50.0;
-    const used = new Array(playedNotes.length).fill(false);
-    const firstDetectedAttackMs = Math.min(...playedNotes.map((note) => note.startMs));
-    const lastDetectedReleaseMs = Math.max(...playedNotes.map((note) => note.endMs));
-
-    noteMarkers.forEach((reference, referenceIndex) => {
-      const referenceAttackMs = reference.timestamp;
-      const referenceReleaseMs = reference.timestamp + reference.length;
-      const isWithinDetectedWindow = referenceAttackMs >= (firstDetectedAttackMs - matchWindowMs)
-        && referenceReleaseMs <= (lastDetectedReleaseMs + matchWindowMs);
-
-      if (!isWithinDetectedWindow) {
-        return;
+    sessionAnalysis.referenceJudgments.forEach((judgment) => {
+      if (
+        judgment.referenceIndex >= 0
+        && judgment.referenceIndex < statuses.length
+      ) {
+        statuses[judgment.referenceIndex] = judgment.kind;
       }
+    });
+    return statuses;
+  }, [noteMarkers.length, sessionAnalysis]);
 
-      let bestIndex = -1;
-      let bestScore = Number.POSITIVE_INFINITY;
-
-      for (let i = 0; i < playedNotes.length; i += 1) {
-        if (used[i]) continue;
-
-        const played = playedNotes[i];
-        const attackErrorMs = played.startMs - referenceAttackMs;
-        if (Math.abs(attackErrorMs) > matchWindowMs) continue;
-
-        const score = Math.abs(attackErrorMs);
-        if (score < bestScore) {
-          bestScore = score;
-          bestIndex = i;
-        }
-      }
-
-      if (bestIndex < 0) {
-        statuses[referenceIndex] = 'miss';
-        return;
-      }
-
-      used[bestIndex] = true;
-      const attackErrorMs = playedNotes[bestIndex].startMs - referenceAttackMs;
-      statuses[referenceIndex] = Math.abs(attackErrorMs) > attackToleranceMs ? 'inaccurate' : 'ok';
+  const playedNoteStatuses = useMemo(() => {
+    if (!sessionAnalysis) return [];
+    const referenceStatusByIndex = new Map<number, NoteStatus>();
+    sessionAnalysis.referenceJudgments.forEach((judgment) => {
+      referenceStatusByIndex.set(judgment.referenceIndex, judgment.kind);
     });
 
-    return statuses;
-  }, [noteMarkers, playedNotes]);
+    return sessionAnalysis.playedToReference.map((referenceIndex) => (
+      referenceIndex === null
+        ? 'unjudged'
+        : (referenceStatusByIndex.get(referenceIndex) ?? 'unjudged')
+    ));
+  }, [sessionAnalysis]);
 
   const visibleNoteMarkersWithIndex = noteMarkers
     .map((marker, index) => ({ marker, index }))
@@ -145,6 +125,13 @@ function AudioAnalysisPanel({
       marker.timestamp + marker.length >= windowStart
       && marker.timestamp <= windowEnd
     ));
+
+  const referenceNotesForAnalysis = useMemo(() => noteMarkers.map((note, index) => ({
+    id: index,
+    timestamp: note.timestamp,
+    length: note.length,
+    midi: -1,
+  })), [noteMarkers]);
 
   const quarterBarTimestamps = barMarkers
     .filter((m) => m.variant === 'whole' || m.variant === 'quarter')
@@ -200,16 +187,10 @@ function AudioAnalysisPanel({
     setRecordedDurationsMs((prev) => ({ ...prev, [selectionId]: durationMs }));
   }, [isRecording, selectionId]);
 
-  const handleAnalyzedNotesChange = useCallback((notes: {
-    startMs: number;
-    endMs: number;
-    midi: number;
-    hz: number;
-    confidence: number;
-  }[]) => {
+  const handleAnalysisResultChange = useCallback((result: SessionAnalysisResult | null) => {
     if (!selectionId) return;
-    setAnalyzedNotesBySelection((prev) => ({ ...prev, [selectionId]: notes }));
-  }, [selectionId, setAnalyzedNotesBySelection]);
+    setSessionAnalysisBySelection((prev) => ({ ...prev, [selectionId]: result }));
+  }, [selectionId, setSessionAnalysisBySelection]);
 
   const handleAnalysisRunningChange = useCallback((isRunning: boolean) => {
     if (!selectionId) return;
@@ -335,11 +316,12 @@ function AudioAnalysisPanel({
                 <RealtimeWaveform
                   key={`${selectionId ?? 'none'}-${recordingEpoch[selectionId ?? ''] ?? 0}`}
                   audioPath={recordedPath}
-                  referenceNotes={noteMarkers}
+                  referenceNotes={referenceNotesForAnalysis}
+                  analyzedNoteStatuses={playedNoteStatuses}
                   currentMs={currentMs}
                   timelineStartMs={activeWaveformRange?.startMs ?? fallbackStartMs}
                   onDurationMsChange={handleWaveformDurationChange}
-                  onAnalyzedNotesChange={handleAnalyzedNotesChange}
+                  onAnalysisResultChange={handleAnalysisResultChange}
                   onAnalysisRunningChange={handleAnalysisRunningChange}
                   className="w-full h-full bg-rec-track-bg rounded-sm"
                 />
@@ -396,7 +378,7 @@ function AudioAnalysisPanel({
             setRecordedStartMs((prev) => ({ ...prev, [selectionId]: null }));
             setRecordedDurationsMs((prev) => ({ ...prev, [selectionId]: null }));
             setRecordedPaths((prev) => ({ ...prev, [selectionId]: null }));
-            setAnalyzedNotesBySelection((prev) => ({ ...prev, [selectionId]: [] }));
+            setSessionAnalysisBySelection((prev) => ({ ...prev, [selectionId]: null }));
             setAnalysisInProgressBySelection((prev) => ({ ...prev, [selectionId]: false }));
           }}
         >
