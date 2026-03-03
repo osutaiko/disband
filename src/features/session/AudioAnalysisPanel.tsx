@@ -123,7 +123,7 @@ function AudioAnalysisPanel({
     id: index,
     timestamp: note.timestamp,
     length: note.length,
-    midi: -1,
+    midi: note.midi,
   })), [noteMarkers]);
 
   const quarterBarTimestamps = barMarkers
