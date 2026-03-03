@@ -1,16 +1,16 @@
+import { handlePlayPause, handleGotoStart, handleGotoEnd } from './playback';
+import useEngineStore from '@/store/useEngineStore';
+
+import Panel from '@/components/ui/Panel';
+import { Button } from '@/components/ui/button';
 import {
   ChevronFirst, Play, Pause, ChevronLast,
 } from 'lucide-react';
-import useLibraryStore from '@/store/useLibraryStore';
-import { Button } from '@/components/ui/button';
-import Panel from '@/components/ui/Panel';
-
-import { handlePlayPause, handleGotoStart, handleGotoEnd } from './playback';
 
 function PlaybackControlPanel() {
   const {
     api, isPlaying, currentMs, endMs, currentBar, endBar,
-  } = useLibraryStore();
+  } = useEngineStore();
 
   const parseMs = (ms: number) => ({
     minutes: Math.floor(ms / 60000),

@@ -6,9 +6,7 @@ import { Button } from '@/components/ui/button';
 import Panel from '@/components/ui/Panel';
 
 function LibraryPanel() {
-  const {
-    songsMetadata, selectedSong, setSelectedSong, setSelectedTrackId,
-  } = useLibraryStore();
+  const { songsMetadata, selectedSong, setSelectedSong, setSelectedTrackId, } = useLibraryStore();
   const [songs, setSongs] = useState<string[]>([]);
   const [confirming, setConfirming] = useState<string | null>(null);
 

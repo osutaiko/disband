@@ -1,25 +1,23 @@
-import {
-  RotateCcw, View, Volume2, VolumeX, MicVocal, Guitar, Drum, Piano, Music,
-} from 'lucide-react';
 import { useState } from 'react';
-import useLibraryStore from '@/store/useLibraryStore';
 
+import useLibraryStore from '@/store/useLibraryStore';
+import useEngineStore from '@/store/useEngineStore';
+import useSessionStore from '@/store/useSessionStore';
+
+import Panel from '@/components/ui/Panel';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
-import Panel from '@/components/ui/Panel';
+import {
+  RotateCcw, View, Volume2, VolumeX, MicVocal, Guitar, Drum, Piano, Music,
+} from 'lucide-react';
 
 type TrackLayer = 'original' | 'recorded';
 
 function TrackMenuPanel() {
-  const {
-    api,
-    tracks,
-    selectedSong,
-    selectedTrackId,
-    setSelectedTrackId,
-    recordedPaths,
-  } = useLibraryStore();
+  const { tracks, selectedSong, selectedTrackId, setSelectedTrackId } = useLibraryStore();
+  const { api } = useEngineStore();
+  const { recordedPaths } = useSessionStore();
   const [mutedTracks, setMutedTracks] = useState<string[]>([]);
   const [soloTracks, setSoloTracks] = useState<string[]>([]);
   const [recordedVolumes, setRecordedVolumes] = useState<Record<string, number>>({});

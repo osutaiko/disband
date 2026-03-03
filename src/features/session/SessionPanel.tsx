@@ -1,15 +1,17 @@
 import { useMemo } from 'react';
-import { Circle, Square } from 'lucide-react';
+
+import useLibraryStore from '@/store/useLibraryStore';
+import useSessionStore from '@/store/useSessionStore';
 
 import Panel from '@/components/ui/Panel';
 import { Card } from '@/components/ui/card';
-import useLibraryStore from '@/store/useLibraryStore';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { Circle, Square } from 'lucide-react';
 
 function DataCountRow({
   name,
@@ -44,13 +46,8 @@ function standardDeviation(values: number[]): number {
 }
 
 function SessionPanel() {
-  const {
-    selectedSong,
-    selectedTrackId,
-    recordedPaths,
-    sessionAnalysisBySelection,
-    analysisInProgressBySelection,
-  } = useLibraryStore();
+  const { selectedSong, selectedTrackId } = useLibraryStore();
+  const { recordedPaths, sessionAnalysisBySelection, analysisInProgressBySelection } = useSessionStore();
 
   const selectionId = selectedTrackId === null
     ? null
