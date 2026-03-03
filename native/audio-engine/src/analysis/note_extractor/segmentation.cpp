@@ -10,15 +10,10 @@ namespace disband::session::note_extractor
 {
 namespace
 {
-constexpr double kPitchStableMidiDelta = 0.6;
-constexpr double kPitchTransitionMidiDelta = 0.9;
 constexpr double kMinimumPitchWeight = 0.05;
-constexpr double kDipDetectDropDb = 1.2;
-constexpr double kReAttackRiseDb = 3.8;
-constexpr int kMaxReAttackDipFrames = 6;
-constexpr int kDipResetFrames = 8;
+constexpr double kPitchSplitMidiDelta = 1.2;
+constexpr int kPitchSplitFrames = 2;
 constexpr double kMinSplitIntervalMs = 25.0;
-constexpr int kPitchTransitionFrames = 2;
 constexpr int kLowEnergyEndFrames = 2;
 } // namespace
 
@@ -37,12 +32,8 @@ std::vector<PlayedNote> detectNotes(
     bool inNote = false;
     int noteStartSample = 0;
     int lowEnergyFrames = 0;
-    int pitchChangeFrames = 0;
-    int pitchChangeStartSample = 0;
+    int pitchSplitFrames = 0;
     int framesSinceLastSplit = std::numeric_limits<int>::max();
-    bool dipTrackingActive = false;
-    double dipLevelDb = 0.0;
-    int dipAgeFrames = 0;
     double previousLevelDb = settings.silenceDb;
     double weightedHz = 0.0;
     double totalWeight = 0.0;
@@ -76,12 +67,8 @@ std::vector<PlayedNote> detectNotes(
         inNote = false;
         noteStartSample = 0;
         lowEnergyFrames = 0;
-        pitchChangeFrames = 0;
-        pitchChangeStartSample = 0;
+        pitchSplitFrames = 0;
         framesSinceLastSplit = std::numeric_limits<int>::max();
-        dipTrackingActive = false;
-        dipLevelDb = 0.0;
-        dipAgeFrames = 0;
         previousLevelDb = settings.silenceDb;
         weightedHz = 0.0;
         totalWeight = 0.0;
@@ -107,11 +94,13 @@ std::vector<PlayedNote> detectNotes(
         const auto levelDb = static_cast<double>(aubio_db_spl(context.pitchInput));
         const bool isSilent = !std::isfinite(levelDb) || levelDb <= settings.silenceDb;
         const auto hz = static_cast<double>(fvec_get_sample(context.pitchOutput, 0));
-        const auto confidence = static_cast<double>(aubio_pitch_get_confidence(context.pitch));
+        const auto confidenceRaw = static_cast<double>(aubio_pitch_get_confidence(context.pitch));
+        const auto confidence = std::isfinite(confidenceRaw)
+            ? std::clamp(confidenceRaw, 0.0, 1.0)
+            : 0.0;
         const bool hasPitch = std::isfinite(hz)
             && hz >= settings.pitchMinHz
-            && hz <= settings.pitchMaxHz
-            && confidence >= settings.minPitchConfidence;
+            && hz <= settings.pitchMaxHz;
 
         if (!inNote)
         {
@@ -120,12 +109,8 @@ std::vector<PlayedNote> detectNotes(
                 inNote = true;
                 noteStartSample = frameStart;
                 lowEnergyFrames = 0;
-                pitchChangeFrames = 0;
-                pitchChangeStartSample = 0;
+                pitchSplitFrames = 0;
                 framesSinceLastSplit = 0;
-                dipTrackingActive = false;
-                dipLevelDb = 0.0;
-                dipAgeFrames = 0;
                 previousLevelDb = levelDb;
                 if (hasPitch)
                 {
@@ -150,104 +135,38 @@ std::vector<PlayedNote> detectNotes(
         {
             ++lowEnergyFrames;
             ++framesSinceLastSplit;
-            dipTrackingActive = false;
-            dipAgeFrames = 0;
         }
         else
         {
             lowEnergyFrames = 0;
             ++framesSinceLastSplit;
-
-            // Detect a short dip->rise envelope pattern even while pitch stays stable
-            bool reAttackDetected = false;
-            if (hasPitch && totalWeight > 0.0)
+            if (hasPitch && confidence >= settings.minPitchConfidence && totalWeight > 0.0)
             {
                 const auto noteHz = weightedHz / totalWeight;
                 const auto midiDelta = std::abs(frequencyToMidi(hz) - frequencyToMidi(noteHz));
-                const bool pitchStable = midiDelta <= kPitchStableMidiDelta;
-                if (pitchStable)
-                {
-                    if (levelDb <= previousLevelDb - kDipDetectDropDb)
-                    {
-                        if (!dipTrackingActive)
-                        {
-                            dipTrackingActive = true;
-                            dipLevelDb = levelDb;
-                            dipAgeFrames = 0;
-                        }
-                        else
-                        {
-                            dipLevelDb = std::min(dipLevelDb, levelDb);
-                            ++dipAgeFrames;
-                        }
-                    }
-                    else if (dipTrackingActive)
-                    {
-                        ++dipAgeFrames;
-                        dipLevelDb = std::min(dipLevelDb, levelDb);
-                        if (dipAgeFrames <= kMaxReAttackDipFrames && levelDb - dipLevelDb >= kReAttackRiseDb)
-                        {
-                            reAttackDetected = true;
-                        }
-                        else if (dipAgeFrames > kDipResetFrames)
-                        {
-                            dipTrackingActive = false;
-                            dipAgeFrames = 0;
-                        }
-                    }
-                }
+                if (midiDelta >= kPitchSplitMidiDelta)
+                    ++pitchSplitFrames;
                 else
-                {
-                    dipTrackingActive = false;
-                    dipAgeFrames = 0;
-                }
+                    pitchSplitFrames = 0;
             }
             else
             {
-                dipTrackingActive = false;
-                dipAgeFrames = 0;
+                pitchSplitFrames = 0;
             }
 
-            if (hasPitch && totalWeight > 0.0)
-            {
-                const auto noteHz = weightedHz / totalWeight;
-                const auto midiDelta = std::abs(frequencyToMidi(hz) - frequencyToMidi(noteHz));
-                if (midiDelta >= kPitchTransitionMidiDelta)
-                {
-                    if (pitchChangeFrames == 0)
-                        pitchChangeStartSample = frameStart;
-                    ++pitchChangeFrames;
-                }
-                else
-                {
-                    pitchChangeFrames = 0;
-                    pitchChangeStartSample = 0;
-                }
-            }
-            else
-            {
-                pitchChangeFrames = 0;
-                pitchChangeStartSample = 0;
-            }
-
-            const bool pitchTransitionDetected = pitchChangeFrames >= kPitchTransitionFrames;
             const int minSplitFrames = std::max(1, static_cast<int>(std::round(kMinSplitIntervalMs / settings.hopSizeMs)));
             const bool canSplitNow = framesSinceLastSplit >= minSplitFrames;
-            if (canSplitNow && (onsetDetected || pitchTransitionDetected || reAttackDetected))
+            const bool pitchTransitionDetected = pitchSplitFrames >= kPitchSplitFrames;
+            if (canSplitNow && (onsetDetected || pitchTransitionDetected))
             {
-                // Split legato/re-articulated notes while sustaining
-                int splitSample = frameStart;
-                if (pitchTransitionDetected)
-                    splitSample = pitchChangeStartSample;
+                // Split on explicit onsets; use a short, high-threshold pitch jump fallback.
+                const int splitSample = frameStart;
                 flushCurrentNote(splitSample);
                 inNote = true;
                 noteStartSample = splitSample;
                 lowEnergyFrames = 0;
-                pitchChangeFrames = 0;
-                pitchChangeStartSample = 0;
+                pitchSplitFrames = 0;
                 framesSinceLastSplit = 0;
-                dipTrackingActive = false;
-                dipAgeFrames = 0;
                 previousLevelDb = levelDb;
                 if (hasPitch)
                 {
