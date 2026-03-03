@@ -3,10 +3,14 @@ import {
 } from 'react';
 
 import { Circle, Trash } from 'lucide-react';
-import useLibraryStore from '@/store/useLibraryStore';
 import useAudioAnalysisMarkers from './useAudioAnalysisMarkers';
 
 import { handlePlayPause } from '../engine/playback';
+
+import useLibraryStore from '@/store/useLibraryStore';
+import useEngineStore from '@/store/useEngineStore';
+import useConfigStore from '@/store/useConfigStore';
+import useSessionStore from '@/store/useSessionStore';
 
 import BarMarker from './BarMarker';
 import NoteMarker from './NoteMarker';
@@ -34,21 +38,10 @@ function AudioAnalysisPanel({
 }: {
   currentMsRef: RefObject<number>;
 }) {
-  const {
-    api,
-    selectedSong,
-    selectedTrackId,
-    currentMs,
-    setCurrentMs,
-    endMs,
-    isPlaying,
-    pxPerMs,
-    recordedPaths,
-    setRecordedPaths,
-    sessionAnalysisBySelection,
-    setSessionAnalysisBySelection,
-    setAnalysisInProgressBySelection,
-  } = useLibraryStore();
+  const { selectedSong, selectedTrackId } = useLibraryStore();
+  const { api, isPlaying, currentMs, endMs, setCurrentMs } = useEngineStore();
+  const { recordedPaths, setRecordedPaths, sessionAnalysisBySelection, setSessionAnalysisBySelection, setAnalysisInProgressBySelection } = useSessionStore();
+  const { pxPerMs } = useConfigStore();
   const {
     noteMarkers = [],
     barMarkers = [],

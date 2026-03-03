@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import useLibraryStore from '@/store/useLibraryStore';
+import useConfigStore from '@/store/useConfigStore';
 
 import Panel from '@/components/ui/Panel';
 import { Label } from '@/components/ui/label';
@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/select';
 
 function OptionsPanel() {
-  const { pxPerMs, setPxPerMs } = useLibraryStore();
+  const { pxPerMs, setPxPerMs } = useConfigStore();
 
   const [judgmentHarshness, setJudgmentHarshness] = useState(6);
   const [judgeByMode, setJudgeByMode] = useState('reference-notes');

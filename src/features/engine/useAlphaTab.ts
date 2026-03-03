@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { AlphaTabApi, Settings } from '@coderline/alphatab';
+
 import useLibraryStore from '@/store/useLibraryStore';
+import useEngineStore from '@/store/useEngineStore';
 
 import alphaTabSettings from './alphaTabSettings.json';
 
@@ -8,10 +10,8 @@ const useAlphaTab = (
   containerRef: React.RefObject<HTMLDivElement | null>,
   selectedSong: string | null,
 ) => {
-  const {
-    setApi, setIsPlaying, setTracks, setEndMs,
-    setCurrentBar, setEndBar, selectedTrackId, setSelectedTrackId,
-  } = useLibraryStore();
+  const { setTracks, selectedTrackId, setSelectedTrackId } = useLibraryStore();
+  const { setApi, setIsPlaying, setEndMs, setCurrentBar, setEndBar } = useEngineStore();
 
   const [isTabLoading, setIsTabLoading] = useState(false);
   const apiRef = useRef<AlphaTabApi | null>(null);

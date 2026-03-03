@@ -1,5 +1,8 @@
 import { useEffect } from 'react';
+
 import useLibraryStore from '@/store/useLibraryStore';
+import useEngineStore from '@/store/useEngineStore';
+import useSessionStore from '@/store/useSessionStore';
 
 const ENABLE_TEST_AUDIO_FIXTURES = import.meta.env.VITE_ENABLE_TEST_AUDIO_FIXTURES === '1';
 
@@ -40,12 +43,9 @@ function getFixtureCandidates(): FixtureEntry[] {
 }
 
 function useTestAudioFixtures() {
-  const {
-    selectedSong,
-    selectedTrackId,
-    endMs,
-    setRecordedPaths,
-  } = useLibraryStore();
+  const { selectedSong, selectedTrackId } = useLibraryStore();
+  const { endMs } = useEngineStore();
+  const { setRecordedPaths } = useSessionStore();
 
   const selectionId = selectedTrackId === null
     ? null
