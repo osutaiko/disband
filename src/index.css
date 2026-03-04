@@ -139,9 +139,10 @@
   --color-note-miss-bg: var(--color-red-400);
   --color-rec-track-bg: var(--color-indigo-100);
   --color-rec-waveform: var(--color-indigo-700);
-  --color-rec-note-unj-bg: var(--color-gray-500);
+  --color-rec-note-unj-bg: var(--color-gray-300);
   --color-rec-note-ok-bg: var(--color-indigo-400);
   --color-rec-note-inacc-bg: var(--color-amber-400);
+  --color-rec-note-miss-bg: var(--color-red-400);
 }
 
 @layer base {
