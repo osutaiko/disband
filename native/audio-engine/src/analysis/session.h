@@ -86,12 +86,12 @@ struct SessionJudgmentResult
 struct JudgmentSettings
 {
     double matchWindowMs = 500.0;
-    double attackToleranceMs = 20.0;
-    double releaseToleranceMs = 45.0;
+    double attackToleranceMs = 40.0;
+    double releaseToleranceMs = 70.0;
     double pitchToleranceSemitones = 0.3;
     double velocityToleranceMultLower = 0.6;
     double velocityToleranceMultUpper = 2.0;
-    double articulationToleranceMult = 0.4;
+    double articulationToleranceMult = 0.5;
 };
 
 SessionMatchingResult sessionMatching(
