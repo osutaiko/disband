@@ -51,7 +51,6 @@ enum class NoteJudgmentKind
     Miss
 };
 
-// Judgment for a single reference note
 struct ReferenceJudgmentResult
 {
     int referenceIndex = -1;
@@ -61,7 +60,12 @@ struct ReferenceJudgmentResult
     double attackErrorMs = 0.0;
 };
 
-// Judgments for the whole session
+struct SessionMatchingResult
+{
+    std::vector<std::optional<int>> referenceToPlayed;
+    std::vector<std::optional<int>> playedToReference;
+};
+
 struct SessionJudgmentResult
 {
     std::vector<ReferenceJudgmentResult> referenceResults;
@@ -73,11 +77,22 @@ struct JudgmentSettings
 {
     double matchWindowMs = 500.0;
     double attackToleranceMs = 20.0;
-    double releaseToleranceMs = 40.0;
+    double releaseToleranceMs = 45.0;
     double pitchToleranceSemitones = 0.3;
-    double velocityToleranceMult = 0.6;
+    double velocityToleranceMultLower = 0.6;
+    double velocityToleranceMultUpper = 2.0;
     double articulationToleranceMult = 0.4;
 };
+
+SessionMatchingResult sessionMatching(
+    const std::vector<ReferenceNote>& referenceNotes,
+    const std::vector<PlayedNote>& playedNotes,
+    const JudgmentSettings& settings = {});
+
+NoteJudgmentKind judgeReferenceNote(
+    const ReferenceNote& referenceNote,
+    const PlayedNote& playedNote,
+    const JudgmentSettings& settings = {});
 
 SessionJudgmentResult judgeSession(
     const std::vector<ReferenceNote>& referenceNotes,

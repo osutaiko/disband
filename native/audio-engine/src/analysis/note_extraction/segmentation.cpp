@@ -6,7 +6,7 @@
 #include <cmath>
 #include <limits>
 
-namespace disband::session::note_extractor
+namespace disband::session::note_extraction
 {
 namespace
 {
@@ -204,4 +204,4 @@ std::vector<PlayedNote> detectNotes(
 
     return notes;
 }
-} // namespace disband::session::note_extractor
+} // namespace disband::session::note_extraction

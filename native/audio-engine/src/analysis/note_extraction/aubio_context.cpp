@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace disband::session::note_extractor
+namespace disband::session::note_extraction
 {
 AubioContext createAubioContext(
     int hopSize,
@@ -60,4 +60,4 @@ void destroyAubioContext(AubioContext& context)
     context.pitchOutput = nullptr;
     context.pitchInput = nullptr;
 }
-} // namespace disband::session::note_extractor
+} // namespace disband::session::note_extraction

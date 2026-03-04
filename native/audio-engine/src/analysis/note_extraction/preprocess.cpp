@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace disband::session::note_extractor
+namespace disband::session::note_extraction
 {
 void normalizeWorkingBuffer(juce::AudioBuffer<float>& workingBuffer)
 {
@@ -25,4 +25,4 @@ void normalizeWorkingBuffer(juce::AudioBuffer<float>& workingBuffer)
         workingBuffer.applyGain(gain);
     }
 }
-} // namespace disband::session::note_extractor
+} // namespace disband::session::note_extraction

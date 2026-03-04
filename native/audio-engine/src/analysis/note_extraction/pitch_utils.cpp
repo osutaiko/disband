@@ -4,7 +4,7 @@
 
 #include <cmath>
 
-namespace disband::session::note_extractor
+namespace disband::session::note_extraction
 {
 namespace
 {
@@ -31,4 +31,4 @@ uint_t nextPowerOfTwo(uint_t value)
     value |= value >> 16u;
     return value + 1u;
 }
-} // namespace disband::session::note_extractor
+} // namespace disband::session::note_extraction
