@@ -8,11 +8,23 @@ export type AnalyzedNote = {
 
 export type NoteStatus = 'ok' | 'inaccurate' | 'miss' | 'unjudged';
 
+export type CriterionResult = {
+  error: number | null;
+  pass: boolean | null;
+};
+
 export type ReferenceJudgment = {
   referenceIndex: number;
   playedIndex: number | null;
-  kind: NoteStatus;
-  attackErrorMs: number;
+  inRecordedTimeframe: boolean;
+  criteria: {
+    attack: CriterionResult;
+    release: CriterionResult;
+    pitch: CriterionResult;
+    velocity: CriterionResult;
+    muting: CriterionResult;
+    articulation: CriterionResult;
+  };
 };
 
 export type SessionAnalysisResult = {

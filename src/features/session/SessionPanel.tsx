@@ -12,6 +12,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Circle, Square } from 'lucide-react';
+import type { NoteStatus, SessionAnalysisResult } from '../../../shared/types';
 
 function DataCountRow({
   name,
@@ -45,6 +46,24 @@ function standardDeviation(values: number[]): number {
   return Math.sqrt(variance);
 }
 
+function deriveNoteStatusFromJudgment(judgment: SessionAnalysisResult['referenceJudgments'][number]): NoteStatus {
+  if (judgment.playedIndex === null) {
+    return judgment.inRecordedTimeframe ? 'miss' : 'unjudged';
+  }
+
+  const evaluatedCriteria = [
+    judgment.criteria.attack.pass,
+    judgment.criteria.release.pass,
+    judgment.criteria.pitch.pass,
+    judgment.criteria.velocity.pass,
+    judgment.criteria.muting.pass,
+    judgment.criteria.articulation.pass,
+  ].filter((value): value is boolean => value !== null);
+
+  if (evaluatedCriteria.length === 0) return 'unjudged';
+  return evaluatedCriteria.every((value) => value) ? 'ok' : 'inaccurate';
+}
+
 function SessionPanel() {
   const { selectedSong, selectedTrackId } = useLibraryStore();
   const { recordedPaths, sessionAnalysisBySelection, analysisInProgressBySelection } = useSessionStore();
@@ -62,23 +81,37 @@ function SessionPanel() {
     inaccurateCount,
     missCount,
     badAttackCount,
+    badReleaseCount,
+    wrongPitchCount,
     rhythmStdDevMs,
     accuracyPercent,
     recordingLengthMs,
   } = useMemo(() => {
     const recordingLength = playedNotes.reduce((max, note) => Math.max(max, note.endMs), 0);
-    const judgments = (sessionAnalysis?.referenceJudgments ?? [])
-      .filter((judgment) => judgment.kind !== 'unjudged');
-    const ok = judgments.filter((judgment) => judgment.kind === 'ok').length;
-    const inaccurate = judgments.filter((judgment) => judgment.kind === 'inaccurate').length;
-    const miss = judgments.filter((judgment) => judgment.kind === 'miss').length;
-    const badAttack = judgments
-      .filter((judgment) => judgment.kind === 'inaccurate')
+    const judgmentsWithStatus = (sessionAnalysis?.referenceJudgments ?? []).map((judgment) => ({
+      judgment,
+      status: deriveNoteStatusFromJudgment(judgment),
+    }));
+    const judged = judgmentsWithStatus.filter((entry) => entry.status !== 'unjudged');
+
+    const ok = judged.filter((entry) => entry.status === 'ok').length;
+    const inaccurate = judged.filter((entry) => entry.status === 'inaccurate').length;
+    const miss = judged.filter((entry) => entry.status === 'miss').length;
+    const badAttack = judged
+      .filter((entry) => entry.judgment.criteria.attack.pass === false)
       .length;
-    const matchedAttackErrors = judgments
+    const badRelease = judged
+      .filter((entry) => entry.judgment.criteria.release.pass === false)
+      .length;
+    const wrongPitch = judged
+      .filter((entry) => entry.judgment.criteria.pitch.pass === false)
+      .length;
+    const matchedAttackErrors = judgmentsWithStatus
+      .map((entry) => entry.judgment)
       .filter((judgment) => judgment.playedIndex !== null)
-      .map((judgment) => judgment.attackErrorMs);
-    const totalReference = judgments.length;
+      .map((judgment) => judgment.criteria.attack.error)
+      .filter((error): error is number => error !== null);
+    const totalReference = judged.length;
     const accuracy = totalReference > 0 ? (ok / totalReference) * 100 : 0;
 
     return {
@@ -86,6 +119,8 @@ function SessionPanel() {
       inaccurateCount: inaccurate,
       missCount: miss,
       badAttackCount: badAttack,
+      badReleaseCount: badRelease,
+      wrongPitchCount: wrongPitch,
       rhythmStdDevMs: standardDeviation(matchedAttackErrors),
       accuracyPercent: accuracy,
       recordingLengthMs: recordingLength,
@@ -169,12 +204,12 @@ function SessionPanel() {
                       <DataCountRow
                         name="Bad Release"
                         description="N/A"
-                        content="0×"
+                        content={`${badReleaseCount}×`}
                       />
                       <DataCountRow
                         name="Wrong Pitch"
                         description="N/A"
-                        content="0×"
+                        content={`${wrongPitchCount}×`}
                       />
                       <DataCountRow
                         name="Inconsistent Velocity"
@@ -199,7 +234,7 @@ function SessionPanel() {
                         <Square className="text-note-miss" size={12} />
                         <p>Miss</p>
                       </div>
-                      <p className="text-note-miss">{`${missCount}×`}</p>
+                      <p className="text-note-miss">{`${missCount}x`}</p>
                     </AccordionTrigger>
                     <AccordionContent>
                       Notes in the original score that were missed.

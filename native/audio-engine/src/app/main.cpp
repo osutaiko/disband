@@ -322,16 +322,32 @@ private:
             for (const auto& r : judgment.referenceResults)
             {
                 auto* obj = new juce::DynamicObject();
+                auto toCriterionVar = [](const disband::session::CriterionEvaluation& criterion) -> juce::var
+                {
+                    auto* cobj = new juce::DynamicObject();
+                    cobj->setProperty(
+                        "error",
+                        criterion.error.has_value() ? juce::var(*criterion.error) : juce::var());
+                    cobj->setProperty(
+                        "pass",
+                        criterion.pass.has_value() ? juce::var(*criterion.pass) : juce::var());
+                    return juce::var(cobj);
+                };
+
                 obj->setProperty("referenceIndex", r.referenceIndex);
                 obj->setProperty("playedIndex",
                     r.playedIndex.has_value() ? juce::var(*r.playedIndex)
                                             : juce::var());
-                obj->setProperty("kind",
-                    r.kind == disband::session::NoteJudgmentKind::Unjudged ? "unjudged" :
-                    r.kind == disband::session::NoteJudgmentKind::Ok ? "ok" :
-                    r.kind == disband::session::NoteJudgmentKind::Inaccurate ? "inaccurate" :
-                    "miss");
-                obj->setProperty("attackErrorMs", r.attackErrorMs);
+                obj->setProperty("inRecordedTimeframe", r.inRecordedTimeframe);
+
+                auto* criteria = new juce::DynamicObject();
+                criteria->setProperty("attack", toCriterionVar(r.attack));
+                criteria->setProperty("release", toCriterionVar(r.release));
+                criteria->setProperty("pitch", toCriterionVar(r.pitch));
+                criteria->setProperty("velocity", toCriterionVar(r.velocity));
+                criteria->setProperty("muting", toCriterionVar(r.muting));
+                criteria->setProperty("articulation", toCriterionVar(r.articulation));
+                obj->setProperty("criteria", juce::var(criteria));
                 jsonRefs.add(juce::var(obj));
             }
 
