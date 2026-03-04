@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
 import { getCssColor } from '@/lib/utils';
 import type {
@@ -37,32 +37,6 @@ function RealtimeWaveform({
   const [durationMs, setDurationMs] = useState<number | null>(null);
   const [analysisResult, setAnalysisResult] = useState<SessionAnalysisResult | null>(null);
   const analyzedNotes = analysisResult?.playedNotes ?? [];
-
-  const noteVisuals = useMemo(() => analyzedNotes.map((note, index) => {
-    const status = analyzedNoteStatuses[index] ?? 'unjudged';
-    const bgClass = status === 'ok'
-      ? 'bg-rec-note-ok-bg'
-      : status === 'inaccurate'
-        ? 'bg-rec-note-inacc-bg'
-        : status === 'miss'
-          ? 'bg-rec-note-miss-bg'
-          : 'bg-rec-note-unj-bg';
-    const triangleColor = status === 'ok'
-      ? 'var(--color-rec-note-ok-bg)'
-      : status === 'inaccurate'
-        ? 'var(--color-rec-note-inacc-bg)'
-        : status === 'miss'
-          ? 'var(--color-rec-note-miss-bg)'
-          : 'var(--color-rec-note-unj-bg)';
-
-    return {
-      note,
-      index,
-      status,
-      bgClass,
-      triangleColor,
-    };
-  }), [analyzedNoteStatuses, analyzedNotes]);
 
   useEffect(() => {
     onAnalysisResultChange?.(analysisResult);
@@ -170,14 +144,31 @@ function RealtimeWaveform({
     timelineStartMs,
   ]);
 
+  const bgByStatus = {
+    ok: 'bg-rec-note-ok-bg',
+    inaccurate: 'bg-rec-note-inacc-bg',
+    miss: 'bg-rec-note-miss-bg',
+    unjudged: 'bg-rec-note-unj-bg',
+  };
+
+  const colorByStatus = {
+    ok: 'var(--color-rec-note-ok-bg)',
+    inaccurate: 'var(--color-rec-note-inacc-bg)',
+    miss: 'var(--color-rec-note-miss-bg)',
+    unjudged: 'var(--color-rec-note-unj-bg)',
+  };
+
   return (
     <div className={`relative ${className ?? ''}`}>
       <div ref={containerRef} className="absolute inset-0 z-20" />
       {durationMs !== null && durationMs > 0 && analyzedNotes.length > 0 && (
         <div className="pointer-events-none absolute inset-0 overflow-visible">
-          {noteVisuals.map(({
-            note, index, bgClass, triangleColor,
-          }) => {
+          {analyzedNotes.map((note, index) => {
+            const status = analyzedNoteStatuses[index] ?? 'unjudged';
+
+            const bgClass = bgByStatus[status];
+            const triangleColor = colorByStatus[status];
+
             const localStartMs = note.startMs - timelineStartMs;
             const localEndMs = note.endMs - timelineStartMs;
             const startRatio = Math.max(0, Math.min(1, localStartMs / durationMs));
