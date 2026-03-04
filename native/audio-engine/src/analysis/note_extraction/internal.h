@@ -6,7 +6,7 @@
 
 #include <aubio.h>
 
-namespace disband::session::note_extractor
+namespace disband::session::note_extraction
 {
 double frequencyToMidi(double hz);
 uint_t nextPowerOfTwo(uint_t value);
@@ -35,4 +35,4 @@ std::vector<PlayedNote> detectNotes(
     double sampleRate,
     const DetectionSettings& settings,
     AubioContext& context);
-} // namespace disband::session::note_extractor
+} // namespace disband::session::note_extraction
