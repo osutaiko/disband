@@ -144,13 +144,6 @@ function RealtimeWaveform({
     timelineStartMs,
   ]);
 
-  const bgByStatus = {
-    ok: 'bg-rec-note-ok-bg',
-    inaccurate: 'bg-rec-note-inacc-bg',
-    miss: 'bg-rec-note-miss-bg',
-    unjudged: 'bg-rec-note-unj-bg',
-  };
-
   const colorByStatus = {
     ok: 'var(--color-rec-note-ok-bg)',
     inaccurate: 'var(--color-rec-note-inacc-bg)',
@@ -166,9 +159,6 @@ function RealtimeWaveform({
           {analyzedNotes.map((note, index) => {
             const status = analyzedNoteStatuses[index] ?? 'unjudged';
 
-            const bgClass = bgByStatus[status];
-            const triangleColor = colorByStatus[status];
-
             const localStartMs = note.startMs - timelineStartMs;
             const localEndMs = note.endMs - timelineStartMs;
             const startRatio = Math.max(0, Math.min(1, localStartMs / durationMs));
@@ -179,23 +169,52 @@ function RealtimeWaveform({
             const isCurrent = currentMs !== undefined
               && currentMs >= note.startMs
               && currentMs < note.endMs;
+            const referenceIndex = analysisResult?.playedToReference?.[index] ?? null;
+            const criteria = referenceIndex === null
+              ? null
+              : analysisResult?.referenceJudgments.find((j) => j.referenceIndex === referenceIndex)?.criteria;
 
             return (
               <div key={`note-visual-${note.startMs}-${note.endMs}-${index}`}>
                 <div
-                  className={`absolute top-0 bottom-0 z-10 ${bgClass} ${isCurrent ? 'brightness-125' : ''}`}
-                  style={{
-                    left,
-                    width,
-                  }}
-                />
+                  className={`absolute top-0 bottom-0 z-10 
+                    ${criteria == null
+                      ? 'bg-rec-note-unj-bg'
+                      : criteria.pitch.pass
+                        ? 'bg-rec-note-ok-bg'
+                        : 'bg-rec-note-miss-bg'}
+                    ${isCurrent ? 'brightness-125' : ''}
+                  `}
+                  style={{ left, width }}
+                >
+                  {criteria && 
+                    <>
+                      <div
+                        className={`
+                          absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r
+                          ${criteria.attack.pass ? 'from-note-ok/50' : 'from-note-miss/50'}
+                          to-transparent
+                        `}
+                      />
+                      <div
+                        className={`
+                          absolute inset-y-0 right-0 w-1/4 bg-gradient-to-l
+                          ${criteria.release.pass ? 'from-note-ok/50' : 'from-note-miss/50'}
+                          to-transparent
+                        `}
+                      />
+                    </>
+                  }
+                </div>
+
+                {/* Triangle */}
                 <div
                   className="absolute top-0 -translate-y-full -translate-x-1/2
                              w-0 h-0
                              border-l-[5px] border-l-transparent
                              border-r-[5px] border-r-transparent
                              border-t-[7px]"
-                  style={{ left, borderTopColor: triangleColor }}
+                  style={{ left, borderTopColor: colorByStatus[status] }}
                 />
               </div>
             );
