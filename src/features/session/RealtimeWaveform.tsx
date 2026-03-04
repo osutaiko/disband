@@ -177,7 +177,7 @@ function RealtimeWaveform({
             return (
               <div key={`note-visual-${note.startMs}-${note.endMs}-${index}`}>
                 <div
-                  className={`absolute top-0 bottom-0 z-10 
+                  className={`absolute top-0 bottom-0 z-10 overflow-hidden
                     ${criteria == null
                       ? 'bg-rec-note-unj-bg'
                       : criteria.pitch.pass
@@ -190,32 +190,28 @@ function RealtimeWaveform({
                   {criteria && 
                     <>
                       <div
-                        className={`
-                          absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r
-                          ${criteria.attack.pass ? 'from-note-ok/50' : 'from-note-miss/50'}
-                          to-transparent
-                        `}
+                        className={`absolute top-0 left-0 w-[8px] h-[8px] ${
+                          criteria.attack.pass ? 'bg-note-ok' : 'bg-note-miss'
+                        } [clip-path:polygon(0_0,100%_0,0_100%)]`}
                       />
                       <div
-                        className={`
-                          absolute inset-y-0 right-0 w-1/4 bg-gradient-to-l
-                          ${criteria.release.pass ? 'from-note-ok/50' : 'from-note-miss/50'}
-                          to-transparent
-                        `}
+                        className={`absolute bottom-0 right-0 w-[8px] h-[8px] ${
+                          criteria.release.pass ? 'bg-note-ok' : 'bg-note-miss'
+                        } [clip-path:polygon(100%_0,0_100%,100%_100%)]`}
                       />
                     </>
                   }
                 </div>
 
                 {/* Triangle */}
-                <div
+                {/* <div
                   className="absolute top-0 -translate-y-full -translate-x-1/2
                              w-0 h-0
                              border-l-[5px] border-l-transparent
                              border-r-[5px] border-r-transparent
                              border-t-[7px]"
                   style={{ left, borderTopColor: colorByStatus[status] }}
-                />
+                /> */}
               </div>
             );
           })}
