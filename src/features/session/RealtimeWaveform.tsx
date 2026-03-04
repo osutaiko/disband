@@ -174,42 +174,31 @@ function RealtimeWaveform({
     <div className={`relative ${className ?? ''}`}>
       <div ref={containerRef} className="absolute inset-0 z-20" />
       {durationMs !== null && durationMs > 0 && analyzedNotes.length > 0 && (
-        <>
-          <div className="pointer-events-none absolute inset-0 overflow-hidden z-10">
-            {noteVisuals.map(({ note, index, bgClass }) => {
-              const localStartMs = note.startMs - timelineStartMs;
-              const localEndMs = note.endMs - timelineStartMs;
-              const startRatio = Math.max(0, Math.min(1, localStartMs / durationMs));
-              const endRatio = Math.max(startRatio, Math.min(1, localEndMs / durationMs));
-              const left = `${startRatio * 100}%`;
-              const width = `${Math.max((endRatio - startRatio) * 100, 0.25)}%`;
-                 
-              const isCurrent = currentMs !== undefined
-                && currentMs >= note.startMs
-                && currentMs < note.endMs;
+        <div className="pointer-events-none absolute inset-0 overflow-visible">
+          {noteVisuals.map(({
+            note, index, bgClass, triangleColor,
+          }) => {
+            const localStartMs = note.startMs - timelineStartMs;
+            const localEndMs = note.endMs - timelineStartMs;
+            const startRatio = Math.max(0, Math.min(1, localStartMs / durationMs));
+            const endRatio = Math.max(startRatio, Math.min(1, localEndMs / durationMs));
+            const left = `${startRatio * 100}%`;
+            const width = `${Math.max((endRatio - startRatio) * 100, 0.25)}%`;
 
-              return (
+            const isCurrent = currentMs !== undefined
+              && currentMs >= note.startMs
+              && currentMs < note.endMs;
+
+            return (
+              <div key={`note-visual-${note.startMs}-${note.endMs}-${index}`}>
                 <div
-                  key={`note-bg-${note.startMs}-${note.endMs}-${index}`}
-                  className={`absolute top-0 bottom-0 ${bgClass} ${isCurrent ? 'brightness-125' : ''}`}
+                  className={`absolute top-0 bottom-0 z-10 ${bgClass} ${isCurrent ? 'brightness-125' : ''}`}
                   style={{
                     left,
                     width,
                   }}
                 />
-              );
-            })}
-          </div>
-
-          <div className="pointer-events-none absolute inset-0 overflow-visible z-30">
-            {noteVisuals.map(({ note, index, triangleColor }) => {
-              const localStartMs = note.startMs - timelineStartMs;
-              const startRatio = Math.max(0, Math.min(1, localStartMs / durationMs));
-              const left = `${startRatio * 100}%`;
-
-              return (
                 <div
-                  key={`note-start-triangle-${note.startMs}-${index}`}
                   className="absolute top-0 -translate-y-full -translate-x-1/2
                              w-0 h-0
                              border-l-[5px] border-l-transparent
@@ -217,10 +206,10 @@ function RealtimeWaveform({
                              border-t-[7px]"
                   style={{ left, borderTopColor: triangleColor }}
                 />
-              );
-            })}
-          </div>
-        </>
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );
