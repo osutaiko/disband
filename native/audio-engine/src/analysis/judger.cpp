@@ -6,26 +6,16 @@
 
 namespace disband::session
 {
-NoteJudgmentKind judgeReferenceNote(
-    const ReferenceNote& referenceNote,
-    const PlayedNote& playedNote,
-    const JudgmentSettings& settings)
+namespace
 {
-    const double attackErrorMs = getAttackErrorMs(referenceNote, playedNote);
-    const double releaseErrorMs = getReleaseErrorMs(referenceNote, playedNote);
-    const double pitchErrorSemitones = getPitchErrorSemitones(referenceNote, playedNote);
-
-    if (std::abs(attackErrorMs) > settings.attackToleranceMs)
-        return NoteJudgmentKind::Inaccurate;
-
-    if (std::abs(releaseErrorMs) > settings.releaseToleranceMs)
-        return NoteJudgmentKind::Inaccurate;
-
-    if (std::abs(pitchErrorSemitones) > settings.pitchToleranceSemitones)
-        return NoteJudgmentKind::Inaccurate;
-
-    return NoteJudgmentKind::Ok;
+CriterionEvaluation evaluateCriterion(double errorValue, double tolerance)
+{
+    CriterionEvaluation evaluation;
+    evaluation.error = errorValue;
+    evaluation.pass = std::abs(errorValue) <= tolerance;
+    return evaluation;
 }
+} // namespace
 
 SessionJudgmentResult judgeSession(
     const std::vector<ReferenceNote>& referenceNotes,
@@ -57,33 +47,37 @@ SessionJudgmentResult judgeSession(
     {
         ReferenceJudgmentResult refResult;
         refResult.referenceIndex = static_cast<int>(refIndex);
+        refResult.attack = {};
+        refResult.release = {};
+        refResult.pitch = {};
+        refResult.velocity = {};
+        refResult.muting = {};
+        refResult.articulation = {};
 
         const auto playedIndex = result.referenceToPlayed[refIndex];
         refResult.playedIndex = playedIndex;
 
+        const auto& referenceNote = referenceNotes[refIndex];
+        const double referenceStartMs = referenceNote.timestampMs;
+        const double referenceEndMs = referenceNote.timestampMs + referenceNote.durationMs;
+        refResult.inRecordedTimeframe =
+            hasPlayedNotes
+            && referenceStartMs >= minRecordedStartMs
+            && referenceEndMs <= maxRecordedEndMs;
+
         if (!playedIndex.has_value())
         {
-            const auto& referenceNote = referenceNotes[refIndex];
-            const double referenceStartMs = referenceNote.timestampMs;
-            const double referenceEndMs = referenceNote.timestampMs + referenceNote.durationMs;
-            const bool inRecordedTimeframe =
-                hasPlayedNotes
-                && referenceStartMs >= minRecordedStartMs
-                && referenceEndMs <= maxRecordedEndMs;
-
-            refResult.kind = inRecordedTimeframe
-                                 ? NoteJudgmentKind::Miss
-                                 : NoteJudgmentKind::Unjudged;
             result.referenceResults[refIndex] = std::move(refResult);
             continue;
         }
 
-        const auto& referenceNote = referenceNotes[refIndex];
         const auto& playedNote = playedNotes[static_cast<size_t>(*playedIndex)];
-
-        refResult.attackErrorMs = getAttackErrorMs(referenceNote, playedNote);
-        refResult.badAttack = std::abs(refResult.attackErrorMs) > settings.attackToleranceMs;
-        refResult.kind = judgeReferenceNote(referenceNote, playedNote, settings);
+        refResult.attack =
+            evaluateCriterion(getAttackErrorMs(referenceNote, playedNote), settings.attackToleranceMs);
+        refResult.release =
+            evaluateCriterion(getReleaseErrorMs(referenceNote, playedNote), settings.releaseToleranceMs);
+        refResult.pitch =
+            evaluateCriterion(getPitchErrorSemitones(referenceNote, playedNote), settings.pitchToleranceSemitones);
 
         result.referenceResults[refIndex] = std::move(refResult);
     }

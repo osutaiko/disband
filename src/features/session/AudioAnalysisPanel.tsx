@@ -21,6 +21,24 @@ import { Button } from '@/components/ui/button';
 
 const FIXTURE_FILENAME_REGEX = /^(.*?)__tr-(\d+)__start-(\d+)__(\d+)\.wav$/i;
 
+function deriveNoteStatusFromJudgment(judgment: SessionAnalysisResult['referenceJudgments'][number]): NoteStatus {
+  if (judgment.playedIndex === null) {
+    return judgment.inRecordedTimeframe ? 'miss' : 'unjudged';
+  }
+
+  const evaluatedCriteria = [
+    judgment.criteria.attack.pass,
+    judgment.criteria.release.pass,
+    judgment.criteria.pitch.pass,
+    judgment.criteria.velocity.pass,
+    judgment.criteria.muting.pass,
+    judgment.criteria.articulation.pass,
+  ].filter((value): value is boolean => value !== null);
+
+  if (evaluatedCriteria.length === 0) return 'unjudged';
+  return evaluatedCriteria.every((value) => value) ? 'ok' : 'inaccurate';
+}
+
 function parseFixtureStartFromPath(filePath: string): { startMs: number } | null {
   const fileName = filePath.split('/').pop() ?? filePath.split('\\').pop();
   if (!fileName) return null;
@@ -92,7 +110,7 @@ function AudioAnalysisPanel({
         judgment.referenceIndex >= 0
         && judgment.referenceIndex < statuses.length
       ) {
-        statuses[judgment.referenceIndex] = judgment.kind;
+        statuses[judgment.referenceIndex] = deriveNoteStatusFromJudgment(judgment);
       }
     });
     return statuses;
@@ -102,7 +120,10 @@ function AudioAnalysisPanel({
     if (!sessionAnalysis) return [];
     const referenceStatusByIndex = new Map<number, NoteStatus>();
     sessionAnalysis.referenceJudgments.forEach((judgment) => {
-      referenceStatusByIndex.set(judgment.referenceIndex, judgment.kind);
+      referenceStatusByIndex.set(
+        judgment.referenceIndex,
+        deriveNoteStatusFromJudgment(judgment),
+      );
     });
 
     return sessionAnalysis.playedToReference.map((referenceIndex) => (

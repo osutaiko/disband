@@ -51,13 +51,23 @@ enum class NoteJudgmentKind
     Miss
 };
 
+struct CriterionEvaluation
+{
+    std::optional<double> error;
+    std::optional<bool> pass;
+};
+
 struct ReferenceJudgmentResult
 {
     int referenceIndex = -1;
     std::optional<int> playedIndex;
-    NoteJudgmentKind kind = NoteJudgmentKind::Miss;
-    bool badAttack = false;
-    double attackErrorMs = 0.0;
+    bool inRecordedTimeframe = false;
+    CriterionEvaluation attack;
+    CriterionEvaluation release;
+    CriterionEvaluation pitch;
+    CriterionEvaluation velocity;
+    CriterionEvaluation muting;
+    CriterionEvaluation articulation;
 };
 
 struct SessionMatchingResult
@@ -87,11 +97,6 @@ struct JudgmentSettings
 SessionMatchingResult sessionMatching(
     const std::vector<ReferenceNote>& referenceNotes,
     const std::vector<PlayedNote>& playedNotes,
-    const JudgmentSettings& settings = {});
-
-NoteJudgmentKind judgeReferenceNote(
-    const ReferenceNote& referenceNote,
-    const PlayedNote& playedNote,
     const JudgmentSettings& settings = {});
 
 SessionJudgmentResult judgeSession(
