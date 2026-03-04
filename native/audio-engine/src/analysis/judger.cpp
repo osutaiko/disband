@@ -1,6 +1,7 @@
 #include "session.h"
 #include "judgment_errors/errors.h"
 
+#include <algorithm>
 #include <cmath>
 
 namespace disband::session
@@ -38,6 +39,20 @@ SessionJudgmentResult judgeSession(
     result.referenceToPlayed = matching.referenceToPlayed;
     result.playedToReference = matching.playedToReference;
 
+    const bool hasPlayedNotes = !playedNotes.empty();
+    double minRecordedStartMs = 0.0;
+    double maxRecordedEndMs = 0.0;
+    if (hasPlayedNotes)
+    {
+        minRecordedStartMs = playedNotes.front().startMs;
+        maxRecordedEndMs = playedNotes.front().endMs;
+        for (const auto& played : playedNotes)
+        {
+            minRecordedStartMs = std::min(minRecordedStartMs, played.startMs);
+            maxRecordedEndMs = std::max(maxRecordedEndMs, played.endMs);
+        }
+    }
+
     for (size_t refIndex = 0; refIndex < referenceNotes.size(); ++refIndex)
     {
         ReferenceJudgmentResult refResult;
@@ -48,7 +63,17 @@ SessionJudgmentResult judgeSession(
 
         if (!playedIndex.has_value())
         {
-            refResult.kind = NoteJudgmentKind::Miss;
+            const auto& referenceNote = referenceNotes[refIndex];
+            const double referenceStartMs = referenceNote.timestampMs;
+            const double referenceEndMs = referenceNote.timestampMs + referenceNote.durationMs;
+            const bool inRecordedTimeframe =
+                hasPlayedNotes
+                && referenceStartMs >= minRecordedStartMs
+                && referenceEndMs <= maxRecordedEndMs;
+
+            refResult.kind = inRecordedTimeframe
+                                 ? NoteJudgmentKind::Miss
+                                 : NoteJudgmentKind::Unjudged;
             result.referenceResults[refIndex] = std::move(refResult);
             continue;
         }
