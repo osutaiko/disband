@@ -98,23 +98,6 @@ function AudioAnalysisPanel({
     return statuses;
   }, [noteMarkers.length, sessionAnalysis]);
 
-  const playedNoteStatuses = useMemo(() => {
-    if (!sessionAnalysis) return [];
-    const referenceStatusByIndex = new Map<number, NoteStatus>();
-    sessionAnalysis.referenceJudgments.forEach((judgment) => {
-      referenceStatusByIndex.set(
-        judgment.referenceIndex,
-        judgment.kind ?? 'unjudged',
-      );
-    });
-
-    return sessionAnalysis.playedToReference.map((referenceIndex) => (
-      referenceIndex === null
-        ? 'unjudged'
-        : (referenceStatusByIndex.get(referenceIndex) ?? 'unjudged')
-    ));
-  }, [sessionAnalysis]);
-
   const visibleNoteMarkersWithIndex = noteMarkers
     .map((marker, index) => ({ marker, index }))
     .filter(({ marker }) => (
@@ -313,7 +296,6 @@ function AudioAnalysisPanel({
                   key={`${selectionId ?? 'none'}-${recordingEpoch[selectionId ?? ''] ?? 0}`}
                   audioPath={recordedPath}
                   referenceNotes={referenceNotesForAnalysis}
-                  analyzedNoteStatuses={playedNoteStatuses}
                   currentMs={currentMs}
                   timelineStartMs={activeWaveformRange?.startMs ?? fallbackStartMs}
                   onDurationMsChange={handleWaveformDurationChange}

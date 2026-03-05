@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
 import { getCssColor } from '@/lib/utils';
 import type {
-  NoteStatus,
   SessionAnalysisResult,
 } from '../../../shared/types';
 
@@ -13,7 +12,6 @@ function RealtimeWaveform({
   onAnalysisResultChange,
   onAnalysisRunningChange,
   referenceNotes = [],
-  analyzedNoteStatuses = [],
   currentMs,
   timelineStartMs = 0,
 }: {
@@ -28,7 +26,6 @@ function RealtimeWaveform({
     length: number;
     midi: number;
   }>;
-  analyzedNoteStatuses?: NoteStatus[];
   currentMs?: number;
   timelineStartMs?: number;
 }) {
@@ -143,7 +140,7 @@ function RealtimeWaveform({
     referenceNotes,
     timelineStartMs,
   ]);
-console.log(analyzedNoteStatuses)
+
   return (
     <div className={`relative ${className ?? ''}`}>
       <div ref={containerRef} className="absolute inset-0 z-20" />
@@ -164,17 +161,18 @@ console.log(analyzedNoteStatuses)
             const judgment = referenceIndex === null
               ? null
               : analysisResult?.referenceJudgments.find((j) => j.referenceIndex === referenceIndex);
-            const noteStatus = judgment?.kind ?? 'unjudged';
 
             return (
               <div key={`note-visual-${note.startMs}-${note.endMs}-${index}`}>
                 <div
                   className={`absolute top-0 bottom-0 z-10 overflow-hidden
-                    ${noteStatus === 'unjudged'
-                      ? 'bg-rec-note-unj-bg'
-                      : noteStatus === 'ok'
-                        ? 'bg-rec-note-ok-bg'
-                        : 'bg-rec-note-miss-bg'}
+                    ${judgment ? 
+                      (judgment.kind === 'ok' ? 'bg-rec-note-ok-bg'
+                        : judgment.kind === 'inaccurate' ? 'bg-rec-note-inacc-bg'
+                        : judgment.kind === 'miss' ? 'bg-rec-note-miss-bg'
+                        : 'bg-rec-note-unj-bg'
+                      ) : 'bg-rec-note-unj-bg'}
+                    ${judgment && !judgment.criteria.pitch.pass ? 'border-b-6 border-note-miss' : ''}
                     ${isCurrent ? 'brightness-125' : ''}
                   `}
                   style={{ left, width }}
@@ -182,15 +180,19 @@ console.log(analyzedNoteStatuses)
                   {judgment && 
                     <>
                       <div
-                        className={`absolute top-0 left-0 w-[8px] h-[8px] ${
-                          judgment.criteria.attack.pass ? 'bg-note-ok' : 'bg-note-miss'
+                        className={`absolute top-0 left-0 w-[12px] h-[12px] ${
+                          judgment.criteria.attack.pass ? 'bg-note-ok' : 
+                          (judgment.kind === 'inaccurate' ? 'bg-note-inacc' : 'bg-note-ok')
                         } [clip-path:polygon(0_0,100%_0,0_100%)]`}
                       />
-                      <div
-                        className={`absolute bottom-0 right-0 w-[8px] h-[8px] ${
-                          judgment.criteria.release.pass ? 'bg-note-ok' : 'bg-note-miss'
-                        } [clip-path:polygon(100%_0,0_100%,100%_100%)]`}
-                      />
+                      {judgment.kind !== 'miss' &&
+                        <div
+                          className={`absolute bottom-0 right-0 w-[8px] h-[8px] ${
+                            judgment.criteria.release.pass ? 'bg-note-ok' : 'bg-note-inacc'
+                          } [clip-path:polygon(100%_0,0_100%,100%_100%)]`}
+                        />
+                      }
+                      
                     </>
                   }
                 </div>
