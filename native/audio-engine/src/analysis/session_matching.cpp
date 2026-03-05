@@ -23,6 +23,7 @@ SessionMatchingResult sessionMatching(
     result.playedToReference.resize(playedNotes.size(), std::nullopt);
 
     std::vector<bool> usedPlayed(playedNotes.size(), false);
+    int lastMatchedPlayedIndex = -1;
     const bool hasPlayedNotes = !playedNotes.empty();
     const double firstDetectedAttackMs = hasPlayedNotes ? playedNotes.front().startMs : 0.0;
     const double lastDetectedReleaseMs = hasPlayedNotes ? playedNotes.front().endMs : 0.0;
@@ -58,6 +59,8 @@ SessionMatchingResult sessionMatching(
         {
             if (usedPlayed[playedIndex])
                 continue;
+            if (static_cast<int>(playedIndex) <= lastMatchedPlayedIndex)
+                continue;
 
             const auto& played = playedNotes[playedIndex];
             const double attackErrorMs = played.startMs - reference.timestampMs;
@@ -76,7 +79,7 @@ SessionMatchingResult sessionMatching(
             const double attackTerm = std::abs(attackErrorMs) / std::max(1.0, settings.matchWindowMs);
             const double pitchTerm = pitchErrorSemitones;
             const double durationTerm = durationErrorMs / std::max(1.0, reference.durationMs);
-            const double score = attackTerm + pitchTerm + durationTerm;
+            const double score = attackTerm /* + pitchTerm  */+ durationTerm;
 
             if (score < bestScore)
             {
@@ -89,6 +92,7 @@ SessionMatchingResult sessionMatching(
             continue;
 
         usedPlayed[static_cast<size_t>(bestPlayedIndex)] = true;
+        lastMatchedPlayedIndex = bestPlayedIndex;
         result.referenceToPlayed[refIndex] = bestPlayedIndex;
         result.playedToReference[static_cast<size_t>(bestPlayedIndex)] = static_cast<int>(refIndex);
     }
