@@ -333,12 +333,28 @@ private:
                         criterion.pass.has_value() ? juce::var(*criterion.pass) : juce::var());
                     return juce::var(cobj);
                 };
+                auto toKindString = [](disband::session::NoteJudgmentKind kind) -> juce::String
+                {
+                    switch (kind)
+                    {
+                    case disband::session::NoteJudgmentKind::Ok:
+                        return "ok";
+                    case disband::session::NoteJudgmentKind::Inaccurate:
+                        return "inaccurate";
+                    case disband::session::NoteJudgmentKind::Miss:
+                        return "miss";
+                    case disband::session::NoteJudgmentKind::Unjudged:
+                    default:
+                        return "unjudged";
+                    }
+                };
 
                 obj->setProperty("referenceIndex", r.referenceIndex);
                 obj->setProperty("playedIndex",
                     r.playedIndex.has_value() ? juce::var(*r.playedIndex)
                                             : juce::var());
                 obj->setProperty("inRecordedTimeframe", r.inRecordedTimeframe);
+                obj->setProperty("kind", toKindString(r.kind));
 
                 auto* criteria = new juce::DynamicObject();
                 criteria->setProperty("attack", toCriterionVar(r.attack));

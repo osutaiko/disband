@@ -17,6 +17,7 @@ export type ReferenceJudgment = {
   referenceIndex: number;
   playedIndex: number | null;
   inRecordedTimeframe: boolean;
+  kind?: NoteStatus;
   criteria: {
     attack: CriterionResult;
     release: CriterionResult;

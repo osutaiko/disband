@@ -71,7 +71,7 @@ SessionMatchingResult sessionMatching(
 
             const double playedDurationMs = std::max(0.0, played.endMs - played.startMs);
             const double durationErrorMs = std::abs(playedDurationMs - reference.durationMs);
-            const double attackTerm = std::abs(attackErrorMs) / std::max(1.0, settings.attackToleranceMs);
+            const double attackTerm = std::abs(attackErrorMs) / std::max(1.0, settings.matchWindowMs);
             const double pitchTerm = pitchErrorSemitones;
             const double durationTerm = durationErrorMs / std::max(1.0, reference.durationMs);
             const double score = attackTerm + pitchTerm + durationTerm;

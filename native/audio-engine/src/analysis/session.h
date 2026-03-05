@@ -62,6 +62,7 @@ struct ReferenceJudgmentResult
     int referenceIndex = -1;
     std::optional<int> playedIndex;
     bool inRecordedTimeframe = false;
+    NoteJudgmentKind kind = NoteJudgmentKind::Unjudged;
     CriterionEvaluation attack;
     CriterionEvaluation release;
     CriterionEvaluation pitch;
@@ -86,7 +87,8 @@ struct SessionJudgmentResult
 struct JudgmentSettings
 {
     double matchWindowMs = 500.0;
-    double attackToleranceMs = 40.0;
+    double attackOkWindowMs = 40.0;
+    double attackInaccurateWindowMs = 190.0;
     double releaseToleranceMs = 70.0;
     double pitchToleranceSemitones = 0.3;
     double velocityToleranceMultLower = 0.6;

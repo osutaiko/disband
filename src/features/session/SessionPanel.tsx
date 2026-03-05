@@ -12,7 +12,6 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Circle, Square } from 'lucide-react';
-import type { NoteStatus, SessionAnalysisResult } from '../../../shared/types';
 
 function DataCountRow({
   name,
@@ -46,24 +45,6 @@ function standardDeviation(values: number[]): number {
   return Math.sqrt(variance);
 }
 
-function deriveNoteStatusFromJudgment(judgment: SessionAnalysisResult['referenceJudgments'][number]): NoteStatus {
-  if (judgment.playedIndex === null) {
-    return judgment.inRecordedTimeframe ? 'miss' : 'unjudged';
-  }
-
-  const evaluatedCriteria = [
-    judgment.criteria.attack.pass,
-    judgment.criteria.release.pass,
-    judgment.criteria.pitch.pass,
-    judgment.criteria.velocity.pass,
-    judgment.criteria.muting.pass,
-    judgment.criteria.articulation.pass,
-  ].filter((value): value is boolean => value !== null);
-
-  if (evaluatedCriteria.length === 0) return 'unjudged';
-  return evaluatedCriteria.every((value) => value) ? 'ok' : 'inaccurate';
-}
-
 function SessionPanel() {
   const { selectedSong, selectedTrackId } = useLibraryStore();
   const { recordedPaths, sessionAnalysisBySelection, analysisInProgressBySelection } = useSessionStore();
@@ -90,7 +71,7 @@ function SessionPanel() {
     const recordingLength = playedNotes.reduce((max, note) => Math.max(max, note.endMs), 0);
     const judgmentsWithStatus = (sessionAnalysis?.referenceJudgments ?? []).map((judgment) => ({
       judgment,
-      status: deriveNoteStatusFromJudgment(judgment),
+      status: judgment.kind ?? 'unjudged',
     }));
     const judged = judgmentsWithStatus.filter((entry) => entry.status !== 'unjudged');
 
