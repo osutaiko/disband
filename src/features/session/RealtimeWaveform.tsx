@@ -22,6 +22,8 @@ function RealtimeWaveform({
   referenceNotes = [],
   currentMs,
   timelineStartMs = 0,
+  hoveredReferenceIndex,
+  onHoveredReferenceIndexChange,
 }: {
   audioPath: string | null;
   className?: string;
@@ -36,6 +38,8 @@ function RealtimeWaveform({
   }>;
   currentMs?: number;
   timelineStartMs?: number;
+  hoveredReferenceIndex?: number | null;
+  onHoveredReferenceIndexChange?: (index: number | null) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const waveSurferRef = useRef<WaveSurfer | null>(null);
@@ -176,6 +180,7 @@ function RealtimeWaveform({
               const judgment = referenceIndex === null
                 ? null
                 : analysisResult?.referenceJudgments.find((j) => j.referenceIndex === referenceIndex);
+              const isHovered = referenceIndex !== null && hoveredReferenceIndex === referenceIndex;
 
               return (
                 <Tooltip key={`note-visual-${note.startMs}-${note.endMs}-${index}`}>
@@ -189,9 +194,18 @@ function RealtimeWaveform({
                             : 'bg-rec-note-unj-bg'
                           ) : 'bg-rec-note-unj-bg'}
                         ${judgment && !judgment.criteria.pitch.pass ? 'border-b-6 border-note-miss' : ''}
+                        ${isHovered ? 'ring-2 ring-offset-1 ring-ring' : ''}
                         ${isCurrent ? 'brightness-125' : ''}
                       `}
                       style={{ left, width }}
+                      onMouseEnter={() => {
+                        if (referenceIndex !== null) {
+                          onHoveredReferenceIndexChange?.(referenceIndex);
+                        }
+                      }}
+                      onMouseLeave={() => {
+                        onHoveredReferenceIndexChange?.(null);
+                      }}
                     >
                       {judgment && 
                         <>
