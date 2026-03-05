@@ -1,3 +1,24 @@
+// Judging logic (pass/fail for each criterion, ) for played notes.
+//
+// Judging criteria with 3 tiers
+//   primary: pitch, attack
+//   secondary: release, muting, articulation
+//   tertiary: velocity
+//     - generally fine even when violated (for now)
+//
+// Miss if either:
+//   - wrong pitch
+//   - terrible attack timing
+//
+// Inaccurate if either:
+//   - inaccurate attack timing
+//   - at least two wiolations in:
+//     - release timing
+//     - muting quality
+//     - articulation
+//
+// Ok otherwise!
+
 #include "session.h"
 #include "judgment_errors/errors.h"
 
@@ -9,6 +30,7 @@ namespace disband::session
 {
 namespace
 {
+// Convert error values into CriterionEvaluation object
 CriterionEvaluation evaluateCriterion(double errorValue, double tolerance)
 {
     CriterionEvaluation evaluation;
@@ -28,6 +50,7 @@ bool isExplicitFail(const CriterionEvaluation& criterion)
 }
 } // namespace
 
+// Judge the entire session (list of notes)
 SessionJudgmentResult judgeSession(
     const std::vector<ReferenceNote>& referenceNotes,
     const std::vector<PlayedNote>& playedNotes,
@@ -36,11 +59,15 @@ SessionJudgmentResult judgeSession(
     SessionJudgmentResult result;
     result.referenceResults.resize(referenceNotes.size());
 
+    // Get note correspondence mappings
     const SessionMatchingResult matching = sessionMatching(referenceNotes, playedNotes, settings);
     result.referenceToPlayed = matching.referenceToPlayed;
     result.playedToReference = matching.playedToReference;
 
     const bool hasPlayedNotes = !playedNotes.empty();
+
+    // Get the time boundary of the set of detected notes.
+    // Note that this is different from the recorded session (WAV) timeframe.
     double minRecordedStartMs = 0.0;
     double maxRecordedEndMs = 0.0;
     if (hasPlayedNotes)
@@ -54,6 +81,7 @@ SessionJudgmentResult judgeSession(
         }
     }
 
+    // Iterate through reference notes
     for (size_t refIndex = 0; refIndex < referenceNotes.size(); ++refIndex)
     {
         ReferenceJudgmentResult refResult;
@@ -65,7 +93,7 @@ SessionJudgmentResult judgeSession(
         refResult.muting = {};
         refResult.articulation = {};
 
-        const auto playedIndex = result.referenceToPlayed[refIndex];
+        const auto playedIndex = result.referenceToPlayed[refIndex]; // might not exist
         refResult.playedIndex = playedIndex;
 
         const auto& referenceNote = referenceNotes[refIndex];
@@ -76,6 +104,7 @@ SessionJudgmentResult judgeSession(
             && referenceStartMs >= minRecordedStartMs
             && referenceEndMs <= maxRecordedEndMs;
 
+        // Don't judge if the reference note is outside of recorded boundary
         if (!playedIndex.has_value())
         {
             refResult.kind = refResult.inRecordedTimeframe
@@ -96,6 +125,7 @@ SessionJudgmentResult judgeSession(
         const bool pitchWrong = !isPass(refResult.pitch);
         const bool attackOutsideInaccurateWindow = std::abs(*refResult.attack.error) > settings.attackInaccurateWindowMs;
 
+        // Miss immediately if pitch or attack fails check
         if (pitchWrong || attackOutsideInaccurateWindow)
         {
             refResult.kind = NoteJudgmentKind::Miss;
@@ -103,6 +133,7 @@ SessionJudgmentResult judgeSession(
             continue;
         }
 
+        // Inaccurate if attack is inaccurate (inside inaccurate window)
         if (isExplicitFail(refResult.attack) && !attackOutsideInaccurateWindow)
         {
             refResult.kind = NoteJudgmentKind::Inaccurate;
@@ -110,6 +141,7 @@ SessionJudgmentResult judgeSession(
             continue;
         }
 
+        // Count secondary criteria failures
         int secondaryFails = 0;
         secondaryFails += isExplicitFail(refResult.release) ? 1 : 0;
         secondaryFails += isExplicitFail(refResult.muting) ? 1 : 0;

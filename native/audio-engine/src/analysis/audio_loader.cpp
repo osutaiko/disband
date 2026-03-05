@@ -1,8 +1,4 @@
 // WAV loading and decoding for analysis.
-//
-//    - Validates WAV file
-//    - Decodes audio with JUCE
-//    - Mixes to mono
 
 #include "session.h"
 
@@ -46,6 +42,8 @@ bool loadMonoWavFile(
 
     const auto totalSamples = static_cast<int>(reader->lengthInSamples);
     juce::AudioBuffer<float> tempBuffer(static_cast<int>(reader->numChannels), totalSamples);
+
+    // Decode with JUCE
     if (!reader->read(&tempBuffer, 0, totalSamples, 0, true, true))
     {
         outError = "Failed to decode audio";
@@ -62,9 +60,11 @@ bool loadMonoWavFile(
         return false;
     }
 
+    // Convert to mono
     for (int ch = 0; ch < channels; ++ch)
         outMono.addFrom(0, 0, tempBuffer, ch, 0, totalSamples);
 
+    // Normalize 1/n
     if (channels > 1)
         outMono.applyGain(0, 0, totalSamples, 1.0f / static_cast<float>(channels));
 

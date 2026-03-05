@@ -1,6 +1,4 @@
-// Session analysis utilities for Disband.
-//
-// Defines data models & functions used in audio analysis.
+// Session analysis utilities (data models & functions) for Disband.
 
 #pragma once
 
@@ -12,37 +10,41 @@
 
 namespace disband::session
 {
+// Reference note from score (usually Tab)
 struct ReferenceNote
 {
     int id = -1;
-    double timestampMs = 0.0;
+    double timestampMs = 0.0;            // Time relative to WAV start
     double durationMs = 0.0;
     int midi = -1;
 };
 
+// Played (detected) note
 struct PlayedNote
 {
-    double startMs = 0.0;
+    double startMs = 0.0;                // Time relative to WAV start
     double endMs = 0.0;
     double frequencyHz = 0.0;
     int midi = -1;
     double confidence = 0.0;
 };
 
+// Config used in segmentation
 struct DetectionSettings
 {
-    double hopSizeMs = 5.0;
-    double pitchFrameSizeMs = 110.0;
-    double pitchMinHz = 28.0;
-    double pitchMaxHz = 3000.0;
-    double onsetThreshold = 0.22;
-    double silenceDb = -40.0;
-    double minNoteMs = 50.0;
-    int minMidi = 24; // C1
-    int maxMidi = 96; // C7
-    double minPitchConfidence = 0.15;
+    double hopSizeMs = 5.0;              // step size of analysis frame
+    double pitchFrameSizeMs = 110.0;     // frame size for pitch estimation
+    double pitchMinHz = 28.0;            // lowest pitch to detect
+    double pitchMaxHz = 3000.0;          // highest pitch to detect
+    double onsetThreshold = 0.22;        // peak picking threshold passed to aubio
+    double silenceDb = -40.0;            // below treated as silence
+    double minNoteMs = 50.0;             // shortest length of note to detect
+    int minMidi = 24; // C1              // min MIDI value to detect
+    int maxMidi = 96; // C7              // max MIDI value to detect
+    double minPitchConfidence = 0.15;    // min confidence from aubio pitch detection to trust
 };
 
+// Overall judgment for a single note (compiles lots of criteria)
 enum class NoteJudgmentKind
 {
     Unjudged,
@@ -51,18 +53,21 @@ enum class NoteJudgmentKind
     Miss
 };
 
+// Evaluation of each note judging criteria
 struct CriterionEvaluation
 {
-    std::optional<double> error;
+    std::optional<double> error;         // value of error (ms, mult, semitones, ...)
     std::optional<bool> pass;
 };
 
+// Detailed judgment result for a single reference note
 struct ReferenceJudgmentResult
 {
     int referenceIndex = -1;
     std::optional<int> playedIndex;
-    bool inRecordedTimeframe = false;
-    NoteJudgmentKind kind = NoteJudgmentKind::Unjudged;
+    bool inRecordedTimeframe = false;    // whether the note is inside (time-wise) the range of detected notes
+                                         // note irrelevant for judging if false
+    NoteJudgmentKind kind = NoteJudgmentKind::Unjudged; // Overall judgment
     CriterionEvaluation attack;
     CriterionEvaluation release;
     CriterionEvaluation pitch;
@@ -73,8 +78,9 @@ struct ReferenceJudgmentResult
 
 struct SessionMatchingResult
 {
-    std::vector<std::optional<int>> referenceToPlayed;
-    std::vector<std::optional<int>> playedToReference;
+    std::vector<std::optional<int>> referenceToPlayed; // vector of matchings from reference to played notes
+                                                       // note that some elements might be null
+    std::vector<std::optional<int>> playedToReference; // vector of matchings from played to reference notes
 };
 
 struct SessionJudgmentResult
@@ -84,6 +90,7 @@ struct SessionJudgmentResult
     std::vector<std::optional<int>> playedToReference;
 };
 
+// Config used in judgment
 struct JudgmentSettings
 {
     double matchWindowMs = 500.0;
