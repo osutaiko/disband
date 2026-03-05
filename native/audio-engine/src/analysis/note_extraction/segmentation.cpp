@@ -43,6 +43,37 @@ std::vector<PlayedNote> detectNotes(
     double confidenceSum = 0.0;
     int confidentFrames = 0;
 
+    auto startNoteAt = [&](
+        int startSample,
+        double currentLevelDb,
+        bool currentHasPitch,
+        double currentHz,
+        double currentConfidence)
+    {
+        inNote = true;
+        noteStartSample = startSample;
+        lowEnergyFrames = 0;
+        pitchSplitFrames = 0;
+        framesSinceLastSplit = 0;
+        previousLevelDb = currentLevelDb;
+        
+        if (currentHasPitch)
+        {
+            const auto weight = std::max(currentConfidence, kMinimumPitchWeight);
+            weightedHz = currentHz * weight;
+            totalWeight = weight;
+            confidenceSum = currentConfidence;
+            confidentFrames = 1;
+        }
+        else
+        {
+            weightedHz = 0.0;
+            totalWeight = 0.0;
+            confidenceSum = 0.0;
+            confidentFrames = 0;
+        }
+    };
+
     auto flushCurrentNote = [&](int noteEndSample) {
         if (!inNote)
             return;
@@ -109,30 +140,11 @@ std::vector<PlayedNote> detectNotes(
         {
             if (onsetDetected || !isSilent)
             {
-                inNote = true;
                 const int detectedSample = static_cast<int>(aubio_onset_get_last(context.onset));
-                noteStartSample = (onsetDetected && detectedSample >= 0 && detectedSample <= frameStart + hopSize)
+                const int startSample = (onsetDetected && detectedSample >= 0 && detectedSample <= frameStart + hopSize)
                     ? std::max(0, detectedSample - onsetCompensationSamples)
                     : frameStart;
-                lowEnergyFrames = 0;
-                pitchSplitFrames = 0;
-                framesSinceLastSplit = 0;
-                previousLevelDb = levelDb;
-                if (hasPitch)
-                {
-                    const auto weight = std::max(confidence, kMinimumPitchWeight);
-                    weightedHz = hz * weight;
-                    totalWeight = weight;
-                    confidenceSum = confidence;
-                    confidentFrames = 1;
-                }
-                else
-                {
-                    weightedHz = 0.0;
-                    totalWeight = 0.0;
-                    confidenceSum = 0.0;
-                    confidentFrames = 0;
-                }
+                startNoteAt(startSample, levelDb, hasPitch, hz, confidence);
             }
             continue;
         }
@@ -171,27 +183,7 @@ std::vector<PlayedNote> detectNotes(
                     ? std::max(0, detectedSample - onsetCompensationSamples)
                     : frameStart;
                 flushCurrentNote(splitSample);
-                inNote = true;
-                noteStartSample = splitSample;
-                lowEnergyFrames = 0;
-                pitchSplitFrames = 0;
-                framesSinceLastSplit = 0;
-                previousLevelDb = levelDb;
-                if (hasPitch)
-                {
-                    const auto weight = std::max(confidence, kMinimumPitchWeight);
-                    weightedHz = hz * weight;
-                    totalWeight = weight;
-                    confidenceSum = confidence;
-                    confidentFrames = 1;
-                }
-                else
-                {
-                    weightedHz = 0.0;
-                    totalWeight = 0.0;
-                    confidenceSum = 0.0;
-                    confidentFrames = 0;
-                }
+                startNoteAt(splitSample, levelDb, hasPitch, hz, confidence);
                 continue;
             }
             if (hasPitch)
