@@ -78,7 +78,7 @@ function NoteMarker({
             onMouseLeave={() => onHoverChange?.(false)}
           />
         </TooltipTrigger>
-        <TooltipContent>
+        <TooltipContent className="z-100">
           {tooltipText}
         </TooltipContent>
       </Tooltip>
