@@ -143,22 +143,13 @@ function RealtimeWaveform({
     referenceNotes,
     timelineStartMs,
   ]);
-
-  const colorByStatus = {
-    ok: 'var(--color-rec-note-ok-bg)',
-    inaccurate: 'var(--color-rec-note-inacc-bg)',
-    miss: 'var(--color-rec-note-miss-bg)',
-    unjudged: 'var(--color-rec-note-unj-bg)',
-  };
-
+console.log(analyzedNoteStatuses)
   return (
     <div className={`relative ${className ?? ''}`}>
       <div ref={containerRef} className="absolute inset-0 z-20" />
       {durationMs !== null && durationMs > 0 && analyzedNotes.length > 0 && (
         <div className="pointer-events-none absolute inset-0 overflow-visible">
           {analyzedNotes.map((note, index) => {
-            const status = analyzedNoteStatuses[index] ?? 'unjudged';
-
             const localStartMs = note.startMs - timelineStartMs;
             const localEndMs = note.endMs - timelineStartMs;
             const startRatio = Math.max(0, Math.min(1, localStartMs / durationMs));
@@ -170,33 +161,34 @@ function RealtimeWaveform({
               && currentMs >= note.startMs
               && currentMs < note.endMs;
             const referenceIndex = analysisResult?.playedToReference?.[index] ?? null;
-            const criteria = referenceIndex === null
+            const judgment = referenceIndex === null
               ? null
-              : analysisResult?.referenceJudgments.find((j) => j.referenceIndex === referenceIndex)?.criteria;
+              : analysisResult?.referenceJudgments.find((j) => j.referenceIndex === referenceIndex);
+            const noteStatus = judgment?.kind ?? 'unjudged';
 
             return (
               <div key={`note-visual-${note.startMs}-${note.endMs}-${index}`}>
                 <div
                   className={`absolute top-0 bottom-0 z-10 overflow-hidden
-                    ${criteria == null
+                    ${noteStatus === 'unjudged'
                       ? 'bg-rec-note-unj-bg'
-                      : criteria.pitch.pass
+                      : noteStatus === 'ok'
                         ? 'bg-rec-note-ok-bg'
                         : 'bg-rec-note-miss-bg'}
                     ${isCurrent ? 'brightness-125' : ''}
                   `}
                   style={{ left, width }}
                 >
-                  {criteria && 
+                  {judgment && 
                     <>
                       <div
                         className={`absolute top-0 left-0 w-[8px] h-[8px] ${
-                          criteria.attack.pass ? 'bg-note-ok' : 'bg-note-miss'
+                          judgment.criteria.attack.pass ? 'bg-note-ok' : 'bg-note-miss'
                         } [clip-path:polygon(0_0,100%_0,0_100%)]`}
                       />
                       <div
                         className={`absolute bottom-0 right-0 w-[8px] h-[8px] ${
-                          criteria.release.pass ? 'bg-note-ok' : 'bg-note-miss'
+                          judgment.criteria.release.pass ? 'bg-note-ok' : 'bg-note-miss'
                         } [clip-path:polygon(100%_0,0_100%,100%_100%)]`}
                       />
                     </>

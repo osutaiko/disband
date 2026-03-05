@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
 namespace disband::session
 {
@@ -14,6 +15,16 @@ CriterionEvaluation evaluateCriterion(double errorValue, double tolerance)
     evaluation.error = errorValue;
     evaluation.pass = std::abs(errorValue) <= tolerance;
     return evaluation;
+}
+
+bool isPass(const CriterionEvaluation& criterion)
+{
+    return criterion.pass.has_value() && *criterion.pass;
+}
+
+bool isExplicitFail(const CriterionEvaluation& criterion)
+{
+    return criterion.pass.has_value() && !*criterion.pass;
 }
 } // namespace
 
@@ -67,17 +78,39 @@ SessionJudgmentResult judgeSession(
 
         if (!playedIndex.has_value())
         {
+            refResult.kind = refResult.inRecordedTimeframe
+                ? NoteJudgmentKind::Miss
+                : NoteJudgmentKind::Unjudged;
             result.referenceResults[refIndex] = std::move(refResult);
             continue;
         }
 
         const auto& playedNote = playedNotes[static_cast<size_t>(*playedIndex)];
         refResult.attack =
-            evaluateCriterion(getAttackErrorMs(referenceNote, playedNote), settings.attackToleranceMs);
+            evaluateCriterion(getAttackErrorMs(referenceNote, playedNote), settings.attackOkWindowMs);
         refResult.release =
             evaluateCriterion(getReleaseErrorMs(referenceNote, playedNote), settings.releaseToleranceMs);
         refResult.pitch =
             evaluateCriterion(getPitchErrorSemitones(referenceNote, playedNote), settings.pitchToleranceSemitones);
+
+        const bool pitchWrong = !isPass(refResult.pitch);
+        const bool attackOutsideInaccurateWindow = std::abs(*refResult.attack.error) > settings.attackInaccurateWindowMs;
+
+        if (pitchWrong || attackOutsideInaccurateWindow)
+        {
+            refResult.kind = NoteJudgmentKind::Miss;
+            result.referenceResults[refIndex] = std::move(refResult);
+            continue;
+        }
+
+        int secondaryFails = 0;
+        secondaryFails += isExplicitFail(refResult.release) ? 1 : 0;
+        secondaryFails += isExplicitFail(refResult.muting) ? 1 : 0;
+        secondaryFails += isExplicitFail(refResult.articulation) ? 1 : 0;
+
+        refResult.kind = secondaryFails >= 2
+            ? NoteJudgmentKind::Inaccurate
+            : NoteJudgmentKind::Ok;
 
         result.referenceResults[refIndex] = std::move(refResult);
     }
