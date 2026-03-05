@@ -37,6 +37,7 @@ struct DetectionSettings
     double pitchMinHz = 28.0;            // lowest pitch to detect
     double pitchMaxHz = 3000.0;          // highest pitch to detect
     double onsetThreshold = 0.22;        // peak picking threshold passed to aubio
+    double onsetCompensationMs = 10.0;   // subtract from onset timestamp to offset detector latency
     double silenceDb = -40.0;            // below treated as silence
     double minNoteMs = 50.0;             // shortest length of note to detect
     int minMidi = 24; // C1              // min MIDI value to detect

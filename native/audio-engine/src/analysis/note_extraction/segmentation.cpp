@@ -28,6 +28,9 @@ std::vector<PlayedNote> detectNotes(
 
     const float* samples = workingBuffer.getReadPointer(0);
     const int maxStart = workingBuffer.getNumSamples() - hopSize;
+    const int onsetCompensationSamples = std::max(
+        0,
+        static_cast<int>(std::lround(settings.onsetCompensationMs * sampleRate / 1000.0)));
 
     bool inNote = false;
     int noteStartSample = 0;
@@ -107,7 +110,10 @@ std::vector<PlayedNote> detectNotes(
             if (onsetDetected || !isSilent)
             {
                 inNote = true;
-                noteStartSample = frameStart;
+                const int detectedSample = static_cast<int>(aubio_onset_get_last(context.onset));
+                noteStartSample = (onsetDetected && detectedSample >= 0 && detectedSample <= frameStart + hopSize)
+                    ? std::max(0, detectedSample - onsetCompensationSamples)
+                    : frameStart;
                 lowEnergyFrames = 0;
                 pitchSplitFrames = 0;
                 framesSinceLastSplit = 0;
@@ -160,7 +166,10 @@ std::vector<PlayedNote> detectNotes(
             if (canSplitNow && (onsetDetected || pitchTransitionDetected))
             {
                 // Split on explicit onsets; use a short, high-threshold pitch jump fallback.
-                const int splitSample = frameStart;
+                const int detectedSample = static_cast<int>(aubio_onset_get_last(context.onset));
+                const int splitSample = (onsetDetected && detectedSample >= 0 && detectedSample <= frameStart + hopSize)
+                    ? std::max(0, detectedSample - onsetCompensationSamples)
+                    : frameStart;
                 flushCurrentNote(splitSample);
                 inNote = true;
                 noteStartSample = splitSample;
