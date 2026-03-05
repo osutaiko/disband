@@ -55,6 +55,7 @@ function AudioAnalysisPanel({
   const [recordedStartMs, setRecordedStartMs] = useState<Record<string, number | null>>({});
   const [recordedDurationsMs, setRecordedDurationsMs] = useState<Record<string, number | null>>({});
   const [recordingEpoch, setRecordingEpoch] = useState<Record<string, number>>({});
+  const [hoveredReferenceIndex, setHoveredReferenceIndex] = useState<number | null>(null);
 
   const selectionId = selectedTrackId === null
     ? null
@@ -274,6 +275,10 @@ function AudioAnalysisPanel({
                 offsetBase={trackStartPadding}
                 pxPerMs={pxPerMs}
                 status={noteMarkerStatuses[index]}
+                isHovered={hoveredReferenceIndex === index}
+                onHoverChange={(hovered) => {
+                  setHoveredReferenceIndex(hovered ? index : null);
+                }}
                 isCurrentlyPlaying={
                   currentMs >= marker.timestamp
                   && currentMs < marker.timestamp + marker.length
@@ -298,6 +303,8 @@ function AudioAnalysisPanel({
                   referenceNotes={referenceNotesForAnalysis}
                   currentMs={currentMs}
                   timelineStartMs={activeWaveformRange?.startMs ?? fallbackStartMs}
+                  hoveredReferenceIndex={hoveredReferenceIndex}
+                  onHoveredReferenceIndexChange={setHoveredReferenceIndex}
                   onDurationMsChange={handleWaveformDurationChange}
                   onAnalysisResultChange={handleAnalysisResultChange}
                   onAnalysisRunningChange={handleAnalysisRunningChange}

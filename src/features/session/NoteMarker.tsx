@@ -4,6 +4,8 @@ function NoteMarker({
   offsetBase,
   pxPerMs,
   isCurrentlyPlaying,
+  isHovered = false,
+  onHoverChange,
   status = 'unjudged',
 }: {
   timestamp: number;
@@ -11,6 +13,8 @@ function NoteMarker({
   offsetBase: number;
   pxPerMs: number;
   isCurrentlyPlaying: boolean;
+  isHovered?: boolean;
+  onHoverChange?: (hovered: boolean) => void;
   status?: 'ok' | 'inaccurate' | 'miss' | 'unjudged';
 }) {
   const left = timestamp * pxPerMs + offsetBase;
@@ -28,12 +32,15 @@ function NoteMarker({
       className={`
         absolute h-[calc(100%-16px)] border-l-4 rounded-r-full
         ${statusClass}
+        ${isHovered ? 'ring-2 ring-offset-1 ring-ring' : ''}
         ${isCurrentlyPlaying ? 'brightness-125' : ''}
       `}
       style={{
         left: `${left}px`,
         width: `${width}px`,
       }}
+      onMouseEnter={() => onHoverChange?.(true)}
+      onMouseLeave={() => onHoverChange?.(false)}
     />
   );
 }
