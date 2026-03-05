@@ -178,19 +178,14 @@ function SessionPanel() {
                     </AccordionTrigger>
                     <AccordionContent className="h-fit flex flex-col gap-2">
                       <DataCountRow
-                        name="Bad Attack"
-                        description="Notes played with bad attack (start of note) timing"
+                        name="Inaccurate Attack"
+                        description="Notes played with inaccurate attack (start of note) timing"
                         content={`${badAttackCount}×`}
                       />
                       <DataCountRow
                         name="Bad Release"
-                        description="N/A"
+                        description="Notes played with inaccurate release timing, either absolute timestamp (for longer notes) or note duration (for shorter notes)"
                         content={`${badReleaseCount}×`}
-                      />
-                      <DataCountRow
-                        name="Wrong Pitch"
-                        description="N/A"
-                        content={`${wrongPitchCount}×`}
                       />
                       <DataCountRow
                         name="Inconsistent Velocity"
@@ -217,8 +212,22 @@ function SessionPanel() {
                       </div>
                       <p className="text-note-miss">{`${missCount}x`}</p>
                     </AccordionTrigger>
-                    <AccordionContent>
-                      Notes in the original score that were missed.
+                    <AccordionContent className="h-fit flex flex-col gap-2">
+                      <DataCountRow
+                        name="Wrong Pitch"
+                        description="Notes played with the wrong pitch"
+                        content={`${wrongPitchCount}×`}
+                      />
+                      <DataCountRow
+                        name="Bad Attack"
+                        description="Notes played with attack timing way off"
+                        content={`${badAttackCount}×`}
+                      />
+                      <DataCountRow
+                        name="Skipped Notes"
+                        description="Notes undetected in recording"
+                        content={`${playedNotes.length - wrongPitchCount - badAttackCount}×`}
+                      />
                     </AccordionContent>
                   </AccordionItem>
                 </Accordion>
