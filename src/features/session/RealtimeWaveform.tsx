@@ -4,14 +4,7 @@ import type {
   SessionAnalysisResult,
 } from '../../../shared/types';
 
-import { getCssColor, midiToNoteName } from '@/lib/utils';
-
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { getCssColor } from '@/lib/utils';
 
 function RealtimeWaveform({
   audioPath,
@@ -153,18 +146,11 @@ function RealtimeWaveform({
     timelineStartMs,
   ]);
 
-  function formatErrorValue(value: number | null | undefined) {
-    if (value == null || !Number.isFinite(value)) return '-';
-    const rounded = Math.round(value);
-    return `${rounded >= 0 ? '+' : ''}${rounded}ms`;
-  }
-
   return (
     <div className={`relative ${className ?? ''}`}>
       <div ref={containerRef} className="absolute inset-0 z-20 pointer-events-none" />
       {durationMs !== null && durationMs > 0 && analyzedNotes.length > 0 && (
         <div className="pointer-events-none absolute inset-0 overflow-visible">
-          <TooltipProvider>
             {analyzedNotes.map((note, index) => {
               const localStartMs = note.startMs - timelineStartMs;
               const localEndMs = note.endMs - timelineStartMs;
@@ -183,10 +169,9 @@ function RealtimeWaveform({
               const isHovered = referenceIndex !== null && hoveredReferenceIndex === referenceIndex;
 
               return (
-                <Tooltip key={`note-visual-${note.startMs}-${note.endMs}-${index}`}>
-                  <TooltipTrigger asChild>
-                    <div
-                      className={`absolute top-0 bottom-0 z-10 overflow-hidden rounded-r-md pointer-events-auto
+                <div
+                  key={`note-visual-${note.startMs}-${note.endMs}-${index}`}
+                  className={`absolute top-0 bottom-0 z-10 overflow-hidden rounded-r-md pointer-events-auto
                         ${judgment ? 
                           (judgment.kind === 'ok' ? 'bg-rec-note-ok-bg'
                             : judgment.kind === 'inaccurate' ? 'bg-rec-note-inacc-bg'
@@ -197,53 +182,38 @@ function RealtimeWaveform({
                         ${isHovered ? 'ring-2 ring-offset-1 ring-ring' : ''}
                         ${isCurrent ? 'brightness-125' : ''}
                       `}
-                      style={{ left, width }}
-                      onMouseEnter={() => {
-                        if (referenceIndex !== null) {
-                          onHoveredReferenceIndexChange?.(referenceIndex);
-                        }
-                      }}
-                      onMouseLeave={() => {
-                        onHoveredReferenceIndexChange?.(null);
-                      }}
-                    >
-                      {judgment && 
-                        <>
-                          <div
-                            className={`absolute top-0 left-0 w-[12px] h-[12px] ${
-                              judgment.criteria.attack.pass ? 'bg-note-ok' : 
-                              (judgment.kind === 'inaccurate' ? 'bg-note-inacc' : 'bg-note-ok')
-                            } [clip-path:polygon(0_0,100%_0,0_100%)]`}
-                          />
-                          {judgment.kind !== 'miss' &&
+                  style={{ left, width }}
+                  onMouseEnter={() => {
+                    if (referenceIndex !== null) {
+                      onHoveredReferenceIndexChange?.(referenceIndex);
+                    }
+                  }}
+                  onMouseLeave={() => {
+                    onHoveredReferenceIndexChange?.(null);
+                  }}
+                >
+                  {judgment
+                    && (
+                      <>
+                        <div
+                          className={`absolute top-0 left-0 w-[12px] h-[12px] ${
+                            judgment.criteria.attack.pass ? 'bg-note-ok'
+                              : (judgment.kind === 'inaccurate' ? 'bg-note-inacc' : 'bg-note-ok')
+                          } [clip-path:polygon(0_0,100%_0,0_100%)]`}
+                        />
+                        {judgment.kind !== 'miss'
+                          && (
                             <div
                               className={`absolute bottom-0 right-0 w-[12px] h-[12px] ${
                                 judgment.criteria.release.pass ? 'bg-note-ok' : 'bg-note-inacc'
                               } [clip-path:polygon(100%_0,0_100%,100%_100%)]`}
                             />
-                            }
-                        </>
-                      }
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {judgment && judgment.kind !== 'unjudged' ? 
-                      <>
-                        <p className="text-background">{midiToNoteName(note.midi)}</p>
-                        <p className="text-background">Attack: {formatErrorValue(judgment?.criteria.attack.error)}</p>
-                        <p className="text-background">
-                          Release: {formatErrorValue(judgment?.criteria.release.error)}{' '}
-                          (duration {Math.round(note.endMs - note.startMs)} ms)
-                        </p>
-                      </> 
-                      : 
-                      <p className="text-background/50"> No match</p>
-                    }
-                  </TooltipContent>
-                </Tooltip>
+                          )}
+                      </>
+                    )}
+                </div>
               );
             })}
-          </TooltipProvider>
         </div>
       )}
     </div>
