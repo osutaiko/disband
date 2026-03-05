@@ -98,6 +98,14 @@ function AudioAnalysisPanel({
     });
     return statuses;
   }, [noteMarkers.length, sessionAnalysis]);
+  const referenceJudgmentByIndex = useMemo(() => {
+    const byIndex = new Map<number, SessionAnalysisResult['referenceJudgments'][number]>();
+    if (!sessionAnalysis) return byIndex;
+    sessionAnalysis.referenceJudgments.forEach((judgment) => {
+      byIndex.set(judgment.referenceIndex, judgment);
+    });
+    return byIndex;
+  }, [sessionAnalysis]);
 
   const visibleNoteMarkersWithIndex = noteMarkers
     .map((marker, index) => ({ marker, index }))
@@ -275,6 +283,8 @@ function AudioAnalysisPanel({
                 offsetBase={trackStartPadding}
                 pxPerMs={pxPerMs}
                 status={noteMarkerStatuses[index]}
+                midi={marker.midi}
+                judgment={referenceJudgmentByIndex.get(index) ?? null}
                 isHovered={hoveredReferenceIndex === index}
                 onHoverChange={(hovered) => {
                   setHoveredReferenceIndex(hovered ? index : null);
