@@ -1,9 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
-import { getCssColor } from '@/lib/utils';
 import type {
   SessionAnalysisResult,
 } from '../../../shared/types';
+
+import { getCssColor, midiToNoteName } from '@/lib/utils';
+
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 function RealtimeWaveform({
   audioPath,
@@ -141,74 +149,81 @@ function RealtimeWaveform({
     timelineStartMs,
   ]);
 
+  function formatErrorValue(value: number | null | undefined) {
+    if (value == null || !Number.isFinite(value)) return '-';
+    const rounded = Math.round(value);
+    return `${rounded >= 0 ? '+' : ''}${rounded}ms`;
+  }
+
   return (
     <div className={`relative ${className ?? ''}`}>
-      <div ref={containerRef} className="absolute inset-0 z-20" />
+      <div ref={containerRef} className="absolute inset-0 z-20 pointer-events-none" />
       {durationMs !== null && durationMs > 0 && analyzedNotes.length > 0 && (
         <div className="pointer-events-none absolute inset-0 overflow-visible">
-          {analyzedNotes.map((note, index) => {
-            const localStartMs = note.startMs - timelineStartMs;
-            const localEndMs = note.endMs - timelineStartMs;
-            const startRatio = Math.max(0, Math.min(1, localStartMs / durationMs));
-            const endRatio = Math.max(startRatio, Math.min(1, localEndMs / durationMs));
-            const left = `${startRatio * 100}%`;
-            const width = `${Math.max((endRatio - startRatio) * 100, 0.25)}%`;
+          <TooltipProvider>
+            {analyzedNotes.map((note, index) => {
+              const localStartMs = note.startMs - timelineStartMs;
+              const localEndMs = note.endMs - timelineStartMs;
+              const startRatio = Math.max(0, Math.min(1, localStartMs / durationMs));
+              const endRatio = Math.max(startRatio, Math.min(1, localEndMs / durationMs));
+              const left = `${startRatio * 100}%`;
+              const width = `${Math.max((endRatio - startRatio) * 100, 0.25)}%`;
 
-            const isCurrent = currentMs !== undefined
-              && currentMs >= note.startMs
-              && currentMs < note.endMs;
-            const referenceIndex = analysisResult?.playedToReference?.[index] ?? null;
-            const judgment = referenceIndex === null
-              ? null
-              : analysisResult?.referenceJudgments.find((j) => j.referenceIndex === referenceIndex);
+              const isCurrent = currentMs !== undefined
+                && currentMs >= note.startMs
+                && currentMs < note.endMs;
+              const referenceIndex = analysisResult?.playedToReference?.[index] ?? null;
+              const judgment = referenceIndex === null
+                ? null
+                : analysisResult?.referenceJudgments.find((j) => j.referenceIndex === referenceIndex);
 
-            return (
-              <div key={`note-visual-${note.startMs}-${note.endMs}-${index}`}>
-                <div
-                  className={`absolute top-0 bottom-0 z-10 overflow-hidden
-                    ${judgment ? 
-                      (judgment.kind === 'ok' ? 'bg-rec-note-ok-bg'
-                        : judgment.kind === 'inaccurate' ? 'bg-rec-note-inacc-bg'
-                        : judgment.kind === 'miss' ? 'bg-rec-note-miss-bg'
-                        : 'bg-rec-note-unj-bg'
-                      ) : 'bg-rec-note-unj-bg'}
-                    ${judgment && !judgment.criteria.pitch.pass ? 'border-b-6 border-note-miss' : ''}
-                    ${isCurrent ? 'brightness-125' : ''}
-                  `}
-                  style={{ left, width }}
-                >
-                  {judgment && 
-                    <>
-                      <div
-                        className={`absolute top-0 left-0 w-[12px] h-[12px] ${
-                          judgment.criteria.attack.pass ? 'bg-note-ok' : 
-                          (judgment.kind === 'inaccurate' ? 'bg-note-inacc' : 'bg-note-ok')
-                        } [clip-path:polygon(0_0,100%_0,0_100%)]`}
-                      />
-                      {judgment.kind !== 'miss' &&
-                        <div
-                          className={`absolute bottom-0 right-0 w-[8px] h-[8px] ${
-                            judgment.criteria.release.pass ? 'bg-note-ok' : 'bg-note-inacc'
-                          } [clip-path:polygon(100%_0,0_100%,100%_100%)]`}
-                        />
+              return (
+                <Tooltip key={`note-visual-${note.startMs}-${note.endMs}-${index}`}>
+                  <TooltipTrigger asChild>
+                    <div
+                      className={`absolute top-0 bottom-0 z-10 overflow-hidden rounded-r-md pointer-events-auto
+                        ${judgment ? 
+                          (judgment.kind === 'ok' ? 'bg-rec-note-ok-bg'
+                            : judgment.kind === 'inaccurate' ? 'bg-rec-note-inacc-bg'
+                            : judgment.kind === 'miss' ? 'bg-rec-note-miss-bg'
+                            : 'bg-rec-note-unj-bg'
+                          ) : 'bg-rec-note-unj-bg'}
+                        ${judgment && !judgment.criteria.pitch.pass ? 'border-b-6 border-note-miss' : ''}
+                        ${isCurrent ? 'brightness-125' : ''}
+                      `}
+                      style={{ left, width }}
+                    >
+                      {judgment && 
+                        <>
+                          <div
+                            className={`absolute top-0 left-0 w-[12px] h-[12px] ${
+                              judgment.criteria.attack.pass ? 'bg-note-ok' : 
+                              (judgment.kind === 'inaccurate' ? 'bg-note-inacc' : 'bg-note-ok')
+                            } [clip-path:polygon(0_0,100%_0,0_100%)]`}
+                          />
+                          {judgment.kind !== 'miss' &&
+                            <div
+                              className={`absolute bottom-0 right-0 w-[12px] h-[12px] ${
+                                judgment.criteria.release.pass ? 'bg-note-ok' : 'bg-note-inacc'
+                              } [clip-path:polygon(100%_0,0_100%,100%_100%)]`}
+                            />
+                            }
+                        </>
                       }
-                      
-                    </>
-                  }
-                </div>
-
-                {/* Triangle */}
-                {/* <div
-                  className="absolute top-0 -translate-y-full -translate-x-1/2
-                             w-0 h-0
-                             border-l-[5px] border-l-transparent
-                             border-r-[5px] border-r-transparent
-                             border-t-[7px]"
-                  style={{ left, borderTopColor: colorByStatus[status] }}
-                /> */}
-              </div>
-            );
-          })}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-background">{midiToNoteName(note.midi)}</p>
+                    <p className="text-background">Attack: {formatErrorValue(judgment?.criteria.attack.error)}</p>
+                    <p className="text-background">
+                      Release: {formatErrorValue(judgment?.criteria.release.error)}{' '}
+                      (duration {Math.round(note.endMs - note.startMs)} ms)
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </TooltipProvider>
         </div>
       )}
     </div>
