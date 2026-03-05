@@ -1,3 +1,7 @@
+// Judgment error calculation for note pitch.
+//
+// We simply return MIDI value differences (i.e. semitones).
+
 #include "errors.h"
 
 namespace disband::session::note_extraction
