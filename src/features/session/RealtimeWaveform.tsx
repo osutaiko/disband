@@ -213,12 +213,18 @@ function RealtimeWaveform({
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="text-background">{midiToNoteName(note.midi)}</p>
-                    <p className="text-background">Attack: {formatErrorValue(judgment?.criteria.attack.error)}</p>
-                    <p className="text-background">
-                      Release: {formatErrorValue(judgment?.criteria.release.error)}{' '}
-                      (duration {Math.round(note.endMs - note.startMs)} ms)
-                    </p>
+                    {judgment && judgment.kind !== 'unjudged' ? 
+                      <>
+                        <p className="text-background">{midiToNoteName(note.midi)}</p>
+                        <p className="text-background">Attack: {formatErrorValue(judgment?.criteria.attack.error)}</p>
+                        <p className="text-background">
+                          Release: {formatErrorValue(judgment?.criteria.release.error)}{' '}
+                          (duration {Math.round(note.endMs - note.startMs)} ms)
+                        </p>
+                      </> 
+                      : 
+                      <p className="text-background/50"> No match</p>
+                    }
                   </TooltipContent>
                 </Tooltip>
               );
