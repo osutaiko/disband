@@ -1,3 +1,5 @@
+// Note correspondence matching algorithm between reference (score) notes and detected notes.
+
 #include "session.h"
 
 #include <algorithm>

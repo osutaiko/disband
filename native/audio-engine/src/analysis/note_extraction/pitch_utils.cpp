@@ -11,6 +11,10 @@ namespace
 constexpr double kA4Hz = 440.0;
 } // namespace
 
+// m = 69 + 12 log2(f/440)
+// A4 (440 Hz) = 69
+// Bass: E1 A1 D2 G2 = 28 33 38 43
+// Guitar: E2 A2 D3 G3 B3 E4 = 40 45 50 55 59 64
 double frequencyToMidi(double hz)
 {
     if (hz <= 0.0)
