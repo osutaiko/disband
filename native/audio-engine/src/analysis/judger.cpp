@@ -103,6 +103,13 @@ SessionJudgmentResult judgeSession(
             continue;
         }
 
+        if (isExplicitFail(refResult.attack) && !attackOutsideInaccurateWindow)
+        {
+            refResult.kind = NoteJudgmentKind::Inaccurate;
+            result.referenceResults[refIndex] = std::move(refResult);
+            continue;
+        }
+
         int secondaryFails = 0;
         secondaryFails += isExplicitFail(refResult.release) ? 1 : 0;
         secondaryFails += isExplicitFail(refResult.muting) ? 1 : 0;
