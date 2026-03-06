@@ -14,7 +14,6 @@ export function createWindow({
     minWidth: 1280,
     minHeight: 720,
     show: false,
-    autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(dirName, 'preload.mjs'),
       contextIsolation: true,

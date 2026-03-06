@@ -1,5 +1,5 @@
 import {
-  app, BrowserWindow, dialog, ipcMain,
+  app, BrowserWindow, dialog, ipcMain, Menu,
 } from 'electron';
 import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
@@ -28,12 +28,121 @@ let audioSidecar: ReturnType<typeof import('node:child_process').spawn> | null =
 let audioRecordingPath: string | null = null;
 let audioRecordingUrl: string | null = null;
 
+function buildApplicationMenu() {
+  const template: Electron.MenuItemConstructorOptions[] = [
+    {
+      label: 'File',
+      submenu: [
+        {
+          label: 'Import Song',
+          enabled: false,
+        },
+        {
+          label: 'Open Songs Folder',
+          enabled: false,
+        },
+        {
+          label: 'Open Recordings Folder',
+          enabled: false,
+        },
+        {
+          label: 'Reload Library',
+          accelerator: 'CmdOrCtrl+R',
+          enabled: false,
+        },
+        { type: 'separator' },
+        { 
+          label: 'Quit',
+          role: 'quit',
+        },
+      ],
+    },
+    {
+      label: 'Score',
+      submenu: [
+        { 
+          label: 'Toggle Full Screen',
+          role: 'togglefullscreen', 
+        },
+        { type: 'separator' },
+        { 
+          label: 'Zoom In',
+          enabled: false,
+        },
+        { 
+          label: 'Zoom Out',
+          enabled: false,
+        },
+        { 
+          label: 'Reset Zoom',
+          enabled: false,
+        },
+        ...(VITE_DEV_SERVER_URL ? [{ type: 'separator' as const }, { role: 'toggleDevTools' as const }] : []),
+      ],
+    },
+    {
+      label: 'Playback',
+      submenu: [
+        { 
+          label: 'Play/Pause', 
+          enabled: false, 
+        },
+        { 
+          label: 'Stop', 
+          enabled: false,
+        },
+        { 
+          label: 'Go to Song Start', 
+          enabled: false,
+        },
+        { 
+          label: 'Go to Song End', 
+          enabled: false,
+        },
+      ],
+    },
+    {
+      label: 'Recording',
+      submenu: [
+        {
+          label: 'Start/Stop Recording',
+          enabled: false,
+        },
+        { 
+          label: 'Delete Current Take',
+          enabled: false, 
+        },
+        { 
+          label: 'Re-analyze Current Take',
+          enabled: false,
+        },
+      ],
+    },
+    {
+      label: 'Help',
+      submenu: [
+        {
+          label: 'Documentation',
+          enabled: false,
+        },
+        {
+          label: 'About',
+          enabled: false,
+        },
+      ],
+    },
+  ];
+
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+}
+
 app.whenReady().then(() => {
   win = createWindow({
     dirName,
     viteDevServerUrl: VITE_DEV_SERVER_URL,
     appRoot: process.env.APP_ROOT!,
   });
+  buildApplicationMenu();
 });
 
 app.on('window-all-closed', () => {
