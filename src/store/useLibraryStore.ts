@@ -14,6 +14,9 @@ interface Track {
 }
 
 interface LibraryState {
+  songs: string[] | null;
+  setSongs: (songs: string[] | null) => void;
+
   selectedSong: string | null;
   setSelectedSong: (song: string | null) => void;
   clearSelection: () => void;
@@ -28,6 +31,9 @@ interface LibraryState {
 }
 
 const useLibraryStore = create<LibraryState>((set) => ({
+  songs: null,
+  setSongs: (songs) => set({ songs }),
+
   selectedSong: null,
   setSelectedSong: (song) => set({ selectedSong: song }),
   clearSelection: () => set({ selectedSong: null }),

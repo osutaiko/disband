@@ -35,15 +35,7 @@ function buildApplicationMenu() {
       submenu: [
         {
           label: 'Import Song',
-          enabled: false,
-        },
-        {
-          label: 'Open Songs Folder',
           accelerator: 'CmdOrCtrl+O',
-          enabled: false,
-        },
-        {
-          label: 'Open Recordings Folder',
           enabled: false,
         },
         {
@@ -124,7 +116,7 @@ function buildApplicationMenu() {
         },
         { 
           label: 'Re-analyze Current Take',
-          accelerator: 'CmdOrCtrl+R',
+          accelerator: 'CmdOrCtrl+Shift+R',
           enabled: false,
         },
       ],

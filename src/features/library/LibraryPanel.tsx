@@ -1,35 +1,19 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronRight, FolderOpen, ListRestart } from 'lucide-react';
 import useLibraryStore from '@/store/useLibraryStore';
+import { useLibraryActions } from './useLibraryActions';
 
 import { Button } from '@/components/ui/button';
 import Panel from '@/components/ui/Panel';
 
 function LibraryPanel() {
-  const { songsMetadata, selectedSong, setSelectedSong, setSelectedTrackId, } = useLibraryStore();
-  const [songs, setSongs] = useState<string[]>([]);
+  const { songs, songsMetadata, selectedSong, setSelectedSong, setSelectedTrackId } = useLibraryStore();
+  const { fetchSongs, openSongsFolder } = useLibraryActions();
   const [confirming, setConfirming] = useState<string | null>(null);
 
-  const fetchSongs = useCallback(async () => {
-    const fileList = await window.electron.getSongs();
-    setSongs(fileList);
-  }, []);
-
-  const handleOpenFolder = useCallback(async () => {
-    const pendingSong = await window.electron.openSongsFolder();
-    if (!pendingSong) return;
-
-    await fetchSongs();
-    setSelectedSong(pendingSong);
-    setSelectedTrackId(null);
-    setConfirming(null);
-  }, [fetchSongs, setSelectedSong, setSelectedTrackId]);
-
-  const handleRefresh = useCallback(() => fetchSongs(), [fetchSongs]);
-
   useEffect(() => {
-    handleRefresh();
-  }, [handleRefresh]);
+    fetchSongs();
+  }, [fetchSongs]);
 
   return (
     <Panel
@@ -42,24 +26,24 @@ function LibraryPanel() {
         {
           title: 'Import Song File',
           icon: <FolderOpen />,
-          onClick: handleOpenFolder,
+          onClick: openSongsFolder,
         },
         {
           title: 'Refresh Song List',
           icon: <ListRestart />,
-          onClick: handleRefresh,
+          onClick: fetchSongs,
         },
       ]}
     >
       {/* TODO: Search/filter functionality */}
 
       {/* Song Catalog */}
-      {songs.length === 0 ? 
+      {songs?.length === 0 ? 
         <p className="p-2 text-muted-foreground">No songs found. Click the "
           <FolderOpen className="inline-flex" size={12} />" button above to add a Guitar Pro file from disk.
         </p> : 
         <div className="flex flex-col w-72 min-h-full gap-1">
-          {songs.map((song) => {
+          {songs?.map((song) => {
             const meta = songsMetadata[song];
             return (
               <div
