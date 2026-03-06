@@ -39,6 +39,7 @@ function buildApplicationMenu() {
         },
         {
           label: 'Open Songs Folder',
+          accelerator: 'CmdOrCtrl+O',
           enabled: false,
         },
         {
@@ -47,7 +48,6 @@ function buildApplicationMenu() {
         },
         {
           label: 'Reload Library',
-          accelerator: 'CmdOrCtrl+R',
           enabled: false,
         },
         { type: 'separator' },
@@ -58,23 +58,31 @@ function buildApplicationMenu() {
       ],
     },
     {
-      label: 'Score',
+      label: 'View',
       submenu: [
         { 
           label: 'Toggle Full Screen',
+          accelerator: 'F11',
           role: 'togglefullscreen', 
         },
-        { type: 'separator' },
+      ]
+    },
+    {
+      label: 'Score',
+      submenu: [
         { 
           label: 'Zoom In',
+          accelerator: 'CmdOrCtrl+Plus',
           enabled: false,
         },
         { 
           label: 'Zoom Out',
+          accelerator: 'CmdOrCtrl+-',
           enabled: false,
         },
         { 
           label: 'Reset Zoom',
+          accelerator: 'CmdOrCtrl+0',
           enabled: false,
         },
         ...(VITE_DEV_SERVER_URL ? [{ type: 'separator' as const }, { role: 'toggleDevTools' as const }] : []),
@@ -85,10 +93,11 @@ function buildApplicationMenu() {
       submenu: [
         { 
           label: 'Play/Pause', 
+          accelerator: 'Space',
           enabled: false, 
         },
         { 
-          label: 'Stop', 
+          label: 'Stop',
           enabled: false,
         },
         { 
@@ -106,6 +115,7 @@ function buildApplicationMenu() {
       submenu: [
         {
           label: 'Start/Stop Recording',
+          accelerator: 'R',
           enabled: false,
         },
         { 
@@ -114,6 +124,7 @@ function buildApplicationMenu() {
         },
         { 
           label: 'Re-analyze Current Take',
+          accelerator: 'CmdOrCtrl+R',
           enabled: false,
         },
       ],
@@ -122,11 +133,8 @@ function buildApplicationMenu() {
       label: 'Help',
       submenu: [
         {
-          label: 'Documentation',
-          enabled: false,
-        },
-        {
           label: 'About',
+          accelerator: 'F1',
           enabled: false,
         },
       ],
