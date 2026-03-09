@@ -1,5 +1,5 @@
 import {
-  app, BrowserWindow, dialog, ipcMain, Menu,
+  app, BrowserWindow, dialog, ipcMain, Menu, shell,
 } from 'electron';
 import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
@@ -139,7 +139,9 @@ function buildApplicationMenu() {
         {
           label: 'About',
           accelerator: 'F1',
-          enabled: false,
+          click: () => {
+            void shell.openExternal('https://github.com/osutaiko/disband');
+          },
         },
       ],
     },
