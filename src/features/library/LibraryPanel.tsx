@@ -15,6 +15,15 @@ function LibraryPanel() {
     fetchSongs();
   }, [fetchSongs]);
 
+  useEffect(() => {
+    const offImport = window.electron.onImportSongMenu(() => void openSongsFolder());
+    const offReload = window.electron.onReloadLibraryMenu(() => void fetchSongs());
+    return () => {
+      offImport();
+      offReload();
+    };
+  }, [fetchSongs, openSongsFolder]);
+
   return (
     <Panel
       className="flex flex-col overflow-hidden border-b"
