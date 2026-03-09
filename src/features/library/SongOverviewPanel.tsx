@@ -34,12 +34,6 @@ function SongOverviewPanel() {
             <MetaItem label="Format" value={`.${selectedSong.split('.').pop()?.toUpperCase()}` || 'GP'} />
             <MetaItem label="Tempo" value={songsMetadata[selectedSong]?.tempo} />
           </div>
-
-          <p className="text-muted-foreground flex items-center gap-1">
-            <Calendar size={12} />
-            {' '}
-            Revision: 2024-05-12
-          </p>
         </div>
       ) : (
         <h3 className="p-2 text-muted-foreground">No song selected</h3>
