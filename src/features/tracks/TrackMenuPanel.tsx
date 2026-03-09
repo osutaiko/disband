@@ -6,7 +6,6 @@ import useSessionStore from '@/store/useSessionStore';
 
 import Panel from '@/components/ui/Panel';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import {
   RotateCcw, View, Volume2, VolumeX, MicVocal, Guitar, Drum, Piano, Music,
@@ -133,9 +132,9 @@ function TrackMenuPanel() {
         { title: 'Reset Track Settings', icon: <RotateCcw />, onClick: handleReset },
       ]}
     >
-      {!tracks || tracks.length === 0 ? 
-        <p className="p-2 text-muted-foreground">No tracks found.</p> : 
-        <div className="flex flex-col w-72 gap-2 min-h-full">
+      {!tracks || tracks.length === 0 ?
+        <p className="p-2 text-muted-foreground">No tracks found.</p> :
+        <div className="grid w-72 min-h-full border divide-y">
           {tracks?.map((track) => {
             const isSelected = selectedTrackId === track.index;
             const trackSelectionId = getTrackSelectionId(track);
@@ -151,36 +150,28 @@ function TrackMenuPanel() {
             const trackVol = 1;
 
             return (
-              <div key={track.index} className="flex flex-col items-start gap-2 group">
-                <Card className="w-full flex flex-col gap-1 px-3 py-2 rounded-sm shadow-none">
-                  <div className="h-full flex flex-row items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span>{getInstrumentIcon(track)}</span>
-                      <span title={track.name} className={`text-sm truncate ${isSelected ? 'font-bold' : ''}`}>{track.name}</span>
-                    </div>
-                    <Button
-                      title={isSelected ? 'Currently Displayed' : 'Show Track Score'}
-                      size="icon"
-                      variant={`${isSelected ? 'default' : 'secondary'}`}
-                      className="w-6 h-6 flex-0 aspect-square"
-                      onClick={() => setSelectedTrackId(track.index)}
-                    >
-                      <View />
-                    </Button>
+              <div key={track.index} className="grid w-full gap-1 p-3">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <span className="shrink-0">{getInstrumentIcon(track)}</span>
+                    <span title={track.name} className={`block min-w-0 truncate text-sm ${isSelected ? 'font-bold' : ''}`}>{track.name}</span>
                   </div>
-                  <div className="flex flex-row gap-4 items-center">
-                    <div
-                      title="Original Track Volume"
-                      className="flex flex-row w-full gap-2 items-center"
-                    >
-                      {isMuted
-                        ? <VolumeX size={14} className="text-muted-foreground shrink-0" />
-                        : <Volume2 size={14} className="shrink-0" />}
-                      <span className="text-sm">Original</span>
-                    </div>
-                    <div className="flex flex-row gap-1">
+                  <Button
+                    title={isSelected ? 'Currently Displayed' : 'Show Track Score'}
+                    size="icon"
+                    variant={`${isSelected ? 'default' : 'secondary'}`}
+                    className="w-6 h-6 flex-0 aspect-square"
+                    onClick={() => setSelectedTrackId(track.index)}
+                  >
+                    <View />
+                  </Button>
+                </div>
+                <div className="grid gap-1">
+                  <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
+                    <span title="Original Track Volume" className="text-sm">Original</span>
+                    <div className="flex flex-row gap-1 items-center">
                       <Slider
-                        className="w-[100px] mr-3"
+                        className="w-[120px] mr-3"
                         defaultValue={[trackVol * 100]}
                         max={100}
                         step={1}
@@ -207,20 +198,12 @@ function TrackMenuPanel() {
                       </Button>
                     </div>
                   </div>
-                  {hasRecording && 
-                    <div className="flex flex-row gap-4 items-center">
-                      <div
-                        title="Recorded Track Volume"
-                        className="flex flex-row w-full gap-2 items-center"
-                      >
-                        {isRecordedMuted
-                          ? <VolumeX size={14} className="text-muted-foreground shrink-0" />
-                          : <Volume2 size={14} className="shrink-0" />}
-                        <span className="text-sm">Recorded</span>
-                      </div>
-                      <div className="flex flex-row gap-1">
+                  {hasRecording &&
+                    <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
+                      <span title="Recorded Track Volume" className="text-sm">Recorded</span>
+                      <div className="flex flex-row gap-1 items-center">
                         <Slider
-                          className="w-[100px] mr-3"
+                          className="w-[120px] mr-3"
                           value={[recordedTrackVolume * 100]}
                           max={100}
                           step={1}
@@ -248,12 +231,12 @@ function TrackMenuPanel() {
                       </div>
                     </div>
                   }
-                </Card>
+                </div>
               </div>
             );
           })}
         </div>
-      } 
+      }
     </Panel>
   );
 }
