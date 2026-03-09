@@ -127,12 +127,13 @@ function RealtimeWaveform({
       })
       .catch((error) => {
         if (!cancelled) {
+          setDurationMs(null);
           setAnalysisResult(null);
-          console.error('[audio] failed to analyze recording', error);
+          onDurationMsChange?.(null);
           onAnalysisRunningChange?.(false);
+          console.error('[wavesurfer] failed to load recording', error);
         }
       });
-    onAnalysisRunningChange?.(true);
 
     return () => {
       cancelled = true;
