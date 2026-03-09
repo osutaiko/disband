@@ -93,22 +93,24 @@ function buildApplicationMenu() {
     {
       label: 'Playback',
       submenu: [
-        { 
+        {
           label: 'Play/Pause', 
           accelerator: 'Space',
-          enabled: false, 
-        },
-        { 
-          label: 'Stop',
-          enabled: false,
+          click: () => {
+            win?.webContents.send('menu:playback-play-pause');
+          },
         },
         { 
           label: 'Go to Song Start', 
-          enabled: false,
+          click: () => {
+            win?.webContents.send('menu:playback-goto-start');
+          },
         },
         { 
           label: 'Go to Song End', 
-          enabled: false,
+          click: () => {
+            win?.webContents.send('menu:playback-goto-end');
+          },
         },
       ],
     },

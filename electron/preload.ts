@@ -29,6 +29,21 @@ contextBridge.exposeInMainWorld('electron', {
     ipcRenderer.on('menu:score-zoom-reset', listener);
     return () => ipcRenderer.removeListener('menu:score-zoom-reset', listener);
   },
+  onPlaybackPlayPauseMenu: (handler: () => void) => {
+    const listener = () => handler();
+    ipcRenderer.on('menu:playback-play-pause', listener);
+    return () => ipcRenderer.removeListener('menu:playback-play-pause', listener);
+  },
+  onPlaybackGotoStartMenu: (handler: () => void) => {
+    const listener = () => handler();
+    ipcRenderer.on('menu:playback-goto-start', listener);
+    return () => ipcRenderer.removeListener('menu:playback-goto-start', listener);
+  },
+  onPlaybackGotoEndMenu: (handler: () => void) => {
+    const listener = () => handler();
+    ipcRenderer.on('menu:playback-goto-end', listener);
+    return () => ipcRenderer.removeListener('menu:playback-goto-end', listener);
+  },
 });
 
 contextBridge.exposeInMainWorld('audio', {

@@ -1,13 +1,33 @@
 import { useEffect } from 'react';
 import { model } from '@coderline/alphatab';
-import { handlePlayPause } from './playback';
+import {
+  handleGotoEnd, handleGotoStart, handlePlayPause,
+} from './playback';
 
 import useLibraryStore from '@/store/useLibraryStore';
 import useEngineStore from '@/store/useEngineStore';
 
 function PlaybackHotkeys() {
   const { selectedTrackId } = useLibraryStore();
-  const { api } = useEngineStore();
+  const { api, endMs } = useEngineStore();
+
+  useEffect(() => {
+    const offPlayPause = window.electron.onPlaybackPlayPauseMenu(() => {
+      handlePlayPause(api);
+    });
+    const offGotoStart = window.electron.onPlaybackGotoStartMenu(() => {
+      handleGotoStart(api);
+    });
+    const offGotoEnd = window.electron.onPlaybackGotoEndMenu(() => {
+      handleGotoEnd(api, endMs);
+    });
+
+    return () => {
+      offPlayPause();
+      offGotoStart();
+      offGotoEnd();
+    };
+  }, [api, endMs]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
