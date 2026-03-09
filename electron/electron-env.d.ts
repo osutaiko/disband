@@ -31,6 +31,9 @@ export interface IElectronAPI {
   onScoreZoomInMenu: (handler: () => void) => () => void;
   onScoreZoomOutMenu: (handler: () => void) => () => void;
   onScoreZoomResetMenu: (handler: () => void) => () => void;
+  onPlaybackPlayPauseMenu: (handler: () => void) => () => void;
+  onPlaybackGotoStartMenu: (handler: () => void) => () => void;
+  onPlaybackGotoEndMenu: (handler: () => void) => () => void;
   startAudioCapture: () => Promise<{
     ok: boolean; sidecarFound?: boolean; port?: number; alreadyRunning?: boolean
   }>;
