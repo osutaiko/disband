@@ -36,11 +36,15 @@ function buildApplicationMenu() {
         {
           label: 'Import Song',
           accelerator: 'CmdOrCtrl+O',
-          enabled: false,
+          click: () => {
+            win?.webContents.send('menu:import-song');
+          },
         },
         {
           label: 'Reload Library',
-          enabled: false,
+          click: () => {
+            win?.webContents.send('menu:reload-library');
+          },
         },
         { type: 'separator' },
         { 
