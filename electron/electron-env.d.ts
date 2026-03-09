@@ -28,6 +28,9 @@ export interface IElectronAPI {
   getSongData: (filename: string) => Promise<Uint8Array>;
   onImportSongMenu: (handler: () => void) => () => void;
   onReloadLibraryMenu: (handler: () => void) => () => void;
+  onScoreZoomInMenu: (handler: () => void) => () => void;
+  onScoreZoomOutMenu: (handler: () => void) => () => void;
+  onScoreZoomResetMenu: (handler: () => void) => () => void;
   startAudioCapture: () => Promise<{
     ok: boolean; sidecarFound?: boolean; port?: number; alreadyRunning?: boolean
   }>;

@@ -69,17 +69,23 @@ function buildApplicationMenu() {
         { 
           label: 'Zoom In',
           accelerator: 'CmdOrCtrl+Plus',
-          enabled: false,
+          click: () => {
+            win?.webContents.send('menu:score-zoom-in');
+          },
         },
         { 
           label: 'Zoom Out',
           accelerator: 'CmdOrCtrl+-',
-          enabled: false,
+          click: () => {
+            win?.webContents.send('menu:score-zoom-out');
+          },
         },
         { 
           label: 'Reset Zoom',
           accelerator: 'CmdOrCtrl+0',
-          enabled: false,
+          click: () => {
+            win?.webContents.send('menu:score-zoom-reset');
+          },
         },
         ...(VITE_DEV_SERVER_URL ? [{ type: 'separator' as const }, { role: 'toggleDevTools' as const }] : []),
       ],
