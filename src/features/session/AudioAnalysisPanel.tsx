@@ -170,6 +170,62 @@ function AudioAnalysisPanel({
     void stopRecordingForSelection(selectionId);
   }, [selectionId, stopRecordingForSelection]);
 
+  const handleToggleRecording = useCallback(() => {
+    if (!isRecording) {
+      if (!selectionId) return;
+
+      recordStartMsRef.current[selectionId] = currentMs;
+      setRecordedStartMs((prev) => ({ ...prev, [selectionId]: currentMs }));
+      setRecordedDurationsMs((prev) => ({ ...prev, [selectionId]: 0 }));
+      setRecordingState((prev) => ({ ...prev, [selectionId]: true }));
+      setRecordedPaths((prev) => ({ ...prev, [selectionId]: null }));
+      setRecordingEpoch((prev) => ({
+        ...prev,
+        [selectionId]: (prev[selectionId] ?? 0) + 1,
+      }));
+
+      if (!isPlaying) {
+        handlePlayPause(api);
+      }
+
+      window.audio.start().catch((error) => {
+        console.error('[audio] failed to start recording', error);
+      });
+      return;
+    }
+
+    stopRecording();
+  }, [api, currentMs, isPlaying, isRecording, selectionId, setRecordedPaths, stopRecording]);
+
+  const handleDeleteTake = useCallback(() => {
+    if (isRecording) {
+      stopRecording();
+    }
+
+    if (!selectionId) return;
+    recordStartMsRef.current[selectionId] = null;
+    setRecordedStartMs((prev) => ({ ...prev, [selectionId]: null }));
+    setRecordedDurationsMs((prev) => ({ ...prev, [selectionId]: null }));
+    setRecordedPaths((prev) => ({ ...prev, [selectionId]: null }));
+    setSessionAnalysisBySelection((prev) => ({ ...prev, [selectionId]: null }));
+    setAnalysisInProgressBySelection((prev) => ({ ...prev, [selectionId]: false }));
+  }, [
+    isRecording,
+    selectionId,
+    setAnalysisInProgressBySelection,
+    setRecordedPaths,
+    setSessionAnalysisBySelection,
+    stopRecording,
+  ]);
+
+  const handleReanalyzeTake = useCallback(() => {
+    if (!selectionId || !recordedPath || isRecording) return;
+    setRecordingEpoch((prev) => ({
+      ...prev,
+      [selectionId]: (prev[selectionId] ?? 0) + 1,
+    }));
+  }, [isRecording, recordedPath, selectionId]);
+
   const handleWaveformDurationChange = useCallback((durationMs: number | null) => {
     if (!selectionId || isRecording) return;
     setRecordedDurationsMs((prev) => ({ ...prev, [selectionId]: durationMs }));
@@ -247,6 +303,18 @@ function AudioAnalysisPanel({
 
     previousSelectionIdRef.current = selectionId;
   }, [recordingState, selectionId, stopRecordingForSelection]);
+
+  useEffect(() => {
+    const offToggle = window.electron.onRecordingToggleMenu(() => handleToggleRecording());
+    const offDelete = window.electron.onRecordingDeleteTakeMenu(() => handleDeleteTake());
+    const offReanalyze = window.electron.onRecordingReanalyzeMenu(() => handleReanalyzeTake());
+
+    return () => {
+      offToggle();
+      offDelete();
+      offReanalyze();
+    };
+  }, [handleDeleteTake, handleReanalyzeTake, handleToggleRecording]);
 
   if (!api || selectedTrackId === null) return null;
 
@@ -331,51 +399,14 @@ function AudioAnalysisPanel({
           variant={isRecording ? 'destructive' : 'secondary'}
           size="icon"
           className="rounded-full w-7 h-7 flex-0 aspect-square"
-          onClick={() => {
-            if (!isRecording) {
-              if (!selectionId) return;
-
-              recordStartMsRef.current[selectionId] = currentMs;
-              setRecordedStartMs((prev) => ({ ...prev, [selectionId]: currentMs }));
-              setRecordedDurationsMs((prev) => ({ ...prev, [selectionId]: 0 }));
-              setRecordingState((prev) => ({ ...prev, [selectionId]: true }));
-              setRecordedPaths((prev) => ({ ...prev, [selectionId]: null }));
-              setRecordingEpoch((prev) => ({
-                ...prev,
-                [selectionId]: (prev[selectionId] ?? 0) + 1,
-              }));
-
-              if (!isPlaying) {
-                handlePlayPause(api);
-              }
-
-              window.audio.start().catch((error) => {
-                console.error('[audio] failed to start recording', error);
-              });
-              return;
-            }
-
-            stopRecording();
-          }}
+          onClick={handleToggleRecording}
         >
           <Circle stroke={isRecording ? 'white' : 'red'} />
         </Button>
         <Button // TODO: confirmation dialog
           size="icon"
           className="rounded-full w-7 h-7 flex-0 aspect-square"
-          onClick={() => {
-            if (isRecording) {
-              stopRecording();
-            }
-
-            if (!selectionId) return;
-            recordStartMsRef.current[selectionId] = null;
-            setRecordedStartMs((prev) => ({ ...prev, [selectionId]: null }));
-            setRecordedDurationsMs((prev) => ({ ...prev, [selectionId]: null }));
-            setRecordedPaths((prev) => ({ ...prev, [selectionId]: null }));
-            setSessionAnalysisBySelection((prev) => ({ ...prev, [selectionId]: null }));
-            setAnalysisInProgressBySelection((prev) => ({ ...prev, [selectionId]: false }));
-          }}
+          onClick={handleDeleteTake}
         >
           <Trash className="text-white" />
         </Button>

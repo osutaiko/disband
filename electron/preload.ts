@@ -44,6 +44,21 @@ contextBridge.exposeInMainWorld('electron', {
     ipcRenderer.on('menu:playback-goto-end', listener);
     return () => ipcRenderer.removeListener('menu:playback-goto-end', listener);
   },
+  onRecordingToggleMenu: (handler: () => void) => {
+    const listener = () => handler();
+    ipcRenderer.on('menu:recording-toggle', listener);
+    return () => ipcRenderer.removeListener('menu:recording-toggle', listener);
+  },
+  onRecordingDeleteTakeMenu: (handler: () => void) => {
+    const listener = () => handler();
+    ipcRenderer.on('menu:recording-delete-take', listener);
+    return () => ipcRenderer.removeListener('menu:recording-delete-take', listener);
+  },
+  onRecordingReanalyzeMenu: (handler: () => void) => {
+    const listener = () => handler();
+    ipcRenderer.on('menu:recording-reanalyze', listener);
+    return () => ipcRenderer.removeListener('menu:recording-reanalyze', listener);
+  },
 });
 
 contextBridge.exposeInMainWorld('audio', {
