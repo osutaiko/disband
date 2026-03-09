@@ -8,7 +8,7 @@ import Panel from '@/components/ui/Panel';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import {
-  RotateCcw, View, Volume2, VolumeX, MicVocal, Guitar, Drum, Piano, Music,
+  RotateCcw, View, MicVocal, Guitar, Drum, Piano, Music,
 } from 'lucide-react';
 
 type TrackLayer = 'original' | 'recorded';
@@ -150,7 +150,7 @@ function TrackMenuPanel() {
             const trackVol = 1;
 
             return (
-              <div key={track.index} className="grid w-full gap-1 p-3">
+              <div key={track.index} className="grid w-full gap-1 p-2">
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
                   <div className="flex min-w-0 items-center gap-2">
                     <span className="shrink-0">{getInstrumentIcon(track)}</span>
@@ -168,10 +168,10 @@ function TrackMenuPanel() {
                 </div>
                 <div className="grid gap-1">
                   <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
-                    <span title="Original Track Volume" className="text-sm">Original</span>
+                    <span title="Original Track Volume" className="text-sm text-end text-muted-foreground">Original</span>
                     <div className="flex flex-row gap-1 items-center">
                       <Slider
-                        className="w-[120px] mr-3"
+                        className="w-[100px] mr-3"
                         defaultValue={[trackVol * 100]}
                         max={100}
                         step={1}
@@ -200,10 +200,10 @@ function TrackMenuPanel() {
                   </div>
                   {hasRecording &&
                     <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
-                      <span title="Recorded Track Volume" className="text-sm">Recorded</span>
+                      <span title="Recorded Track Volume" className="text-sm text-end text-note-ok">Recorded</span>
                       <div className="flex flex-row gap-1 items-center">
                         <Slider
-                          className="w-[120px] mr-3"
+                          className="w-[100px] mr-3"
                           value={[recordedTrackVolume * 100]}
                           max={100}
                           step={1}
