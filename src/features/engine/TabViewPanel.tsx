@@ -16,28 +16,55 @@ function TabViewPanel({
   containerRef: RefObject<HTMLDivElement> | null,
   isTabLoading: boolean,
 }) {
-  const ZOOM_MIN = 0.25;
-  const ZOOM_MAX = 2.0;
+  const ZOOM_MIN = 25;
+  const ZOOM_MAX = 200;
+  const ZOOM_PRESETS = [25, 50, 75, 100, 125, 150, 175, 200];
 
   const { selectedSong, selectedTrackId } = useLibraryStore();
   const { api } = useEngineStore();
-  const [zoom, setZoom] = useState<number>(1.0);
+  const [zoom, setZoom] = useState<number>(100);
   const scrollAreaRef = useRef<HTMLDivElement | null>(null);
 
-  const applyZoom = useCallback((newZoom: number) => {
+  const applyZoom = useCallback((newZoomPercent: number) => {
     if (!api) return;
 
-    const clampedZoom = Math.min(Math.max(newZoom, ZOOM_MIN), ZOOM_MAX);
+    const clampedZoom = Math.min(Math.max(newZoomPercent, ZOOM_MIN), ZOOM_MAX);
     setZoom(clampedZoom);
 
-    api.settings.display.scale = clampedZoom;
+    api.settings.display.scale = clampedZoom / 100;
     api.updateSettings();
     api.render();
   }, [api]);
 
+  const applyZoomPreset = useCallback((percent: number) => {
+    applyZoom(percent);
+  }, [applyZoom]);
+
+  const zoomInStep = useCallback(() => {
+    const next = ZOOM_PRESETS.find((step) => step > zoom);
+    if (next !== undefined) applyZoomPreset(next);
+  }, [applyZoomPreset, zoom]);
+
+  const zoomOutStep = useCallback(() => {
+    const prev = [...ZOOM_PRESETS].reverse().find((step) => step < zoom);
+    if (prev !== undefined) applyZoomPreset(prev);
+  }, [applyZoomPreset, zoom]);
+
   useEffect(() => {
-    setZoom(1.0);
+    setZoom(100);
   }, [selectedSong, selectedTrackId]);
+
+  useEffect(() => {
+    const offZoomIn = window.electron.onScoreZoomInMenu(zoomInStep);
+    const offZoomOut = window.electron.onScoreZoomOutMenu(zoomOutStep);
+    const offZoomReset = window.electron.onScoreZoomResetMenu(() => applyZoomPreset(100));
+
+    return () => {
+      offZoomIn();
+      offZoomOut();
+      offZoomReset();
+    };
+  }, [applyZoomPreset, zoomInStep, zoomOutStep]);
 
   // Auto scrolling during playback
   useEffect(() => {
@@ -58,12 +85,12 @@ function TabViewPanel({
     const handleWheel = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
-        const delta = e.deltaY > 0 ? -0.1 : 0.1;
+        const delta = e.deltaY > 0 ? -5 : 5;
 
         setZoom((prev) => {
           const next = prev + delta;
           applyZoom(next);
-          return next;
+          return Math.min(Math.max(next, ZOOM_MIN), ZOOM_MAX);
         });
       }
     };
@@ -109,16 +136,16 @@ function TabViewPanel({
           <ZoomOut size={16} className="text-muted-foreground" />
           <Slider
             className="w-32"
-            value={[zoom * 100]}
-            min={ZOOM_MIN * 100}
-            max={ZOOM_MAX * 100}
+            value={[zoom]}
+            min={ZOOM_MIN}
+            max={ZOOM_MAX}
             step={5}
-            onValueChange={(vals) => setZoom(vals[0] / 100)}
-            onValueCommit={(vals) => applyZoom(vals[0] / 100)}
+            onValueChange={(vals) => setZoom(vals[0])}
+            onValueCommit={(vals) => applyZoom(vals[0])}
           />
           <ZoomIn size={16} className="text-muted-foreground" />
           <span className="text-xs font-mono min-w-8 text-end">
-            {Math.round(zoom * 100)}
+            {Math.round(zoom)}
             %
           </span>
         </div>

@@ -14,6 +14,21 @@ contextBridge.exposeInMainWorld('electron', {
     ipcRenderer.on('menu:reload-library', listener);
     return () => ipcRenderer.removeListener('menu:reload-library', listener);
   },
+  onScoreZoomInMenu: (handler: () => void) => {
+    const listener = () => handler();
+    ipcRenderer.on('menu:score-zoom-in', listener);
+    return () => ipcRenderer.removeListener('menu:score-zoom-in', listener);
+  },
+  onScoreZoomOutMenu: (handler: () => void) => {
+    const listener = () => handler();
+    ipcRenderer.on('menu:score-zoom-out', listener);
+    return () => ipcRenderer.removeListener('menu:score-zoom-out', listener);
+  },
+  onScoreZoomResetMenu: (handler: () => void) => {
+    const listener = () => handler();
+    ipcRenderer.on('menu:score-zoom-reset', listener);
+    return () => ipcRenderer.removeListener('menu:score-zoom-reset', listener);
+  },
 });
 
 contextBridge.exposeInMainWorld('audio', {
