@@ -120,16 +120,22 @@ function buildApplicationMenu() {
         {
           label: 'Start/Stop Recording',
           accelerator: 'R',
-          enabled: false,
+          click: () => {
+            win?.webContents.send('menu:recording-toggle');
+          },
         },
         { 
           label: 'Delete Current Take',
-          enabled: false, 
+          click: () => {
+            win?.webContents.send('menu:recording-delete-take');
+          }, 
         },
         { 
           label: 'Re-analyze Current Take',
           accelerator: 'CmdOrCtrl+Shift+R',
-          enabled: false,
+          click: () => {
+            win?.webContents.send('menu:recording-reanalyze');
+          },
         },
       ],
     },

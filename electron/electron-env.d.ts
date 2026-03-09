@@ -34,6 +34,9 @@ export interface IElectronAPI {
   onPlaybackPlayPauseMenu: (handler: () => void) => () => void;
   onPlaybackGotoStartMenu: (handler: () => void) => () => void;
   onPlaybackGotoEndMenu: (handler: () => void) => () => void;
+  onRecordingToggleMenu: (handler: () => void) => () => void;
+  onRecordingDeleteTakeMenu: (handler: () => void) => () => void;
+  onRecordingReanalyzeMenu: (handler: () => void) => () => void;
   startAudioCapture: () => Promise<{
     ok: boolean; sidecarFound?: boolean; port?: number; alreadyRunning?: boolean
   }>;
