@@ -1,21 +1,19 @@
 import {
-  RefObject, useCallback, useEffect, useMemo, useRef, useState,
+  RefObject, useCallback, useEffect,
 } from 'react';
 
 import { Circle, Trash } from 'lucide-react';
 import useAudioAnalysisMarkers from './useAudioAnalysisMarkers';
-
-import { handlePlayPause } from '../engine/playback';
+import useRecordingTake from './useRecordingTake';
+import useSessionAnalysisView from './useSessionAnalysisView';
 
 import useLibraryStore from '@/store/useLibraryStore';
 import useEngineStore from '@/store/useEngineStore';
 import useConfigStore from '@/store/useConfigStore';
-import useSessionStore from '@/store/useSessionStore';
 
 import BarMarker from './BarMarker';
 import NoteMarker from './NoteMarker';
 import RealtimeWaveform from './RealtimeWaveform';
-import type { NoteStatus, SessionAnalysisResult } from '../../../shared/types';
 
 import { Button } from '@/components/ui/button';
 
@@ -40,28 +38,32 @@ function AudioAnalysisPanel({
 }) {
   const { selectedSong, selectedTrackId } = useLibraryStore();
   const { api, isPlaying, currentMs, endMs, setCurrentMs } = useEngineStore();
-  const { recordedPaths, setRecordedPaths, sessionAnalysisBySelection, setSessionAnalysisBySelection, setAnalysisInProgressBySelection } = useSessionStore();
   const { pxPerMs } = useConfigStore();
   const {
     noteMarkers = [],
     barMarkers = [],
   } = useAudioAnalysisMarkers(api, selectedTrackId);
 
-  const recordStartMsRef = useRef<Record<string, number | null>>({});
-  const wasPlayingRef = useRef(isPlaying);
-  const previousSelectionIdRef = useRef<string | null>(null);
-
-  const [recordingState, setRecordingState] = useState<Record<string, boolean>>({});
-  const [recordedStartMs, setRecordedStartMs] = useState<Record<string, number | null>>({});
-  const [recordedDurationsMs, setRecordedDurationsMs] = useState<Record<string, number | null>>({});
-  const [recordingEpoch, setRecordingEpoch] = useState<Record<string, number>>({});
-  const [hoveredReferenceIndex, setHoveredReferenceIndex] = useState<number | null>(null);
-
   const selectionId = selectedTrackId === null
     ? null
     : `${selectedSong ?? 'no-song'}::${selectedTrackId}`;
-  const isRecording = selectionId ? recordingState[selectionId] ?? false : false;
-  const recordedPath = selectionId ? recordedPaths[selectionId] ?? null : null;
+
+  const {
+    isRecording,
+    recordedPath,
+    currentRecordStartMs,
+    persistedRecordStartMs,
+    persistedRecordDurationMs,
+    recordingEpoch,
+    handleToggleRecording,
+    handleDeleteTake,
+    handleWaveformDurationChange,
+  } = useRecordingTake({
+    api,
+    isPlaying,
+    currentMs,
+    selectionId,
+  });
 
   const playheadOffset = 200;
 
@@ -81,45 +83,21 @@ function AudioAnalysisPanel({
   const visibleBarMarkers = barMarkers.slice(1).filter(
     (m) => m.timestamp >= windowStart && m.timestamp <= windowEnd,
   );
-
-  const sessionAnalysis = selectionId ? (sessionAnalysisBySelection[selectionId] ?? null) : null;
-
-  const noteMarkerStatuses = useMemo(() => {
-    const statuses: NoteStatus[] = new Array(noteMarkers.length).fill('unjudged');
-    if (!sessionAnalysis) return statuses;
-
-    sessionAnalysis.referenceJudgments.forEach((judgment) => {
-      if (
-        judgment.referenceIndex >= 0
-        && judgment.referenceIndex < statuses.length
-      ) {
-        statuses[judgment.referenceIndex] = judgment.kind ?? 'unjudged';
-      }
-    });
-    return statuses;
-  }, [noteMarkers.length, sessionAnalysis]);
-  const referenceJudgmentByIndex = useMemo(() => {
-    const byIndex = new Map<number, SessionAnalysisResult['referenceJudgments'][number]>();
-    if (!sessionAnalysis) return byIndex;
-    sessionAnalysis.referenceJudgments.forEach((judgment) => {
-      byIndex.set(judgment.referenceIndex, judgment);
-    });
-    return byIndex;
-  }, [sessionAnalysis]);
-
-  const visibleNoteMarkersWithIndex = noteMarkers
-    .map((marker, index) => ({ marker, index }))
-    .filter(({ marker }) => (
-      marker.timestamp + marker.length >= windowStart
-      && marker.timestamp <= windowEnd
-    ));
-
-  const referenceNotesForAnalysis = useMemo(() => noteMarkers.map((note, index) => ({
-    id: index,
-    timestamp: note.timestamp,
-    length: note.length,
-    midi: note.midi,
-  })), [noteMarkers]);
+  const {
+    hoveredReferenceIndex,
+    setHoveredReferenceIndex,
+    noteMarkerStatuses,
+    referenceJudgmentByIndex,
+    visibleNoteMarkersWithIndex,
+    referenceNotesForAnalysis,
+    handleAnalysisResultChange,
+    handleAnalysisRunningChange,
+  } = useSessionAnalysisView({
+    selectionId,
+    noteMarkers,
+    windowStart,
+    windowEnd,
+  });
 
   const quarterBarTimestamps = barMarkers
     .filter((m) => m.variant === 'whole' || m.variant === 'quarter')
@@ -148,110 +126,8 @@ function AudioAnalysisPanel({
     return () => cancelAnimationFrame(rafId);
   }, [currentMsRef, setCurrentMs]);
 
-  const stopRecordingForSelection = useCallback(async (id: string) => {
-    recordStartMsRef.current[id] = null;
-    setRecordingState((prev) => ({ ...prev, [id]: false }));
-    try {
-      const result = await window.audio.stop();
-      if (result?.path) {
-        setRecordedPaths((prev) => ({ ...prev, [id]: result.path ?? null }));
-      }
-    } catch (error) {
-      console.error('[audio] failed to stop recording', error);
-    }
-
-    if (api?.playerState === 1) {
-      api.pause();
-    }
-  }, [api, setRecordedPaths]);
-
-  const stopRecording = useCallback(() => {
-    if (!selectionId) return;
-    void stopRecordingForSelection(selectionId);
-  }, [selectionId, stopRecordingForSelection]);
-
-  const handleToggleRecording = useCallback(() => {
-    if (!isRecording) {
-      if (!selectionId) return;
-
-      recordStartMsRef.current[selectionId] = currentMs;
-      setRecordedStartMs((prev) => ({ ...prev, [selectionId]: currentMs }));
-      setRecordedDurationsMs((prev) => ({ ...prev, [selectionId]: 0 }));
-      setRecordingState((prev) => ({ ...prev, [selectionId]: true }));
-      setRecordedPaths((prev) => ({ ...prev, [selectionId]: null }));
-      setRecordingEpoch((prev) => ({
-        ...prev,
-        [selectionId]: (prev[selectionId] ?? 0) + 1,
-      }));
-
-      if (!isPlaying) {
-        handlePlayPause(api);
-      }
-
-      window.audio.start().catch((error) => {
-        console.error('[audio] failed to start recording', error);
-      });
-      return;
-    }
-
-    stopRecording();
-  }, [api, currentMs, isPlaying, isRecording, selectionId, setRecordedPaths, stopRecording]);
-
-  const handleDeleteTake = useCallback(() => {
-    if (isRecording) {
-      stopRecording();
-    }
-
-    if (!selectionId) return;
-    recordStartMsRef.current[selectionId] = null;
-    setRecordedStartMs((prev) => ({ ...prev, [selectionId]: null }));
-    setRecordedDurationsMs((prev) => ({ ...prev, [selectionId]: null }));
-    setRecordedPaths((prev) => ({ ...prev, [selectionId]: null }));
-    setSessionAnalysisBySelection((prev) => ({ ...prev, [selectionId]: null }));
-    setAnalysisInProgressBySelection((prev) => ({ ...prev, [selectionId]: false }));
-  }, [
-    isRecording,
-    selectionId,
-    setAnalysisInProgressBySelection,
-    setRecordedPaths,
-    setSessionAnalysisBySelection,
-    stopRecording,
-  ]);
-
-  const handleReanalyzeTake = useCallback(() => {
-    if (!selectionId || !recordedPath || isRecording) return;
-    setRecordingEpoch((prev) => ({
-      ...prev,
-      [selectionId]: (prev[selectionId] ?? 0) + 1,
-    }));
-  }, [isRecording, recordedPath, selectionId]);
-
-  const handleWaveformDurationChange = useCallback((durationMs: number | null) => {
-    if (!selectionId || isRecording) return;
-    setRecordedDurationsMs((prev) => ({ ...prev, [selectionId]: durationMs }));
-  }, [isRecording, selectionId]);
-
-  const handleAnalysisResultChange = useCallback((result: SessionAnalysisResult | null) => {
-    if (!selectionId) return;
-    setSessionAnalysisBySelection((prev) => ({ ...prev, [selectionId]: result }));
-  }, [selectionId, setSessionAnalysisBySelection]);
-
-  const handleAnalysisRunningChange = useCallback((isRunning: boolean) => {
-    if (!selectionId) return;
-    setAnalysisInProgressBySelection((prev) => ({ ...prev, [selectionId]: isRunning }));
-  }, [selectionId, setAnalysisInProgressBySelection]);
-
   let activeWaveformRange: { startMs: number; endMs: number } | null = null;
 
-  const currentRecordStartMs = selectionId
-    ? recordStartMsRef.current[selectionId] ?? null
-    : null;
-  const persistedRecordStartMs = selectionId
-    ? recordedStartMs[selectionId] ?? null
-    : null;
-  const persistedRecordDurationMs = selectionId
-    ? recordedDurationsMs[selectionId] ?? null
-    : null;
   const fixtureStartMs = recordedPath
     ? parseFixtureStartFromPath(recordedPath)?.startMs ?? null
     : null;
@@ -282,39 +158,6 @@ function AudioAnalysisPanel({
     : shouldRenderWaveform
       ? 1
       : 0;
-
-  useEffect(() => {
-    const playbackJustStopped = wasPlayingRef.current && !isPlaying;
-    if (isRecording && playbackJustStopped) {
-      stopRecording();
-    }
-    wasPlayingRef.current = isPlaying;
-  }, [isPlaying, isRecording, stopRecording]);
-
-  useEffect(() => {
-    if (!selectionId) return;
-
-    const previousSelectionId = previousSelectionIdRef.current;
-    if (previousSelectionId && previousSelectionId !== selectionId) {
-      if (recordingState[previousSelectionId]) {
-        void stopRecordingForSelection(previousSelectionId);
-      }
-    }
-
-    previousSelectionIdRef.current = selectionId;
-  }, [recordingState, selectionId, stopRecordingForSelection]);
-
-  useEffect(() => {
-    const offToggle = window.electron.onRecordingToggleMenu(() => handleToggleRecording());
-    const offDelete = window.electron.onRecordingDeleteTakeMenu(() => handleDeleteTake());
-    const offReanalyze = window.electron.onRecordingReanalyzeMenu(() => handleReanalyzeTake());
-
-    return () => {
-      offToggle();
-      offDelete();
-      offReanalyze();
-    };
-  }, [handleDeleteTake, handleReanalyzeTake, handleToggleRecording]);
 
   if (!api || selectedTrackId === null) return null;
 
@@ -376,7 +219,7 @@ function AudioAnalysisPanel({
             >
               {shouldRenderWaveform && (
                 <RealtimeWaveform
-                  key={`${selectionId ?? 'none'}-${recordingEpoch[selectionId ?? ''] ?? 0}`}
+                  key={`${selectionId ?? 'none'}-${recordingEpoch}`}
                   audioPath={recordedPath}
                   referenceNotes={referenceNotesForAnalysis}
                   currentMs={currentMs}
