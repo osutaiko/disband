@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu } from 'electron';
 import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -54,10 +54,12 @@ app.whenReady().then(() => {
     viteDevServerUrl: VITE_DEV_SERVER_URL,
     appRoot: process.env.APP_ROOT!,
   });
-  buildApplicationMenu({
-    win,
-    onOpenSettings: openSettingsWindow,
-  });
+  Menu.setApplicationMenu(
+    buildApplicationMenu({
+      win,
+      onOpenSettings: openSettingsWindow,
+    })
+  );
 });
 
 app.on('window-all-closed', () => {

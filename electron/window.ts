@@ -66,6 +66,7 @@ export function createSettingsWindow({
       preload: path.join(dirName, 'preload.mjs'),
     },
   });
+  win.setMenu(null);
 
   win.once('ready-to-show', () => win.show());
   loadRendererWindow(win, viteDevServerUrl, appRoot, 'window=settings');
