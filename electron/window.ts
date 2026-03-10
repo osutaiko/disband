@@ -54,10 +54,9 @@ export function createSettingsWindow({
   parent?: BrowserWindow;
 }): BrowserWindow {
   const win = new BrowserWindow({
-    width: 900,
-    height: 680,
-    minWidth: 760,
-    minHeight: 560,
+    width: 600,
+    height: 400,
+    resizable: false,
     parent,
     modal: Boolean(parent),
     show: false,

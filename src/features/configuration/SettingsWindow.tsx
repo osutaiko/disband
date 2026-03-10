@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
-
 import useConfigStore from '@/store/useConfigStore';
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import {
@@ -12,84 +11,82 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+function FormItem({
+  htmlFor,
+  label,
+  description,
+  children,
+}: {
+  htmlFor: string;
+  label: React.ReactNode;
+  description?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-row justify-between items-center gap-6 w-full">
+      <div>
+        <Label htmlFor={htmlFor}>{label}</Label>
+        {description &&
+          <p className="text-muted-foreground">{description}</p>
+        }
+      </div>
+      {children}
+    </div>
+  );
+}
+
 function SettingsWindow() {
   const { pxPerMs, setPxPerMs } = useConfigStore();
 
-  const [judgmentHarshness, setJudgmentHarshness] = useState(6);
-  const [judgeByMode, setJudgeByMode] = useState('reference-notes');
-  const [soundfontPreset, setSoundfontPreset] = useState('sonivox');
-  const [draftPxPerMs, setDraftPxPerMs] = useState(pxPerMs);
-
-  useEffect(() => {
-    setDraftPxPerMs(pxPerMs);
-  }, [pxPerMs]);
-
   return (
-    <div className="flex flex-col gap-1 p-2">
-      <div className="flex flex-row items-center justify-between gap-4 mb-4">
-        <div className="w-full flex flex-col gap-2">
-          <div className="flex flex-row items-center justify-between gap-4">
-            <Label htmlFor="judgment-harshness">Judgment Harshness</Label>
-            <span className="text-sm text-muted-foreground">{judgmentHarshness}</span>
+    <Tabs defaultValue="audio-device" orientation="vertical" className="h-[100vh] px-4 py-8">
+      <TabsList variant="line">
+        <TabsTrigger value="audio-device">Audio Device</TabsTrigger>
+        <TabsTrigger value="theme">Theme</TabsTrigger>
+        <TabsTrigger value="analysis">Analysis</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="audio-device" className="px-4 py-8">
+        
+      </TabsContent>
+      <TabsContent value="theme" className="flex flex-col gap-4 items-center px-4 py-8">
+        <FormItem
+          htmlFor="scroll-speed"
+          label="Scroll Speed"
+          description="Scroll speed of timeline"
+        >
+          <div className="flex flex-col gap-2 items-end">
+            <span className="block text-sm text-muted-foreground">{pxPerMs.toFixed(2)} px/ms</span>
+            <Slider
+              id="scroll-speed"
+              className="w-[120px]"
+              value={[pxPerMs]}
+              min={0.03}
+              max={1.0}
+              step={0.01}
+              onValueChange={(vals) => setPxPerMs(vals[0] ?? pxPerMs)}
+            />
           </div>
-          <Slider
-            id="judgment-harshness"
-            value={[judgmentHarshness]}
-            max={10}
-            step={1}
-            onValueChange={(vals) => setJudgmentHarshness(vals[0] ?? judgmentHarshness)}
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-row items-center justify-between gap-4 mb-2">
-        <div className="w-full flex flex-col gap-2">
-          <div className="flex flex-row items-center justify-between gap-4">
-            <Label htmlFor="scroll-speed">Scroll Speed</Label>
-            <span className="text-sm text-muted-foreground">
-              {draftPxPerMs.toFixed(2)}
-              {' '}
-              px/ms
-            </span>
-          </div>
-          <Slider
-            id="scroll-speed"
-            value={[draftPxPerMs]}
-            min={0.03}
-            max={1.0}
-            step={0.01}
-            onValueChange={(vals) => setDraftPxPerMs(vals[0] ?? draftPxPerMs)}
-            onValueCommit={(vals) => setPxPerMs(vals[0] ?? pxPerMs)}
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-row items-center justify-between gap-4">
-        <Label htmlFor="judge-by-mode" className="shrink-0">Judge By</Label>
-        <Select value={judgeByMode} onValueChange={setJudgeByMode}>
-          <SelectTrigger id="judge-by-mode" className="w-[150px]">
-            <SelectValue placeholder="..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="reference-notes">Reference</SelectItem>
-            <SelectItem value="played-notes">Played</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="flex flex-row items-center justify-between gap-4">
-        <Label htmlFor="soundfont-preset" className="shrink-0">Soundfont</Label>
-        <Select value={soundfontPreset} onValueChange={setSoundfontPreset}>
-          <SelectTrigger id="soundfont-preset" className="w-[150px]">
-            <SelectValue placeholder="..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="sonivox">Sonivox</SelectItem>
-            <SelectItem value="fluidr3">FluidR3</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
+        </FormItem>
+        <FormItem
+          htmlFor="soundfont-preset"
+          label="Soundfont"
+          description="Soundfont used in score playback"
+        >
+          <Select>
+            <SelectTrigger id="soundfont-preset" className="w-[150px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="sonivox">Sonivox</SelectItem>
+              <SelectItem value="fluidr3">FluidR3</SelectItem>
+            </SelectContent>
+          </Select>
+        </FormItem>
+      </TabsContent>
+      <TabsContent value="analysis" className="px-4 py-8">
+      </TabsContent>
+    </Tabs>
   );
 }
 
