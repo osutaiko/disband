@@ -14,7 +14,6 @@ import useTestAudioFixtures from '@/features/session/useTestAudioFixtures';
 
 import PlaybackControlPanel from '@/features/engine/PlaybackControlPanel';
 import TrackMenuPanel from '@/features/tracks/TrackMenuPanel';
-import OptionsPanel from '@/features/configuration/OptionsPanel';
 
 function Shell() {
   useSongMetadata();
@@ -50,7 +49,6 @@ function Shell() {
       <aside className="w-80 flex flex-col border-l">
         <PlaybackControlPanel />
         <TrackMenuPanel />
-        <OptionsPanel />
       </aside>
 
     </div>
