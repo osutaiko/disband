@@ -1,64 +1,39 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
+type MenuChannel =
+  | 'menu:import-song'
+  | 'menu:reload-library'
+  | 'menu:score-zoom-in'
+  | 'menu:score-zoom-out'
+  | 'menu:score-zoom-reset'
+  | 'menu:playback-play-pause'
+  | 'menu:playback-goto-start'
+  | 'menu:playback-goto-end'
+  | 'menu:recording-toggle'
+  | 'menu:recording-delete-take'
+  | 'menu:recording-reanalyze'
+
+function onMenu(channel: MenuChannel, handler: () => void) {
+  const listener = () => handler();
+  ipcRenderer.on(channel, listener);
+  return () => ipcRenderer.removeListener(channel, listener);
+}
+
 contextBridge.exposeInMainWorld('electron', {
   openSongsFolder: () => ipcRenderer.invoke('open-songs-folder'),
   getSongs: () => ipcRenderer.invoke('get-songs'),
   getSongData: (filename: string) => ipcRenderer.invoke('get-song-data', filename),
-  onImportSongMenu: (handler: () => void) => {
-    const listener = () => handler();
-    ipcRenderer.on('menu:import-song', listener);
-    return () => ipcRenderer.removeListener('menu:import-song', listener);
-  },
-  onReloadLibraryMenu: (handler: () => void) => {
-    const listener = () => handler();
-    ipcRenderer.on('menu:reload-library', listener);
-    return () => ipcRenderer.removeListener('menu:reload-library', listener);
-  },
-  onScoreZoomInMenu: (handler: () => void) => {
-    const listener = () => handler();
-    ipcRenderer.on('menu:score-zoom-in', listener);
-    return () => ipcRenderer.removeListener('menu:score-zoom-in', listener);
-  },
-  onScoreZoomOutMenu: (handler: () => void) => {
-    const listener = () => handler();
-    ipcRenderer.on('menu:score-zoom-out', listener);
-    return () => ipcRenderer.removeListener('menu:score-zoom-out', listener);
-  },
-  onScoreZoomResetMenu: (handler: () => void) => {
-    const listener = () => handler();
-    ipcRenderer.on('menu:score-zoom-reset', listener);
-    return () => ipcRenderer.removeListener('menu:score-zoom-reset', listener);
-  },
-  onPlaybackPlayPauseMenu: (handler: () => void) => {
-    const listener = () => handler();
-    ipcRenderer.on('menu:playback-play-pause', listener);
-    return () => ipcRenderer.removeListener('menu:playback-play-pause', listener);
-  },
-  onPlaybackGotoStartMenu: (handler: () => void) => {
-    const listener = () => handler();
-    ipcRenderer.on('menu:playback-goto-start', listener);
-    return () => ipcRenderer.removeListener('menu:playback-goto-start', listener);
-  },
-  onPlaybackGotoEndMenu: (handler: () => void) => {
-    const listener = () => handler();
-    ipcRenderer.on('menu:playback-goto-end', listener);
-    return () => ipcRenderer.removeListener('menu:playback-goto-end', listener);
-  },
-  onRecordingToggleMenu: (handler: () => void) => {
-    const listener = () => handler();
-    ipcRenderer.on('menu:recording-toggle', listener);
-    return () => ipcRenderer.removeListener('menu:recording-toggle', listener);
-  },
-  onRecordingDeleteTakeMenu: (handler: () => void) => {
-    const listener = () => handler();
-    ipcRenderer.on('menu:recording-delete-take', listener);
-    return () => ipcRenderer.removeListener('menu:recording-delete-take', listener);
-  },
-  onRecordingReanalyzeMenu: (handler: () => void) => {
-    const listener = () => handler();
-    ipcRenderer.on('menu:recording-reanalyze', listener);
-    return () => ipcRenderer.removeListener('menu:recording-reanalyze', listener);
-  },
+  onImportSongMenu: (handler: () => void) => onMenu('menu:import-song', handler),
+  onReloadLibraryMenu: (handler: () => void) => onMenu('menu:reload-library', handler),
+  onScoreZoomInMenu: (handler: () => void) => onMenu('menu:score-zoom-in', handler),
+  onScoreZoomOutMenu: (handler: () => void) => onMenu('menu:score-zoom-out', handler),
+  onScoreZoomResetMenu: (handler: () => void) => onMenu('menu:score-zoom-reset', handler),
+  onPlaybackPlayPauseMenu: (handler: () => void) => onMenu('menu:playback-play-pause', handler),
+  onPlaybackGotoStartMenu: (handler: () => void) => onMenu('menu:playback-goto-start', handler),
+  onPlaybackGotoEndMenu: (handler: () => void) => onMenu('menu:playback-goto-end', handler),
+  onRecordingToggleMenu: (handler: () => void) => onMenu('menu:recording-toggle', handler),
+  onRecordingDeleteTakeMenu: (handler: () => void) => onMenu('menu:recording-delete-take', handler),
+  onRecordingReanalyzeMenu: (handler: () => void) => onMenu('menu:recording-reanalyze', handler),
 });
 
 contextBridge.exposeInMainWorld('audio', {
