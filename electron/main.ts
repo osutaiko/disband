@@ -5,7 +5,7 @@ import path from 'node:path';
 import {
   resolveAndValidateRecordingPath,
 } from './utils';
-import { createWindow } from './window';
+import { createSettingsWindow, createWindow } from './window';
 import {
   analyzeRecordingFile,
   startAudioSidecar,
@@ -23,9 +23,30 @@ const { VITE_DEV_SERVER_URL } = process.env;
 const ENABLE_TEST_AUDIO_FIXTURES = process.env.VITE_ENABLE_TEST_AUDIO_FIXTURES === '1';
 
 let win: BrowserWindow | null = null;
+let settingsWin: BrowserWindow | null = null;
 let audioSidecar: ReturnType<typeof import('node:child_process').spawn> | null = null;
 let audioRecordingPath: string | null = null;
 let audioRecordingUrl: string | null = null;
+
+function openSettingsWindow() {
+  if (settingsWin && !settingsWin.isDestroyed()) {
+    if (settingsWin.isMinimized()) {
+      settingsWin.restore();
+    }
+    settingsWin.focus();
+    return;
+  }
+
+  settingsWin = createSettingsWindow({
+    dirName,
+    viteDevServerUrl: VITE_DEV_SERVER_URL,
+    appRoot: process.env.APP_ROOT!,
+    parent: win ?? undefined,
+  });
+  settingsWin.on('closed', () => {
+    settingsWin = null;
+  });
+}
 
 app.whenReady().then(() => {
   win = createWindow({
@@ -33,7 +54,10 @@ app.whenReady().then(() => {
     viteDevServerUrl: VITE_DEV_SERVER_URL,
     appRoot: process.env.APP_ROOT!,
   });
-  buildApplicationMenu(win);
+  buildApplicationMenu({
+    win,
+    onOpenSettings: openSettingsWindow,
+  });
 });
 
 app.on('window-all-closed', () => {
