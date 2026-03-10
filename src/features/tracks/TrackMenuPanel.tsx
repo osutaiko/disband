@@ -134,7 +134,7 @@ function TrackMenuPanel() {
     >
       {!tracks || tracks.length === 0 ?
         <p className="p-2 text-muted-foreground">No tracks found.</p> :
-        <div className="grid w-72 min-h-full border divide-y">
+        <div className="grid w-68 min-h-full border divide-y">
           {tracks?.map((track) => {
             const isSelected = selectedTrackId === track.index;
             const trackSelectionId = getTrackSelectionId(track);
@@ -150,7 +150,7 @@ function TrackMenuPanel() {
             const trackVol = 1;
 
             return (
-              <div key={track.index} className="grid w-full gap-1 p-2">
+              <div key={track.index} className="relative grid w-full gap-1 p-3">
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
                   <div className="flex min-w-0 items-center gap-2">
                     <span className="shrink-0">{getInstrumentIcon(track)}</span>
@@ -199,6 +199,8 @@ function TrackMenuPanel() {
                     </div>
                   </div>
                   {hasRecording &&
+                  <>
+                    <div className="absolute top-0 left-0 w-2 h-2 bg-note-ok" />
                     <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
                       <span title="Recorded Track Volume" className="text-sm text-end text-note-ok">Recorded</span>
                       <div className="flex flex-row gap-1 items-center">
@@ -230,6 +232,7 @@ function TrackMenuPanel() {
                         </Button>
                       </div>
                     </div>
+                  </>
                   }
                 </div>
               </div>
