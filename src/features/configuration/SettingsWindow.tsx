@@ -26,14 +26,14 @@ function FormItem({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-row justify-between items-center gap-6 w-full">
+    <div className="flex flex-row justify-between items-center gap-4 w-full">
       <div className="flex flex-col gap-1">
         <Label htmlFor={htmlFor}>{label}</Label>
         {description &&
           <p className="text-muted-foreground leading-tight">{description}</p>
         }
       </div>
-      <div className="flex-none w-[100px]">
+      <div className="flex-none w-[150px]">
         {children}
       </div>
     </div>
@@ -92,31 +92,39 @@ function SettingsWindow() {
         <TabsContent value="note-detection" className="flex flex-col gap-4 items-center mr-4 px-2 py-5">
           <FormItem
             htmlFor="hop-size-ms"
-            label="Hop Size"
-            description="Step size of detection: notes will only be detected in increments of this value"
+            label="Hop Size (ms)"
+            description="Step size of detection in milliseconds: notes will only be detected in increments of this value"
           >
             <Input id="hop-size-ms" type="number" />
           </FormItem>
           <FormItem
             htmlFor="pitch-frame-size-ms"
-            label="Pitch Frame Size"
-            description="Frame size used for pitch estimation"
+            label="Pitch Frame Size (ms)"
+            description="Frame size in milliseconds used for pitch estimation"
           >
             <Input id="pitch-frame-size-ms" type="number" />
           </FormItem>
           <FormItem
-            htmlFor="pitch-min-hz"
-            label="Pitch Min (Hz)"
-            description="Lowest pitch to detect"
+            htmlFor="pitch-hz"
+            label="Detection Pitch Range (Hz)"
+            description="Lowest/Highest pitch to detect"
           >
-            <Input id="pitch-min-hz" type="number" />
+            <div className="flex flex-row gap-2 items-center">
+              <Input id="pitch-min-hz" type="number" />
+              <span className="select-none">~</span>
+              <Input id="pitch-max-hz" type="number" />
+            </div>
           </FormItem>
           <FormItem
-            htmlFor="pitch-max-hz"
-            label="Pitch Max (Hz)"
-            description="Highest pitch to detect"
+            htmlFor="midi"
+            label="Translation MIDI Range"
+            description="Lowest/Highest MIDI note to convert to"
           >
-            <Input id="pitch-max-hz" type="number" />
+            <div className="flex flex-row gap-2 items-center">
+              <Input id="midi-min" type="number" />
+              <span className="select-none">~</span>
+              <Input id="midi-max" type="number" />
+            </div>
           </FormItem>
           <FormItem
             htmlFor="onset-threshold"
@@ -127,7 +135,7 @@ function SettingsWindow() {
           </FormItem>
           <FormItem
             htmlFor="onset-compensation-ms"
-            label="Onset Compensation"
+            label="Onset Compensation (ms)"
             description="Compensation in milliseconds to offset detector latency"
           >
             <Input id="onset-compensation-ms" type="number" />
@@ -141,29 +149,15 @@ function SettingsWindow() {
           </FormItem>
           <FormItem
             htmlFor="min-note-ms"
-            label="Min Note Length"
-            description="Shortest detected note length in milliseconds"
+            label="Min Note Length (ms)"
+            description="Shortest note length to detect in milliseconds"
           >
             <Input id="min-note-ms" type="number" />
           </FormItem>
           <FormItem
-            htmlFor="min-midi"
-            label="Min MIDI"
-            description="Minimum MIDI note to detect"
-          >
-            <Input id="min-midi" type="number" />
-          </FormItem>
-          <FormItem
-            htmlFor="max-midi"
-            label="Max MIDI"
-            description="Maximum MIDI note to detect"
-          >
-            <Input id="max-midi" type="number" />
-          </FormItem>
-          <FormItem
             htmlFor="min-pitch-confidence"
             label="Min Pitch Confidence"
-            description="Minimum aubio confidence required to trust pitch detection"
+            description="Minimum confidence of pitch existence required for an audio section to define it as an actual note"
           >
             <Input id="min-pitch-confidence" type="number" />
           </FormItem>
@@ -179,45 +173,43 @@ function SettingsWindow() {
           <Separator />
           <FormItem
             htmlFor="attack-ok-window-ms"
-            label="Attack OK Window"
-            description="Attack timing window (ms) for OK judgment"
+            label="Attack OK Window (ms)"
+            description="Attack timing window in milliseconds for OK judgment"
           >
             <Input id="attack-ok-window-ms" type="number" />
           </FormItem>
           <FormItem
             htmlFor="pitch-tolerance-semitones"
             label="Pitch Tolerance"
-            description="Allowed pitch error in semitones"
+            description="Allowed pitch error in semitones for OK judgment"
           >
             <Input id="pitch-tolerance-semitones" type="number" />
           </FormItem>
+          <Separator />
           <FormItem
             htmlFor="attack-inaccurate-window-ms"
-            label="Attack Inaccurate Window"
-            description="Attack timing window (ms) for Inaccurate judgment"
+            label="Attack Inaccurate Window (ms)"
+            description="Attack timing window (ms) for Inaccurate judgment (as opposed to Miss)"
           >
             <Input id="attack-inaccurate-window-ms" type="number" />
           </FormItem>
           <FormItem
             htmlFor="release-tolerance-ms"
-            label="Release Tolerance"
+            label="Release Tolerance (ms)"
             description="Release timing tolerance in milliseconds"
           >
             <Input id="release-tolerance-ms" type="number" />
           </FormItem>
           <FormItem
-            htmlFor="velocity-tolerance-mult-lower"
-            label="Velocity Tolerance Lower"
-            description="Lower multiplier bound for velocity matching"
+            htmlFor="velocity-tolerance-mult"
+            label="Velocity Tolerance"
+            description="Multiplier tolerance for velocity"
           >
-            <Input id="velocity-tolerance-mult-lower" type="number" />
-          </FormItem>
-          <FormItem
-            htmlFor="velocity-tolerance-mult-upper"
-            label="Velocity Tolerance Upper"
-            description="Upper multiplier bound for velocity matching"
-          >
-            <Input id="velocity-tolerance-mult-upper" type="number" />
+            <div className="flex flex-row gap-2 items-center">
+              <Input id="velocity-tolerance-mult-lower" type="number" />
+              <span className="select-none">~</span>
+              <Input id="velocity-tolerance-mult-upper" type="number" />
+            </div>
           </FormItem>
           <FormItem
             htmlFor="articulation-tolerance-mult"
