@@ -225,15 +225,6 @@ function TrackMenuPanel() {
     );
   };
 
-  const renderSelectedTrackHeader = (track: any) => (
-    <div key={`selected-${track.index}`} className="relative grid w-full gap-1 p-3">
-      <div className="flex min-w-0 gap-2">
-        <span className="shrink-0">{getInstrumentIcon(track)}</span>
-        <span title={track.name} className="block min-w-0 text-sm font-bold">{track.name}</span>
-      </div>
-    </div>
-  );
-
   const selectedTrack = tracks?.find((track) => track.index === selectedTrackId) ?? null;
   const allTracks = tracks ?? [];
 
@@ -252,12 +243,13 @@ function TrackMenuPanel() {
         <p className="p-2 text-muted-foreground">No tracks found.</p> :
         <div className="grid w-68 min-h-full gap-4">
           {selectedTrack && (
-            <div className="border divide-y bg-secondary">
-              {renderSelectedTrackHeader(selectedTrack)}
+            <div key={`selected-${selectedTrack.index}`} className="relative flex flex-row w-full gap-2 p-3 bg-secondary border rounded-md">
+              <span className="shrink-0">{getInstrumentIcon(selectedTrack)}</span>
+              <span className="block min-w-0 text-sm font-bold first-line:leading-none">{selectedTrack.name}</span>
             </div>
           )}
           {allTracks.length > 0 && (
-            <div className="border divide-y">
+            <div className="border divide-y rounded-md overflow-hidden">
               {allTracks.map((track) => renderTrackRow(track))}
             </div>
           )}
