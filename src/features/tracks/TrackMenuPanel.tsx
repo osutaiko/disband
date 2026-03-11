@@ -121,6 +121,122 @@ function TrackMenuPanel() {
     return <Music size={14} />;
   };
 
+  const renderTrackRow = (track: any) => {
+    const isSelected = selectedTrackId === track.index;
+    const trackSelectionId = getTrackSelectionId(track);
+    const originalLayerSelectionId = getLayerSelectionId(track, 'original');
+    const recordedLayerSelectionId = getLayerSelectionId(track, 'recorded');
+    const isMuted = mutedTracks.includes(originalLayerSelectionId);
+    const isSoloed = soloTracks.includes(originalLayerSelectionId);
+    const hasRecording = Boolean(recordedPaths[trackSelectionId]);
+    const isRecordedMuted = mutedTracks.includes(recordedLayerSelectionId);
+    const isRecordedSoloed = soloTracks.includes(recordedLayerSelectionId);
+    const recordedTrackVolume = recordedVolumes[trackSelectionId] ?? 1;
+    // FIXME: me too
+    const trackVol = 1;
+
+    return (
+      <div key={track.index} className="relative grid w-full gap-1 p-3">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="shrink-0">{getInstrumentIcon(track)}</span>
+            <span title={track.name} className={`block min-w-0 truncate text-sm ${isSelected ? 'font-bold' : ''}`}>{track.name}</span>
+          </div>
+          <Button
+            title={isSelected ? 'Currently Displayed' : 'Show Track Score'}
+            size="icon"
+            variant={`${isSelected ? 'default' : 'secondary'}`}
+            className="w-6 h-6 flex-0 aspect-square"
+            onClick={() => setSelectedTrackId(track.index)}
+          >
+            <View />
+          </Button>
+        </div>
+        <div className="grid gap-1">
+          <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
+            <span title="Original Track Volume" className="text-sm text-end text-muted-foreground">Original</span>
+            <div className="flex flex-row gap-1 items-center">
+              <Slider
+                className="w-[90px] mr-3"
+                defaultValue={[trackVol * 100]}
+                max={100}
+                step={1}
+                disabled={isMuted}
+                onValueChange={(vals) => handleVolumeChange(track, vals)}
+              />
+              <Button
+                title={isMuted ? 'Unmute Track' : 'Mute Track'}
+                size="icon"
+                variant={isMuted ? 'destructive' : 'secondary'}
+                className={`w-6 h-6 flex-0 aspect-square ${isMuted ? 'text-white' : 'text-black'}`}
+                onClick={() => handleMuteToggle(track, 'original')}
+              >
+                M
+              </Button>
+              <Button
+                title={isSoloed ? 'Unsolo Track' : 'Solo Track'}
+                size="icon"
+                variant={isSoloed ? 'destructive' : 'secondary'}
+                className={`w-6 h-6 flex-0 aspect-square ${isSoloed ? 'text-white' : 'text-black'}`}
+                onClick={() => handleSoloToggle(track, 'original')}
+              >
+                S
+              </Button>
+            </div>
+          </div>
+          {hasRecording &&
+          <>
+            <div className="absolute top-0 bottom-0 left-0 w-0.5 h-full bg-note-ok" />
+            <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
+              <span title="Recorded Track Volume" className="text-sm text-end text-note-ok">Recorded</span>
+              <div className="flex flex-row gap-1 items-center">
+                <Slider
+                  className="w-[90px] mr-3"
+                  value={[recordedTrackVolume * 100]}
+                  max={100}
+                  step={1}
+                  disabled={isRecordedMuted}
+                  onValueChange={(vals) => handleRecordedVolumeChange(track, vals)}
+                />
+                <Button
+                  title={isRecordedMuted ? 'Unmute Recorded' : 'Mute Recorded'}
+                  size="icon"
+                  variant={isRecordedMuted ? 'destructive' : 'secondary'}
+                  className={`w-6 h-6 flex-0 aspect-square ${isRecordedMuted ? 'text-white' : 'text-black'}`}
+                  onClick={() => handleRecordedMuteToggle(track)}
+                >
+                  M
+                </Button>
+                <Button
+                  title={isRecordedSoloed ? 'Unsolo Recorded' : 'Solo Recorded'}
+                  size="icon"
+                  variant={isRecordedSoloed ? 'destructive' : 'secondary'}
+                  className={`w-6 h-6 flex-0 aspect-square ${isRecordedSoloed ? 'text-white' : 'text-black'}`}
+                  onClick={() => handleRecordedSoloToggle(track)}
+                >
+                  S
+                </Button>
+              </div>
+            </div>
+          </>
+          }
+        </div>
+      </div>
+    );
+  };
+
+  const renderSelectedTrackHeader = (track: any) => (
+    <div key={`selected-${track.index}`} className="relative grid w-full gap-1 p-3">
+      <div className="flex min-w-0 gap-2">
+        <span className="shrink-0">{getInstrumentIcon(track)}</span>
+        <span title={track.name} className="block min-w-0 text-sm font-bold">{track.name}</span>
+      </div>
+    </div>
+  );
+
+  const selectedTrack = tracks?.find((track) => track.index === selectedTrackId) ?? null;
+  const allTracks = tracks ?? [];
+
   return (
     <Panel
       className="flex flex-col overflow-hidden"
@@ -134,110 +250,17 @@ function TrackMenuPanel() {
     >
       {!tracks || tracks.length === 0 ?
         <p className="p-2 text-muted-foreground">No tracks found.</p> :
-        <div className="grid w-68 min-h-full border divide-y">
-          {tracks?.map((track) => {
-            const isSelected = selectedTrackId === track.index;
-            const trackSelectionId = getTrackSelectionId(track);
-            const originalLayerSelectionId = getLayerSelectionId(track, 'original');
-            const recordedLayerSelectionId = getLayerSelectionId(track, 'recorded');
-            const isMuted = mutedTracks.includes(originalLayerSelectionId);
-            const isSoloed = soloTracks.includes(originalLayerSelectionId);
-            const hasRecording = Boolean(recordedPaths[trackSelectionId]);
-            const isRecordedMuted = mutedTracks.includes(recordedLayerSelectionId);
-            const isRecordedSoloed = soloTracks.includes(recordedLayerSelectionId);
-            const recordedTrackVolume = recordedVolumes[trackSelectionId] ?? 1;
-            // FIXME: me too
-            const trackVol = 1;
-
-            return (
-              <div key={track.index} className="relative grid w-full gap-1 p-3">
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
-                  <div className="flex min-w-0 items-center gap-2">
-                    <span className="shrink-0">{getInstrumentIcon(track)}</span>
-                    <span title={track.name} className={`block min-w-0 truncate text-sm ${isSelected ? 'font-bold' : ''}`}>{track.name}</span>
-                  </div>
-                  <Button
-                    title={isSelected ? 'Currently Displayed' : 'Show Track Score'}
-                    size="icon"
-                    variant={`${isSelected ? 'default' : 'secondary'}`}
-                    className="w-6 h-6 flex-0 aspect-square"
-                    onClick={() => setSelectedTrackId(track.index)}
-                  >
-                    <View />
-                  </Button>
-                </div>
-                <div className="grid gap-1">
-                  <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
-                    <span title="Original Track Volume" className="text-sm text-end text-muted-foreground">Original</span>
-                    <div className="flex flex-row gap-1 items-center">
-                      <Slider
-                        className="w-[100px] mr-3"
-                        defaultValue={[trackVol * 100]}
-                        max={100}
-                        step={1}
-                        disabled={isMuted}
-                        onValueChange={(vals) => handleVolumeChange(track, vals)}
-                      />
-                      <Button
-                        title={isMuted ? 'Unmute Track' : 'Mute Track'}
-                        size="icon"
-                        variant={isMuted ? 'destructive' : 'secondary'}
-                        className={`w-6 h-6 flex-0 aspect-square ${isMuted ? 'text-white' : 'text-black'}`}
-                        onClick={() => handleMuteToggle(track, 'original')}
-                      >
-                        M
-                      </Button>
-                      <Button
-                        title={isSoloed ? 'Unsolo Track' : 'Solo Track'}
-                        size="icon"
-                        variant={isSoloed ? 'destructive' : 'secondary'}
-                        className={`w-6 h-6 flex-0 aspect-square ${isSoloed ? 'text-white' : 'text-black'}`}
-                        onClick={() => handleSoloToggle(track, 'original')}
-                      >
-                        S
-                      </Button>
-                    </div>
-                  </div>
-                  {hasRecording &&
-                  <>
-                    <div className="absolute top-0 bottom-0 left-0 w-0.5 h-full bg-note-ok" />
-                    <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
-                      <span title="Recorded Track Volume" className="text-sm text-end text-note-ok">Recorded</span>
-                      <div className="flex flex-row gap-1 items-center">
-                        <Slider
-                          className="w-[100px] mr-3"
-                          value={[recordedTrackVolume * 100]}
-                          max={100}
-                          step={1}
-                          disabled={isRecordedMuted}
-                          onValueChange={(vals) => handleRecordedVolumeChange(track, vals)}
-                        />
-                        <Button
-                          title={isRecordedMuted ? 'Unmute Recorded' : 'Mute Recorded'}
-                          size="icon"
-                          variant={isRecordedMuted ? 'destructive' : 'secondary'}
-                          className={`w-6 h-6 flex-0 aspect-square ${isRecordedMuted ? 'text-white' : 'text-black'}`}
-                          onClick={() => handleRecordedMuteToggle(track)}
-                        >
-                          M
-                        </Button>
-                        <Button
-                          title={isRecordedSoloed ? 'Unsolo Recorded' : 'Solo Recorded'}
-                          size="icon"
-                          variant={isRecordedSoloed ? 'destructive' : 'secondary'}
-                          className={`w-6 h-6 flex-0 aspect-square ${isRecordedSoloed ? 'text-white' : 'text-black'}`}
-                          onClick={() => handleRecordedSoloToggle(track)}
-                        >
-                          S
-                        </Button>
-                      </div>
-                    </div>
-                  </>
-                  }
-                </div>
-              </div>
-            );
-          })}
+        <div className="grid w-68 min-h-full gap-4">
+          {selectedTrack && (
+            <div className="border divide-y bg-secondary">
+              {renderSelectedTrackHeader(selectedTrack)}
+            </div>
+          )}
+          {allTracks.length > 0 && (
+            <div className="border divide-y">
+              {allTracks.map((track) => renderTrackRow(track))}
+            </div>
+          )}
         </div>
       }
     </Panel>
