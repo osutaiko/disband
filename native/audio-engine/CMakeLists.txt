@@ -25,13 +25,7 @@ if(MSVC)
     target_compile_definitions(aubio PRIVATE HAVE_C99_VARARGS_MACROS=1)
 endif()
 
-juce_add_console_app(disband-audio-engine
-    PRODUCT_NAME "Disband Audio Engine"
-    VERSION 0.1.0
-)
-
-target_sources(disband-audio-engine PRIVATE
-    src/app/main.cpp
+set(DISBAND_ANALYSIS_SOURCES
     src/analysis/audio_loader.cpp
     src/analysis/judger.cpp
     src/analysis/session_matching.cpp
@@ -44,7 +38,7 @@ target_sources(disband-audio-engine PRIVATE
     src/analysis/note_extraction/segmentation.cpp
 )
 
-target_link_libraries(disband-audio-engine PRIVATE
+set(DISBAND_COMMON_AUDIO_LIBS
     juce::juce_audio_devices
     juce::juce_audio_formats
     juce::juce_audio_utils
@@ -53,15 +47,55 @@ target_link_libraries(disband-audio-engine PRIVATE
     aubio
 )
 
-target_include_directories(disband-audio-engine PRIVATE
+juce_add_console_app(disband-audio-capture
+    PRODUCT_NAME "Disband Audio Capture"
+    VERSION 0.1.0
+)
+
+target_sources(disband-audio-capture PRIVATE
+    src/app/capture_main.cpp
+)
+
+target_link_libraries(disband-audio-capture PRIVATE
+    ${DISBAND_COMMON_AUDIO_LIBS}
+)
+
+target_include_directories(disband-audio-capture PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/aubio/src
 )
 
-add_custom_command(TARGET disband-audio-engine POST_BUILD
+juce_add_console_app(disband-audio-analyze
+    PRODUCT_NAME "Disband Audio Analyze"
+    VERSION 0.1.0
+)
+
+target_sources(disband-audio-analyze PRIVATE
+    src/app/analyze_main.cpp
+    ${DISBAND_ANALYSIS_SOURCES}
+)
+
+target_link_libraries(disband-audio-analyze PRIVATE
+    ${DISBAND_COMMON_AUDIO_LIBS}
+)
+
+target_include_directories(disband-audio-analyze PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/aubio/src
+)
+
+add_custom_command(TARGET disband-audio-capture POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory
         "${CMAKE_SOURCE_DIR}/bin/win32"
     COMMAND ${CMAKE_COMMAND} -E copy
-        $<TARGET_FILE:disband-audio-engine>
-        "${CMAKE_SOURCE_DIR}/bin/win32/disband-audio-engine.exe"
+        $<TARGET_FILE:disband-audio-capture>
+        "${CMAKE_SOURCE_DIR}/bin/win32/disband-audio-capture.exe"
+)
+
+add_custom_command(TARGET disband-audio-analyze POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+        "${CMAKE_SOURCE_DIR}/bin/win32"
+    COMMAND ${CMAKE_COMMAND} -E copy
+        $<TARGET_FILE:disband-audio-analyze>
+        "${CMAKE_SOURCE_DIR}/bin/win32/disband-audio-analyze.exe"
 )

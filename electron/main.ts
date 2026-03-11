@@ -8,6 +8,7 @@ import {
 import { createSettingsWindow, createWindow } from './window';
 import {
   analyzeRecordingFile,
+  disposeAudioSidecar,
   startAudioSidecar,
   stopAudioSidecar,
 } from './audio-sidecar';
@@ -60,6 +61,14 @@ app.whenReady().then(() => {
       onOpenSettings: openSettingsWindow,
     })
   );
+
+  // Keep recorder sidecar warm so recording can start immediately.
+  startAudioSidecar({
+    state: audioState,
+    recordingsPath: RECORDINGS_PATH,
+    appRoot: process.env.APP_ROOT!,
+    startRecording: false,
+  });
 });
 
 app.on('window-all-closed', () => {
@@ -94,7 +103,7 @@ function resolveRecordingPath(filePath: string): string {
   return resolveAndValidateRecordingPath(filePath, process.env.APP_ROOT!, allowedBasePaths);
 }
 app.on('before-quit', () => {
-  void stopAudioSidecar({ state: audioState });
+  void disposeAudioSidecar({ state: audioState });
 });
 
 // --- IPC Handlers --- //
