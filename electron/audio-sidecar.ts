@@ -159,7 +159,7 @@ export function analyzeRecordingFile({
   return new Promise((resolve, reject) => {
     const analyzer = spawn(exe, ['--analyze-wav', resolvedPath], {
       stdio: ['pipe', 'pipe', 'pipe'],
-    })
+    });
 
     if (referenceNotes?.length) {
       analyzer.stdin?.write(JSON.stringify(referenceNotes));
@@ -184,6 +184,6 @@ export function analyzeRecordingFile({
       }
 
       resolve(JSON.parse(stdoutOutput));
-    })
-  })
+    });
+  });
 }

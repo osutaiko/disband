@@ -1,5 +1,8 @@
 import { useState } from 'react';
 
+import {
+  RotateCcw, View, MicVocal, Guitar, Drum, Piano, Music,
+} from 'lucide-react';
 import useLibraryStore from '@/store/useLibraryStore';
 import useEngineStore from '@/store/useEngineStore';
 import useSessionStore from '@/store/useSessionStore';
@@ -7,14 +10,13 @@ import useSessionStore from '@/store/useSessionStore';
 import Panel from '@/components/ui/Panel';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import {
-  RotateCcw, View, MicVocal, Guitar, Drum, Piano, Music,
-} from 'lucide-react';
 
 type TrackLayer = 'original' | 'recorded';
 
 function TrackMenuPanel() {
-  const { tracks, selectedSong, selectedTrackId, setSelectedTrackId } = useLibraryStore();
+  const {
+    tracks, selectedSong, selectedTrackId, setSelectedTrackId,
+  } = useLibraryStore();
   const { api } = useEngineStore();
   const { recordedPaths } = useSessionStore();
   const [mutedTracks, setMutedTracks] = useState<string[]>([]);
@@ -184,7 +186,8 @@ function TrackMenuPanel() {
               </Button>
             </div>
           </div>
-          {hasRecording &&
+          {hasRecording
+          && (
           <>
             <div className="absolute top-0 bottom-0 left-0 w-0.5 h-full bg-note-ok" />
             <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
@@ -219,7 +222,7 @@ function TrackMenuPanel() {
               </div>
             </div>
           </>
-          }
+          )}
         </div>
       </div>
     );
@@ -239,22 +242,23 @@ function TrackMenuPanel() {
         { title: 'Reset Track Settings', icon: <RotateCcw />, onClick: handleReset },
       ]}
     >
-      {!tracks || tracks.length === 0 ?
-        <p className="p-2 text-muted-foreground">No tracks found.</p> :
-        <div className="grid w-72 min-h-full gap-4">
-          {selectedTrack && (
+      {!tracks || tracks.length === 0
+        ? <p className="p-2 text-muted-foreground">No tracks found.</p>
+        : (
+          <div className="grid w-72 min-h-full gap-4">
+            {selectedTrack && (
             <div key={`selected-${selectedTrack.index}`} className="relative flex flex-row w-full gap-2 p-3 bg-muted border rounded-md">
               <span className="shrink-0">{getInstrumentIcon(selectedTrack)}</span>
               <span className="block min-w-0 text-sm font-bold first-line:leading-none">{selectedTrack.name}</span>
             </div>
-          )}
-          {allTracks.length > 0 && (
+            )}
+            {allTracks.length > 0 && (
             <div className="border divide-y rounded-md overflow-hidden">
               {allTracks.map((track) => renderTrackRow(track))}
             </div>
-          )}
-        </div>
-      }
+            )}
+          </div>
+        )}
     </Panel>
   );
 }

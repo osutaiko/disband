@@ -18,10 +18,10 @@ interface EngineState {
   setEndBar: (end: number) => void;
 }
 
-const useEngineStore = create<EngineState>((set) => ({  
+const useEngineStore = create<EngineState>((set) => ({
   api: null,
   setApi: (api) => set({ api }),
-  
+
   isPlaying: false,
   setIsPlaying: (isPlaying) => set({ isPlaying }),
 

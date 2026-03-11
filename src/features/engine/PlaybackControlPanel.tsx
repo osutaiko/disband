@@ -1,11 +1,11 @@
+import {
+  ChevronFirst, Play, Pause, ChevronLast,
+} from 'lucide-react';
 import { handlePlayPause, handleGotoStart, handleGotoEnd } from './playback';
 import useEngineStore from '@/store/useEngineStore';
 
 import Panel from '@/components/ui/Panel';
 import { Button } from '@/components/ui/button';
-import {
-  ChevronFirst, Play, Pause, ChevronLast,
-} from 'lucide-react';
 
 function PlaybackControlPanel() {
   const {

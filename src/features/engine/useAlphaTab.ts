@@ -11,7 +11,9 @@ const useAlphaTab = (
   selectedSong: string | null,
 ) => {
   const { setTracks, selectedTrackId, setSelectedTrackId } = useLibraryStore();
-  const { setApi, setIsPlaying, setEndMs, setCurrentBar, setEndBar } = useEngineStore();
+  const {
+    setApi, setIsPlaying, setEndMs, setCurrentBar, setEndBar,
+  } = useEngineStore();
 
   const [isTabLoading, setIsTabLoading] = useState(false);
   const apiRef = useRef<AlphaTabApi | null>(null);

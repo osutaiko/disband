@@ -11,7 +11,7 @@ type MenuChannel =
   | 'menu:playback-goto-end'
   | 'menu:recording-toggle'
   | 'menu:recording-delete-take'
-  | 'menu:recording-reanalyze'
+  | 'menu:recording-reanalyze';
 
 function onMenu(channel: MenuChannel, handler: () => void) {
   const listener = () => handler();
