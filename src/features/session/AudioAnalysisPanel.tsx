@@ -37,7 +37,9 @@ function AudioAnalysisPanel({
   currentMsRef: RefObject<number>;
 }) {
   const { selectedSong, selectedTrackId } = useLibraryStore();
-  const { api, isPlaying, currentMs, endMs, setCurrentMs } = useEngineStore();
+  const {
+    api, isPlaying, currentMs, endMs, setCurrentMs,
+  } = useEngineStore();
   const { pxPerMs } = useConfigStore();
   const {
     noteMarkers = [],

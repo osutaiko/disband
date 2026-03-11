@@ -36,9 +36,9 @@ function NoteMarker({
     ? 'border-note-ok bg-note-ok-bg'
     : status === 'inaccurate'
       ? 'border-note-inacc bg-note-inacc-bg'
-        : status === 'miss'
-          ? 'border-note-miss bg-note-miss-bg'
-          : 'border-note-unj bg-note-unj-bg';
+      : status === 'miss'
+        ? 'border-note-miss bg-note-miss-bg'
+        : 'border-note-unj bg-note-unj-bg';
 
   function formatErrorValue(value: number | null | undefined) {
     if (value == null || !Number.isFinite(value)) return '-';
@@ -50,9 +50,20 @@ function NoteMarker({
   const tooltipText = hasJudgment ? (
     <>
       <p className="text-background">{midi !== undefined ? midiToNoteName(midi) : '-'}</p>
-      <p className="text-background">Attack: {formatErrorValue(judgment?.criteria.attack.error)}</p>
       <p className="text-background">
-        Release: {formatErrorValue(judgment?.criteria.release.error)} (duration {Math.round(length)} ms)
+        Attack:
+        {formatErrorValue(judgment?.criteria.attack.error)}
+      </p>
+      <p className="text-background">
+        Release:
+        {' '}
+        {formatErrorValue(judgment?.criteria.release.error)}
+        {' '}
+        (duration
+        {' '}
+        {Math.round(length)}
+        {' '}
+        ms)
       </p>
     </>
   ) : (

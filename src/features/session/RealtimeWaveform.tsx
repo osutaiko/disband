@@ -173,12 +173,12 @@ function RealtimeWaveform({
                 <div
                   key={`note-visual-${note.startMs}-${note.endMs}-${index}`}
                   className={`absolute top-0 bottom-0 z-10 overflow-hidden rounded-r-md pointer-events-auto
-                        ${judgment ? 
-                          (judgment.kind === 'ok' ? 'bg-rec-note-ok-bg'
-                            : judgment.kind === 'inaccurate' ? 'bg-rec-note-inacc-bg'
-                            : judgment.kind === 'miss' ? 'bg-rec-note-miss-bg'
-                            : 'bg-rec-note-unj-bg'
-                          ) : 'bg-rec-note-unj-bg'}
+                        ${judgment
+                    ? (judgment.kind === 'ok' ? 'bg-rec-note-ok-bg'
+                      : judgment.kind === 'inaccurate' ? 'bg-rec-note-inacc-bg'
+                        : judgment.kind === 'miss' ? 'bg-rec-note-miss-bg'
+                          : 'bg-rec-note-unj-bg'
+                    ) : 'bg-rec-note-unj-bg'}
                         ${judgment && !judgment.criteria.pitch.pass ? 'border-b-6 border-note-miss' : ''}
                         ${isHovered ? 'ring-2 ring-offset-1 ring-ring' : ''}
                         ${isCurrent ? 'brightness-125' : ''}

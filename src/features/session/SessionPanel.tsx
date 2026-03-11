@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 
+import { Circle, Square } from 'lucide-react';
 import useLibraryStore from '@/store/useLibraryStore';
 import useSessionStore from '@/store/useSessionStore';
 
@@ -11,7 +12,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Circle, Square } from 'lucide-react';
 
 function DataCountRow({
   name,
@@ -116,7 +116,8 @@ function SessionPanel() {
       {!hasRecording ? (
         <p className="p-2 text-sm text-muted-foreground">
           No recording for this track yet. Record audio with the "
-          <Circle className="inline-flex" stroke="red" size={12} />" button to see analysis results.
+          <Circle className="inline-flex" stroke="red" size={12} />
+          " button to see analysis results.
         </p>
       ) : (
         <div className="flex flex-col gap-4 p-2 select-text">
@@ -163,8 +164,15 @@ function SessionPanel() {
                     <AccordionContent>
                       Notes that pass all grading criteria!
                       <br />
-                      If you think some of these notes do not deserve an <span className="text-note-ok">OK</span>,
-                      adjust your tolerance settings in the <h2 className="inline-flex text-sm underline">OPTIONS</h2> panel.
+                      If you think some of these notes do not deserve an
+                      {' '}
+                      <span className="text-note-ok">OK</span>
+                      ,
+                      adjust your tolerance settings in the
+                      {' '}
+                      <h2 className="inline-flex text-sm underline">OPTIONS</h2>
+                      {' '}
+                      panel.
                     </AccordionContent>
                   </AccordionItem>
                   <AccordionItem value="Inaccurate">

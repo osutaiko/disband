@@ -58,7 +58,7 @@ function useTestAudioFixtures() {
     const fixture = getFixtureCandidates()
       .filter((entry) => entry.song === selectedSong && entry.trackId === selectedTrackId)
       .sort((a, b) => b.index - a.index)[0];
-      
+
     if (!fixture) return;
 
     setRecordedPaths((prev) => {

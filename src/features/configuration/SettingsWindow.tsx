@@ -1,6 +1,8 @@
 import useConfigStore from '@/store/useConfigStore';
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Tabs, TabsContent, TabsList, TabsTrigger,
+} from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import {
@@ -29,9 +31,8 @@ function FormItem({
     <div className="flex flex-row justify-between items-center gap-4 w-full">
       <div className="flex flex-col gap-1">
         <Label htmlFor={htmlFor}>{label}</Label>
-        {description &&
-          <p className="text-muted-foreground leading-tight">{description}</p>
-        }
+        {description
+          && <p className="text-muted-foreground leading-tight">{description}</p>}
       </div>
       <div className="flex-none w-[150px]">
         {children}
@@ -52,9 +53,7 @@ function SettingsWindow() {
         <TabsTrigger value="judgment">Judgment</TabsTrigger>
       </TabsList>
       <ScrollArea className="h-full max-h-screen">
-        <TabsContent value="audio-device" className="mr-4 px-4 py-5">
-          
-        </TabsContent>
+        <TabsContent value="audio-device" className="mr-4 px-4 py-5" />
         <TabsContent value="theme" className="flex flex-col gap-4 items-center mr-4 px-2 py-5">
           <FormItem
             htmlFor="scroll-speed"
@@ -62,7 +61,11 @@ function SettingsWindow() {
             description="Scroll speed of timeline"
           >
             <div className="flex flex-col gap-2 items-end">
-              <span className="block text-sm text-muted-foreground">{pxPerMs.toFixed(2)} px/ms</span>
+              <span className="block text-sm text-muted-foreground">
+                {pxPerMs.toFixed(2)}
+                {' '}
+                px/ms
+              </span>
               <Slider
                 id="scroll-speed"
                 value={[pxPerMs]}

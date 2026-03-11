@@ -1,4 +1,6 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu } from 'electron';
+import {
+  app, BrowserWindow, dialog, ipcMain, Menu,
+} from 'electron';
 import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -59,7 +61,7 @@ app.whenReady().then(() => {
     buildApplicationMenu({
       win,
       onOpenSettings: openSettingsWindow,
-    })
+    }),
   );
 
   // Keep recorder sidecar warm so recording can start immediately.
@@ -216,6 +218,6 @@ ipcMain.handle('audio-analyze', async (
     filePath,
     referenceNotes,
     appRoot: process.env.APP_ROOT!,
-    resolveRecordingPath: resolveRecordingPath,
+    resolveRecordingPath,
   })
 ));
