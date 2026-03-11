@@ -10,7 +10,7 @@
     "enableCursor": true,
     "soundFont": "/soundfonts/sonivox.sf2",
     "enableUserInteraction": true,
-    "scrollMode": 1,
+    "scrollMode": 2,
     "scrollOffsetY": -80
   }
 }

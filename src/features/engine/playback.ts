@@ -21,5 +21,7 @@ export const handleGotoEnd = (api: AlphaTabApi | null, endMs: number) => {
   if (api.playerState === 1) {
     api.pause();
   }
-  api.timePosition = endMs;
+
+  // TODO: jump to start of final bar instead
+  api.timePosition = Math.max(0, endMs - 1);
 };
