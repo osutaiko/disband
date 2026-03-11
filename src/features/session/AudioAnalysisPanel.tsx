@@ -184,7 +184,7 @@ function AudioAnalysisPanel({
             />
           ))}
 
-          <div className="relative w-full h-[48px] bg-secondary py-2 z-20">
+          <div className="relative w-full h-[48px] bg-muted py-2 z-20">
             {/* Note Markers */}
             {visibleNoteMarkersWithIndex.map(({ marker, index }) => (
               <NoteMarker
@@ -209,7 +209,7 @@ function AudioAnalysisPanel({
           </div>
 
           {/* Recorded Audio */}
-          <div className="relative w-full h-[120px] bg-secondary py-2 z-20">
+          <div className="relative w-full h-[120px] bg-muted py-2 z-20">
             <div
               className="absolute inset-y-2 will-change-[left,width]"
               style={{
