@@ -61,7 +61,7 @@ function NoteMarker({
 
   return (
     <TooltipProvider>
-      <Tooltip>
+      <Tooltip open={isHovered}>
         <TooltipTrigger asChild>
           <div
             className={`
