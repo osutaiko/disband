@@ -130,6 +130,11 @@ const useAudioAnalysisMarkers = (
             tiedNote = tiedNote.tieDestination;
           }
 
+          // Handle staccato note length
+          if (note.isStaccato) {
+            totalDuration /= 2;
+          }
+
           noteMarkers.push({
             timestamp: currentBarStartMs + beat.playbackStart * msPerTick,
             length: totalDuration * msPerTick,
