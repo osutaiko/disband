@@ -200,7 +200,7 @@ function TrackMenuPanel() {
                   </div>
                   {hasRecording &&
                   <>
-                    <div className="absolute top-0 bottom-0 left-0 w-[4px] h-full bg-note-ok" />
+                    <div className="absolute top-0 bottom-0 left-0 w-0.5 h-full bg-note-ok" />
                     <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
                       <span title="Recorded Track Volume" className="text-sm text-end text-note-ok">Recorded</span>
                       <div className="flex flex-row gap-1 items-center">
