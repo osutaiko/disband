@@ -4,7 +4,8 @@ import { pathToFileURL } from 'node:url';
 import { spawn } from 'node:child_process';
 import type { SessionAnalysisResult } from '../shared/types';
 import {
-  getSidecarPath,
+  getAudioAnalyzePath,
+  getAudioCapturePath,
   makeRecordingFileName,
 } from './utils';
 
@@ -23,32 +24,44 @@ export function startAudioSidecar({
   state,
   recordingsPath,
   appRoot,
+  startRecording = true,
 }: {
   state: AudioStateAccess;
   recordingsPath: string;
   appRoot: string;
+  startRecording?: boolean;
 }) {
-  if (state.getAudioSidecar()) return;
+  const exe = getAudioCapturePath(appRoot);
+  let sidecar = state.getAudioSidecar();
 
-  const exe = getSidecarPath(appRoot);
-  const outputPath = path.join(recordingsPath, makeRecordingFileName());
-  const outputUrl = pathToFileURL(outputPath).toString();
+  if (!sidecar) {
+    sidecar = spawn(exe, ['--record-stdio'], {
+      stdio: ['pipe', 'ignore', 'pipe'],
+    });
 
-  const sidecar = spawn(exe, ['--output', outputPath], {
-    stdio: ['pipe', 'ignore', 'pipe'],
-  });
+    state.setAudioSidecar(sidecar);
 
-  state.setAudioSidecar(sidecar);
-  state.setAudioRecordingPath(outputPath);
-  state.setAudioRecordingUrl(outputUrl);
+    sidecar.stderr?.on('data', (chunk: Buffer) => {
+      console.info(chunk.toString('utf8'));
+    });
 
-  sidecar.stderr?.on('data', (chunk: Buffer) => {
-    console.info(chunk.toString('utf8'));
-  });
+    sidecar.on('exit', () => {
+      state.setAudioSidecar(null);
+    });
+  }
 
-  sidecar.on('exit', () => {
-    state.setAudioSidecar(null);
-  });
+  if (startRecording) {
+    const outputPath = path.join(recordingsPath, makeRecordingFileName());
+    const outputUrl = pathToFileURL(outputPath).toString();
+    state.setAudioRecordingPath(outputPath);
+    state.setAudioRecordingUrl(outputUrl);
+
+    try {
+      sidecar.stdin?.write(`start ${outputPath}\n`);
+    } catch (error) {
+      throw new Error(`[audio-sidecar] failed to start recording: ${String(error)}`);
+    }
+  }
 }
 
 export async function stopAudioSidecar({
@@ -65,29 +78,14 @@ export async function stopAudioSidecar({
   const outputPath = state.getAudioRecordingPath();
   const outputUrl = state.getAudioRecordingUrl();
 
-  const exitPromise = new Promise<'exit'>((resolve) => {
-    sidecar.once('exit', () => resolve('exit'));
-  });
-
   try {
     sidecar.stdin?.write('stop\n');
-    sidecar.stdin?.end();
   } catch {
     // Ignore write failures for now
   }
 
-  const exitResult = await Promise.race([
-    exitPromise,
-    new Promise<'timeout'>((resolve) => {
-      setTimeout(() => resolve('timeout'), 1000);
-    }),
-  ]);
-
-  if (exitResult === 'timeout') {
-    sidecar.kill();
-  }
-
-  state.setAudioSidecar(null);
+  // Wait without killing standby sidecar
+  await new Promise((resolve) => { setTimeout(resolve, 250); });
 
   let fileSize: number | null = null;
   if (outputPath) {
@@ -107,6 +105,38 @@ export async function stopAudioSidecar({
   };
 }
 
+export async function disposeAudioSidecar({
+  state,
+}: {
+  state: AudioStateAccess;
+}) {
+  const current = state.getAudioSidecar();
+  if (!current) return;
+
+  const sidecar = current;
+  const exitPromise = new Promise<'exit'>((resolve) => {
+    sidecar.once('exit', () => resolve('exit'));
+  });
+
+  try {
+    sidecar.stdin?.write('quit\n');
+    sidecar.stdin?.end();
+  } catch {
+    // Ignore write failures for now
+  }
+
+  const exitResult = await Promise.race([
+    exitPromise,
+    new Promise<'timeout'>((resolve) => {
+      setTimeout(() => resolve('timeout'), 3000);
+    }),
+  ]);
+
+  if (exitResult === 'timeout') {
+    sidecar.kill('SIGTERM');
+  }
+}
+
 export function analyzeRecordingFile({
   filePath,
   referenceNotes,
@@ -124,7 +154,7 @@ export function analyzeRecordingFile({
   resolveRecordingPath: (filePath: string) => string
 }): Promise<SessionAnalysisResult> {
   const resolvedPath = resolveRecordingPath(filePath);
-  const exe = getSidecarPath(appRoot);
+  const exe = getAudioAnalyzePath(appRoot);
 
   return new Promise((resolve, reject) => {
     const analyzer = spawn(exe, ['--analyze-wav', resolvedPath], {

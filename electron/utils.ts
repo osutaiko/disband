@@ -6,9 +6,20 @@ export const AUDIO_CHANNEL_COUNT = 1;
 export const AUDIO_BITS_PER_SAMPLE = 16;
 export const AUDIO_FORMAT_PCM = 1;
 
-export function getSidecarPath(appRoot: string) {
+function getAudioBinBasePath(appRoot: string) {
   const base = path.join(appRoot, 'native', 'audio-engine', 'bin', process.platform);
-  const exe = process.platform === 'win32' ? 'disband-audio-engine.exe' : 'disband-audio-engine';
+  return base;
+}
+
+export function getAudioCapturePath(appRoot: string) {
+  const base = getAudioBinBasePath(appRoot);
+  const exe = process.platform === 'win32' ? 'disband-audio-capture.exe' : 'disband-audio-capture';
+  return path.join(base, exe);
+}
+
+export function getAudioAnalyzePath(appRoot: string) {
+  const base = getAudioBinBasePath(appRoot);
+  const exe = process.platform === 'win32' ? 'disband-audio-analyze.exe' : 'disband-audio-analyze';
   return path.join(base, exe);
 }
 
