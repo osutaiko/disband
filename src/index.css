@@ -92,10 +92,10 @@
 }
 
 @theme inline {
-  --text-xs: 0.6rem;
-  --text-sm: 0.7rem;
-  --text-base: 0.85rem;
-  --text-lg: 1.0rem;
+  --text-xs: 0.7rem;
+  --text-sm: 0.8rem;
+  --text-base: 0.9rem;
+  --text-lg: 1rem;
   --text-xl: 1.2rem;
   --text-2xl: 1.4rem;
 
