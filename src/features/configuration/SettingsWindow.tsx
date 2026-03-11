@@ -226,7 +226,6 @@ function SettingsWindow() {
           >
             <Input id="articulation-tolerance-mult" type="number" />
           </FormItem>
-          <Separator />
         </TabsContent>
       </ScrollArea>
     </Tabs>

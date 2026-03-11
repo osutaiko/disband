@@ -123,7 +123,7 @@ function TrackMenuPanel() {
 
   return (
     <Panel
-      className="flex flex-col overflow-hidden border-b"
+      className="flex flex-col overflow-hidden"
       contentClassName="flex-1 overflow-hidden"
       isCollapsible
       isScrollable
