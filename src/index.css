@@ -39,7 +39,7 @@
   --note-inacc-bg: oklch(0.83 0.16 90);
   --note-miss: oklch(0.62 0.245 27);
   --note-miss-bg: oklch(0.7 0.23 27);
-  --rec-track-bg: oklch(0.94 0.025 290);
+  --rec-track-bg: oklch(0.88 0.065 300);
   --rec-waveform: oklch(0.23 0.03 268);
   --rec-note-unj-bg: oklch(0.78 0.03 265);
   --rec-note-ok-bg: oklch(0.67 0.16 286);
@@ -83,7 +83,7 @@
   --note-inacc-bg: oklch(0.78 0.14 88);
   --note-miss: oklch(0.75 0.22 25);
   --note-miss-bg: oklch(0.7 0.2 25);
-  --rec-track-bg: oklch(0.28 0.06 285);
+  --rec-track-bg: oklch(0.37 0.085 296);
   --rec-waveform: oklch(0.97 0.01 95);
   --rec-note-unj-bg: oklch(0.44 0.045 260);
   --rec-note-ok-bg: oklch(0.66 0.18 282);
