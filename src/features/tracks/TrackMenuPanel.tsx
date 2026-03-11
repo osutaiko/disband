@@ -241,7 +241,7 @@ function TrackMenuPanel() {
     >
       {!tracks || tracks.length === 0 ?
         <p className="p-2 text-muted-foreground">No tracks found.</p> :
-        <div className="grid w-68 min-h-full gap-4">
+        <div className="grid w-72 min-h-full gap-4">
           {selectedTrack && (
             <div key={`selected-${selectedTrack.index}`} className="relative flex flex-row w-full gap-2 p-3 bg-secondary border rounded-md">
               <span className="shrink-0">{getInstrumentIcon(selectedTrack)}</span>
