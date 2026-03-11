@@ -112,7 +112,6 @@ function SessionPanel() {
     <Panel
       title="This Session"
       isCollapsible
-      className="border-b"
     >
       {!hasRecording ? (
         <p className="p-2 text-sm text-muted-foreground">
