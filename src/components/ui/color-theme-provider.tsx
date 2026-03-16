@@ -20,39 +20,65 @@ const initialState: ColorThemeProviderState = {
 
 const ColorThemeProviderContext = createContext<ColorThemeProviderState>(initialState)
 
+function isColorTheme(value: unknown): value is ColorTheme {
+  return value === "dark" || value === "light" || value === "system"
+}
+
 export function ColorThemeProvider({
   children,
   defaultColorTheme = "system",
   storageKey = "vite-ui-theme",
   ...props
 }: ColorThemeProviderProps) {
-  const [colorTheme, setColorTheme] = useState<ColorTheme>(
-    () => (localStorage.getItem(storageKey) as ColorTheme) || defaultColorTheme
-  )
+  const [colorTheme, setColorThemeState] = useState<ColorTheme>(() => {
+    const stored = localStorage.getItem(storageKey)
+    return isColorTheme(stored) ? stored : defaultColorTheme
+  })
 
   useEffect(() => {
     const root = window.document.documentElement
 
-    root.classList.remove("light", "dark")
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)")
+    const applyTheme = () => {
+      root.classList.remove("light", "dark")
 
-    if (colorTheme === "system") {
-      const systemColorTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light"
+      if (colorTheme === "system") {
+        const systemColorTheme = mediaQuery.matches ? "dark" : "light"
+        root.classList.add(systemColorTheme)
+        return
+      }
 
-      root.classList.add(systemColorTheme)
-      return
+      root.classList.add(colorTheme)
     }
 
-    root.classList.add(colorTheme)
+    applyTheme()
+
+    if (colorTheme !== "system")
+      return undefined
+
+    const handleSystemThemeChange = () => applyTheme()
+    mediaQuery.addEventListener("change", handleSystemThemeChange)
+    return () => mediaQuery.removeEventListener("change", handleSystemThemeChange)
   }, [colorTheme])
+
+  useEffect(() => {
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== storageKey)
+        return
+
+      const nextTheme = isColorTheme(event.newValue) ? event.newValue : defaultColorTheme
+      setColorThemeState(nextTheme)
+    }
+
+    window.addEventListener("storage", handleStorage)
+    return () => window.removeEventListener("storage", handleStorage)
+  }, [defaultColorTheme, storageKey])
 
   const value = {
     colorTheme,
     setColorTheme: (theme: ColorTheme) => {
       localStorage.setItem(storageKey, theme)
-      setColorTheme(theme)
+      setColorThemeState(theme)
     },
   }
 

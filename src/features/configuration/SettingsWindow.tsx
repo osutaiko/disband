@@ -28,6 +28,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
 import { useColorTheme } from '@/components/ui/color-theme-provider';
 
 type NumericSection = 'noteDetection' | 'judgment';
@@ -37,6 +38,11 @@ type SectionStateMap = {
 };
 
 const settingsTabContentClassName = 'flex w-full flex-col gap-4 p-5 items-stretch';
+const colorThemeOptions = [
+  { value: 'system', label: 'System' },
+  { value: 'light', label: 'Light' },
+  { value: 'dark', label: 'Dark' },
+] as const;
 
 function numberFromInput(value: string, fallback: number): number {
   const next = Number(value);
@@ -203,7 +209,7 @@ function SettingsWindow() {
   } = settings;
   const { pxPerMs, soundfontPreset } = theme;
 
-  const { setColorTheme } = useColorTheme();
+  const { colorTheme, setColorTheme } = useColorTheme();
 
   function updateSection<K extends NumericSection>(
     section: K,
@@ -250,6 +256,26 @@ function SettingsWindow() {
       <ScrollArea className="h-full max-h-screen min-w-0 flex-1">
         <TabsContent value="audio-device" className={settingsTabContentClassName} />
         <TabsContent value="theme" className={settingsTabContentClassName}>
+          <FormItem
+            htmlFor="color-theme-system"
+            label="Color Theme"
+            description="Choose color scheme of app"
+          >
+            <div className="inline-flex items-center rounded-md border p-1">
+              {colorThemeOptions.map((option) => (
+                <Button
+                  key={option.value}
+                  id={`color-theme-${option.value}`}
+                  type="button"
+                  size="sm"
+                  variant={colorTheme === option.value ? 'secondary' : 'ghost'}
+                  onClick={() => setColorTheme(option.value)}
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </div>
+          </FormItem>
           <FormItem
             htmlFor="scroll-speed"
             label="Scroll Speed"

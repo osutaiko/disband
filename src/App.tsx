@@ -22,14 +22,14 @@ function App() {
 
   if (windowType === 'settings') {
     return (
-      <ColorThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <ColorThemeProvider defaultColorTheme="system" storageKey="vite-ui-theme">
         <SettingsWindow />
       </ColorThemeProvider>
     );
   }
 
   return (
-    <ColorThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+    <ColorThemeProvider defaultColorTheme="system" storageKey="vite-ui-theme">
       <Shell />
     </ColorThemeProvider>
   );
