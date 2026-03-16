@@ -259,7 +259,7 @@ function SettingsWindow() {
           <FormItem
             htmlFor="color-theme-system"
             label="Color Theme"
-            description="Choose color scheme of app"
+            description="Color scheme of app UI"
           >
             <div className="inline-flex items-center rounded-md border p-1">
               {colorThemeOptions.map((option) => (

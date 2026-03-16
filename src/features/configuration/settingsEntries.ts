@@ -76,7 +76,7 @@ export const noteDetectionEntries: SettingsRowConfig<NoteDetectionSettings>[] = 
     config: {
       id: 'midi',
       label: 'Translation MIDI Range',
-      description: 'Lowest/Highest MIDI note to convert to',
+      description: 'Lowest/Highest MIDI note to convert pitches into',
       minKey: 'minMidi',
       minId: 'midi-min',
       maxKey: 'maxMidi',
@@ -90,7 +90,7 @@ export const noteDetectionEntries: SettingsRowConfig<NoteDetectionSettings>[] = 
       key: 'onsetThreshold',
       id: 'onset-threshold',
       label: 'Onset Threshold',
-      description: 'Peak picking threshold passed to aubio',
+      description: 'Threshold used for waveform envelope peak picking',
     },
   },
   {
@@ -99,7 +99,7 @@ export const noteDetectionEntries: SettingsRowConfig<NoteDetectionSettings>[] = 
       key: 'onsetCompensationMs',
       id: 'onset-compensation-ms',
       label: 'Onset Compensation (ms)',
-      description: 'Compensation in milliseconds to offset detector latency',
+      description: 'Compensation in milliseconds to match audio segmentation latency',
     },
   },
   {
@@ -108,7 +108,7 @@ export const noteDetectionEntries: SettingsRowConfig<NoteDetectionSettings>[] = 
       key: 'silenceDb',
       id: 'silence-db',
       label: 'Silence Threshold (dB)',
-      description: 'Audio below this level is treated as silence',
+      description: 'Threshold in dB to treat as silence',
     },
   },
   {
@@ -126,7 +126,7 @@ export const noteDetectionEntries: SettingsRowConfig<NoteDetectionSettings>[] = 
       key: 'minPitchConfidence',
       id: 'min-pitch-confidence',
       label: 'Min Pitch Confidence',
-      description: 'Minimum confidence of pitch existence required for an audio section to define it as an actual note',
+      description: 'Minimum confidence of pitch existence required for an audio section to treat them as note candidates',
     },
   },
 ];
@@ -138,7 +138,7 @@ export const judgmentEntries: SettingsRowConfig<JudgmentSettings>[] = [
       key: 'matchWindowMs',
       id: 'match-window-ms',
       label: 'Match Window',
-      description: 'Maximum offset of detected note to pair notes from reference score with',
+      description: 'Maximum offset of detected note in milliseconds to pair notes with reference score',
     },
   },
   {
@@ -190,7 +190,7 @@ export const judgmentEntries: SettingsRowConfig<JudgmentSettings>[] = [
     config: {
       id: 'velocity-tolerance-mult',
       label: 'Velocity Tolerance',
-      description: 'Multiplier tolerance for velocity',
+      description: 'Multiplier tolerance for note velocity',
       minKey: 'velocityToleranceMultLower',
       minId: 'velocity-tolerance-mult-lower',
       maxKey: 'velocityToleranceMultUpper',
@@ -203,7 +203,7 @@ export const judgmentEntries: SettingsRowConfig<JudgmentSettings>[] = [
       key: 'articulationToleranceMult',
       id: 'articulation-tolerance-mult',
       label: 'Articulation Tolerance',
-      description: 'Multiplier tolerance for articulation matching',
+      description: 'Multiplier tolerance for note articulation',
     },
   },
 ];
