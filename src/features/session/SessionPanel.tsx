@@ -156,7 +156,7 @@ function SessionPanel() {
                   <AccordionItem value="OK">
                     <AccordionTrigger className="flex flex-row items-center justify-between gap-4">
                       <div className="w-full flex flex-row items-center gap-2">
-                        <Square className="text-note-ok" size={12} />
+                        <Square className="text-note-ok fill-current" size={12} />
                         <p>OK</p>
                       </div>
                       <p className="text-note-ok">{`${okCount}×`}</p>
@@ -178,7 +178,7 @@ function SessionPanel() {
                   <AccordionItem value="Inaccurate">
                     <AccordionTrigger className="flex flex-row items-center justify-between gap-4">
                       <div className="w-full flex flex-row items-center gap-2">
-                        <Square className="text-note-inacc" size={12} />
+                        <Square className="text-note-inacc fill-current" size={12} />
                         <p>Inaccurate</p>
                       </div>
                       <p className="text-note-inacc">{`${inaccurateCount}×`}</p>
@@ -214,7 +214,7 @@ function SessionPanel() {
                   <AccordionItem value="Miss">
                     <AccordionTrigger className="flex flex-row items-center justify-between gap-4">
                       <div className="w-full flex flex-row items-center gap-2">
-                        <Square className="text-note-miss" size={12} />
+                        <Square className="text-note-miss fill-current" size={12} />
                         <p>Miss</p>
                       </div>
                       <p className="text-note-miss">{`${missCount}x`}</p>
