@@ -43,7 +43,7 @@ function NoteMarker({
   function formatErrorValue(value: number | null | undefined) {
     if (value == null || !Number.isFinite(value)) return '-';
     const rounded = Math.round(value);
-    return `${rounded >= 0 ? '+' : ''}${rounded}ms`;
+    return `${rounded >= 0 ? '+' : ''}${rounded}`;
   }
 
   const hasJudgment = Boolean(judgment && judgment.kind && judgment.kind !== 'unjudged');
@@ -51,19 +51,12 @@ function NoteMarker({
     <>
       <p className="text-background">{midi !== undefined ? midiToNoteName(midi) : '-'}</p>
       <p className="text-background">
-        Attack:
-        {formatErrorValue(judgment?.criteria.attack.error)}
+        Attack: {formatErrorValue(judgment?.criteria.attack.error)} ms
       </p>
       <p className="text-background">
-        Release:
+        Release: {formatErrorValue(judgment?.criteria.release.error)} ms
         {' '}
-        {formatErrorValue(judgment?.criteria.release.error)}
-        {' '}
-        (duration
-        {' '}
-        {Math.round(length)}
-        {' '}
-        ms)
+        (duration {Math.round(length)} ms)
       </p>
     </>
   ) : (

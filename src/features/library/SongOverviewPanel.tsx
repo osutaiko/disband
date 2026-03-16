@@ -1,6 +1,7 @@
-import { Calendar, User } from 'lucide-react';
 import useLibraryStore from '@/store/useLibraryStore';
 import Panel from '@/components/ui/Panel';
+
+import { User } from 'lucide-react';
 
 function MetaItem({ label, value }: { label: string; value: any }) {
   return (
