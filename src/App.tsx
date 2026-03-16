@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
 import Shell from '@/components/layout/Shell';
+import { ColorThemeProvider } from '@/components/ui/color-theme-provider';
+
 import SettingsWindow from '@/features/configuration/SettingsWindow';
 import useConfigStore from '@/store/useConfigStore';
 
@@ -19,11 +21,17 @@ function App() {
   }
 
   if (windowType === 'settings') {
-    return <SettingsWindow />;
+    return (
+      <ColorThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <SettingsWindow />
+      </ColorThemeProvider>
+    );
   }
 
   return (
-    <Shell />
+    <ColorThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <Shell />
+    </ColorThemeProvider>
   );
 }
 

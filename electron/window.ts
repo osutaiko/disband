@@ -67,6 +67,8 @@ export function createSettingsWindow({
     },
   });
 
+  win.setMenu(null);
+
   win.once('ready-to-show', () => win.show());
   loadRendererWindow(win, viteDevServerUrl, appRoot, 'window=settings');
 

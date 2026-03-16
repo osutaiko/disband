@@ -28,6 +28,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useColorTheme } from '@/components/ui/color-theme-provider';
 
 type NumericSection = 'noteDetection' | 'judgment';
 type SectionStateMap = {
@@ -201,6 +202,8 @@ function SettingsWindow() {
     judgment,
   } = settings;
   const { pxPerMs, soundfontPreset } = theme;
+
+  const { setColorTheme } = useColorTheme();
 
   function updateSection<K extends NumericSection>(
     section: K,
