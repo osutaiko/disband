@@ -1,5 +1,6 @@
 /// <reference types="vite-plugin-electron/electron-env" />
 import type { SessionAnalysisResult } from '../shared/types';
+import type { AppSettings } from '../shared/settings';
 
 declare namespace NodeJS {
   interface ProcessEnv {
@@ -37,6 +38,8 @@ export interface IElectronAPI {
   onRecordingToggleMenu: (handler: () => void) => () => void;
   onRecordingDeleteTakeMenu: (handler: () => void) => () => void;
   onRecordingReanalyzeMenu: (handler: () => void) => () => void;
+  getSettings: () => Promise<AppSettings>;
+  setSettings: (settings: AppSettings) => Promise<AppSettings>;
   startAudioCapture: () => Promise<{
     ok: boolean; sidecarFound?: boolean; port?: number; alreadyRunning?: boolean
   }>;

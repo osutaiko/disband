@@ -14,6 +14,8 @@ import {
   startAudioSidecar,
   stopAudioSidecar,
 } from './audio-sidecar';
+import { getSettings, setSettings } from './settings-store';
+import type { AppSettings } from '../shared/settings';
 
 import { SUPPORTED_EXTENSIONS } from '../shared/constants';
 import { buildApplicationMenu } from './menu';
@@ -221,3 +223,10 @@ ipcMain.handle('audio-analyze', async (
     resolveRecordingPath,
   })
 ));
+
+ipcMain.handle('settings-get', async () => getSettings());
+
+ipcMain.handle('settings-set', async (_event, nextSettings: AppSettings) => {
+  const savedSettings = setSettings(nextSettings);
+  return savedSettings;
+});

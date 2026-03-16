@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import type { AppSettings } from '../shared/settings';
 
 type MenuChannel =
   | 'menu:import-song'
@@ -34,6 +35,8 @@ contextBridge.exposeInMainWorld('electron', {
   onRecordingToggleMenu: (handler: () => void) => onMenu('menu:recording-toggle', handler),
   onRecordingDeleteTakeMenu: (handler: () => void) => onMenu('menu:recording-delete-take', handler),
   onRecordingReanalyzeMenu: (handler: () => void) => onMenu('menu:recording-reanalyze', handler),
+  getSettings: () => ipcRenderer.invoke('settings-get'),
+  setSettings: (settings: AppSettings) => ipcRenderer.invoke('settings-set', settings),
 });
 
 contextBridge.exposeInMainWorld('audio', {

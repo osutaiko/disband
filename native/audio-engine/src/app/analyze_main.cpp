@@ -19,6 +19,7 @@ namespace
 struct CommandLineOptions
 {
     juce::String analysisPath;
+    bool printDefaultSettings = false;
 };
 
 void log(const char* format, ...)
@@ -37,6 +38,8 @@ CommandLineOptions parseCommandLineOptions()
     const auto args = juce::JUCEApplication::getInstance()->getCommandLineParameterArray();
     for (int i = 0; i < args.size(); ++i)
     {
+        if (args[i] == "--print-default-settings")
+            options.printDefaultSettings = true;
         if (args[i] == "--analyze-wav" && i + 1 < args.size())
             options.analysisPath = args[i + 1];
     }
@@ -55,6 +58,12 @@ public:
     void initialise(const juce::String&) override
     {
         const auto options = parseCommandLineOptions();
+        if (options.printDefaultSettings)
+        {
+            printDefaultSettings();
+            quit();
+            return;
+        }
         if (options.analysisPath.isEmpty())
         {
             log("missing --analyze-wav path\n");
@@ -70,6 +79,50 @@ public:
     void shutdown() override {}
 
 private:
+    void printDefaultSettings()
+    {
+        const disband::session::DetectionSettings detectionDefaults;
+        const disband::session::JudgmentSettings judgmentDefaults;
+
+        auto* rootObj = new juce::DynamicObject();
+        juce::var root(rootObj);
+        auto* audioIoObj = new juce::DynamicObject();
+        rootObj->setProperty("audioIO", juce::var(audioIoObj));
+
+        auto* themeObj = new juce::DynamicObject();
+        themeObj->setProperty("pxPerMs", 0.25);
+        themeObj->setProperty("soundfontPreset", "sonivox");
+        rootObj->setProperty("theme", juce::var(themeObj));
+
+        auto* noteDetectionObj = new juce::DynamicObject();
+        noteDetectionObj->setProperty("hopSizeMs", detectionDefaults.hopSizeMs);
+        noteDetectionObj->setProperty("pitchFrameSizeMs", detectionDefaults.pitchFrameSizeMs);
+        noteDetectionObj->setProperty("pitchMinHz", detectionDefaults.pitchMinHz);
+        noteDetectionObj->setProperty("pitchMaxHz", detectionDefaults.pitchMaxHz);
+        noteDetectionObj->setProperty("onsetThreshold", detectionDefaults.onsetThreshold);
+        noteDetectionObj->setProperty("onsetCompensationMs", detectionDefaults.onsetCompensationMs);
+        noteDetectionObj->setProperty("silenceDb", detectionDefaults.silenceDb);
+        noteDetectionObj->setProperty("minNoteMs", detectionDefaults.minNoteMs);
+        noteDetectionObj->setProperty("minPitchConfidence", detectionDefaults.minPitchConfidence);
+        noteDetectionObj->setProperty("minMidi", detectionDefaults.minMidi);
+        noteDetectionObj->setProperty("maxMidi", detectionDefaults.maxMidi);
+        rootObj->setProperty("noteDetection", juce::var(noteDetectionObj));
+
+        auto* judgmentObj = new juce::DynamicObject();
+        judgmentObj->setProperty("matchWindowMs", judgmentDefaults.matchWindowMs);
+        judgmentObj->setProperty("attackOkWindowMs", judgmentDefaults.attackOkWindowMs);
+        judgmentObj->setProperty("attackInaccurateWindowMs", judgmentDefaults.attackInaccurateWindowMs);
+        judgmentObj->setProperty("releaseToleranceMs", judgmentDefaults.releaseToleranceMs);
+        judgmentObj->setProperty("pitchToleranceSemitones", judgmentDefaults.pitchToleranceSemitones);
+        judgmentObj->setProperty("velocityToleranceMultLower", judgmentDefaults.velocityToleranceMultLower);
+        judgmentObj->setProperty("velocityToleranceMultUpper", judgmentDefaults.velocityToleranceMultUpper);
+        judgmentObj->setProperty("articulationToleranceMult", judgmentDefaults.articulationToleranceMult);
+        rootObj->setProperty("judgment", juce::var(judgmentObj));
+
+        std::fprintf(stdout, "%s\n", juce::JSON::toString(root).toRawUTF8());
+        std::fflush(stdout);
+    }
+
     void runBaselineAnalysis(const juce::String& wavPath)
     {
         juce::AudioBuffer<float> monoBuffer;

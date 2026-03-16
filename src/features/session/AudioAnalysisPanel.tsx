@@ -40,7 +40,8 @@ function AudioAnalysisPanel({
   const {
     api, isPlaying, currentMs, endMs, setCurrentMs,
   } = useEngineStore();
-  const { pxPerMs } = useConfigStore();
+  const pxPerMs = useConfigStore((state) => state.settings?.theme.pxPerMs);
+  const pxPerMsForCalc = pxPerMs ?? 1;
   const {
     noteMarkers = [],
     barMarkers = [],
@@ -74,13 +75,13 @@ function AudioAnalysisPanel({
 
   // Padding before/after time=0
   const trackStartPadding = 1000;
-  const totalTrackWidth = endMs * pxPerMs + (2 * trackStartPadding);
+  const totalTrackWidth = endMs * pxPerMsForCalc + (2 * trackStartPadding);
   const currentTranslation = Math.round(
-    playheadOffset - (currentMs * pxPerMs + trackStartPadding + panelPadding),
+    playheadOffset - (currentMs * pxPerMsForCalc + trackStartPadding + panelPadding),
   );
 
-  const windowStart = currentMs - 500 / pxPerMs;
-  const windowEnd = currentMs + 2000 / pxPerMs;
+  const windowStart = currentMs - 500 / pxPerMsForCalc;
+  const windowEnd = currentMs + 2000 / pxPerMsForCalc;
 
   const visibleBarMarkers = barMarkers.slice(1).filter(
     (m) => m.timestamp >= windowStart && m.timestamp <= windowEnd,
@@ -151,17 +152,17 @@ function AudioAnalysisPanel({
   const shouldRenderWaveform = isRecording || Boolean(recordedPath);
   const fallbackStartMs = fixtureStartMs ?? persistedRecordStartMs ?? 0;
   const waveformStartX = activeWaveformRange
-    ? activeWaveformRange.startMs * pxPerMs + trackStartPadding
+    ? activeWaveformRange.startMs * pxPerMsForCalc + trackStartPadding
     : shouldRenderWaveform
-      ? fallbackStartMs * pxPerMs + trackStartPadding
+      ? fallbackStartMs * pxPerMsForCalc + trackStartPadding
       : trackStartPadding;
   const waveformWidthPx = activeWaveformRange
-    ? Math.max(1, (activeWaveformRange.endMs - activeWaveformRange.startMs) * pxPerMs)
+    ? Math.max(1, (activeWaveformRange.endMs - activeWaveformRange.startMs) * pxPerMsForCalc)
     : shouldRenderWaveform
       ? 1
       : 0;
 
-  if (!api || selectedTrackId === null) return null;
+  if (!api || selectedTrackId === null || pxPerMs === undefined) return null;
 
   return (
     <section
@@ -181,7 +182,7 @@ function AudioAnalysisPanel({
               key={`${marker.variant}-${marker.timestamp}-${index}`}
               variant={marker.variant}
               timestamp={marker.timestamp}
-              pxPerMs={pxPerMs}
+              pxPerMs={pxPerMsForCalc}
               offsetBase={trackStartPadding}
             />
           ))}
@@ -194,7 +195,7 @@ function AudioAnalysisPanel({
                 timestamp={marker.timestamp}
                 length={marker.length}
                 offsetBase={trackStartPadding}
-                pxPerMs={pxPerMs}
+                pxPerMs={pxPerMsForCalc}
                 status={noteMarkerStatuses[index]}
                 midi={marker.midi}
                 judgment={referenceJudgmentByIndex.get(index) ?? null}

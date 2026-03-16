@@ -1,4 +1,17 @@
 import useConfigStore from '@/store/useConfigStore';
+import type {
+  JudgmentSettings,
+  NoteDetectionSettings,
+  SoundfontPreset,
+} from '../../../shared/settings';
+import {
+  noteDetectionEntries,
+  judgmentEntries,
+  type NumericFieldConfig,
+  type NumericKeys,
+  type NumericRangeFieldConfig,
+  type SettingsRowConfig,
+} from './settingsEntries';
 
 import {
   Tabs, TabsContent, TabsList, TabsTrigger,
@@ -16,6 +29,19 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
+type NumericSection = 'noteDetection' | 'judgment';
+type SectionStateMap = {
+  noteDetection: NoteDetectionSettings;
+  judgment: JudgmentSettings;
+};
+
+const settingsTabContentClassName = 'flex flex-col gap-4 items-center mr-4 px-2 py-5';
+
+function numberFromInput(value: string, fallback: number): number {
+  const next = Number(value);
+  return Number.isFinite(next) ? next : fallback;
+}
+
 function FormItem({
   htmlFor,
   label,
@@ -32,7 +58,7 @@ function FormItem({
       <div className="flex flex-col gap-1">
         <Label htmlFor={htmlFor}>{label}</Label>
         {description
-          && <p className="text-muted-foreground leading-tight">{description}</p>}
+          && <p className="text-muted-foreground text-xs leading-tight">{description}</p>}
       </div>
       <div className="flex-none w-[150px]">
         {children}
@@ -41,8 +67,171 @@ function FormItem({
   );
 }
 
+function NumericSettingField<T>({
+  config,
+  values,
+  onChange,
+}: {
+  config: NumericFieldConfig<T>;
+  values: T;
+  onChange: (key: NumericKeys<T>, value: number) => void;
+}) {
+  const value = values[config.key] as number;
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const next = numberFromInput(event.target.value, value);
+    onChange(config.key, config.round ? Math.round(next) : next);
+  };
+
+  return (
+    <FormItem
+      htmlFor={config.id}
+      label={config.label}
+      description={config.description}
+    >
+      <Input
+        id={config.id}
+        type="number"
+        step={config.step}
+        value={value}
+        onChange={handleChange}
+      />
+    </FormItem>
+  );
+}
+
+function NumericRangeSettingField<T>({
+  config,
+  values,
+  onChange,
+}: {
+  config: NumericRangeFieldConfig<T>;
+  values: T;
+  onChange: (key: NumericKeys<T>, value: number) => void;
+}) {
+  const minValue = values[config.minKey] as number;
+  const maxValue = values[config.maxKey] as number;
+
+  const handleMinChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const next = numberFromInput(event.target.value, minValue);
+    onChange(config.minKey, config.round ? Math.round(next) : next);
+  };
+
+  const handleMaxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const next = numberFromInput(event.target.value, maxValue);
+    onChange(config.maxKey, config.round ? Math.round(next) : next);
+  };
+
+  return (
+    <FormItem
+      htmlFor={config.id}
+      label={config.label}
+      description={config.description}
+    >
+      <div className="flex flex-row gap-2 items-center">
+        <Input
+          id={config.minId}
+          type="number"
+          step={config.minStep}
+          value={minValue}
+          onChange={handleMinChange}
+        />
+        <span className="select-none">~</span>
+        <Input
+          id={config.maxId}
+          type="number"
+          step={config.maxStep}
+          value={maxValue}
+          onChange={handleMaxChange}
+        />
+      </div>
+    </FormItem>
+  );
+}
+
+function SettingsRows<T>({
+  entries,
+  values,
+  onChange,
+}: {
+  entries: SettingsRowConfig<T>[];
+  values: T;
+  onChange: (key: NumericKeys<T>, value: number) => void;
+}) {
+  return entries.map((row) => {
+    if (row.type === 'separator') {
+      return <Separator key={row.id} />;
+    }
+    if (row.type === 'field') {
+      return (
+        <NumericSettingField
+          key={row.config.id}
+          config={row.config}
+          values={values}
+          onChange={onChange}
+        />
+      );
+    }
+    return (
+      <NumericRangeSettingField
+        key={row.config.id}
+        config={row.config}
+        values={values}
+        onChange={onChange}
+      />
+    );
+  });
+}
+
 function SettingsWindow() {
-  const { pxPerMs, setPxPerMs } = useConfigStore();
+  const settings = useConfigStore((state) => state.settings);
+  const setSettings = useConfigStore((state) => state.setSettings);
+  const updateSettings = useConfigStore((state) => state.updateSettings);
+
+  if (!settings) {
+    return null;
+  }
+
+  const {
+    theme,
+    noteDetection,
+    judgment,
+  } = settings;
+  const { pxPerMs, soundfontPreset } = theme;
+
+  function updateSection<K extends NumericSection>(
+    section: K,
+    key: NumericKeys<SectionStateMap[K]>,
+    value: number,
+  ) {
+    updateSettings((previous) => {
+      const nextSection = {
+        ...previous[section],
+        [key]: value,
+      } as SectionStateMap[K];
+      return {
+        ...previous,
+        [section]: nextSection,
+      };
+    }).catch(() => {});
+  }
+
+  function renderNumericSettingsTab<K extends NumericSection>(
+    tabValue: string,
+    type: K,
+    entries: SettingsRowConfig<SectionStateMap[K]>[],
+    values: SectionStateMap[K],
+  ) {
+    return (
+      <TabsContent key={type} value={tabValue} className={settingsTabContentClassName}>
+        <SettingsRows
+          entries={entries}
+          values={values}
+          onChange={(key, value) => updateSection(type, key, value)}
+        />
+      </TabsContent>
+    );
+  }
 
   return (
     <Tabs defaultValue="audio-device" orientation="vertical" className="h-screen max-h-screen">
@@ -54,7 +243,7 @@ function SettingsWindow() {
       </TabsList>
       <ScrollArea className="h-full max-h-screen">
         <TabsContent value="audio-device" className="mr-4 px-4 py-5" />
-        <TabsContent value="theme" className="flex flex-col gap-4 items-center mr-4 px-2 py-5">
+        <TabsContent value="theme" className={settingsTabContentClassName}>
           <FormItem
             htmlFor="scroll-speed"
             label="Scroll Speed"
@@ -72,7 +261,15 @@ function SettingsWindow() {
                 min={0.03}
                 max={1.0}
                 step={0.01}
-                onValueChange={(vals) => setPxPerMs(vals[0] ?? pxPerMs)}
+                onValueChange={(values) => {
+                  setSettings({
+                    ...settings,
+                    theme: {
+                      ...settings.theme,
+                      pxPerMs: values[0] ?? pxPerMs,
+                    },
+                  }).catch(() => {});
+                }}
               />
             </div>
           </FormItem>
@@ -81,7 +278,18 @@ function SettingsWindow() {
             label="Soundfont"
             description="Soundfont used in score playback"
           >
-            <Select>
+            <Select
+              value={soundfontPreset}
+              onValueChange={(value: SoundfontPreset) => {
+                updateSettings((previous) => ({
+                  ...previous,
+                  theme: {
+                    ...previous.theme,
+                    soundfontPreset: value,
+                  },
+                })).catch(() => {});
+              }}
+            >
               <SelectTrigger id="soundfont-preset">
                 <SelectValue />
               </SelectTrigger>
@@ -92,136 +300,13 @@ function SettingsWindow() {
             </Select>
           </FormItem>
         </TabsContent>
-        <TabsContent value="note-detection" className="flex flex-col gap-4 items-center mr-4 px-2 py-5">
-          <FormItem
-            htmlFor="hop-size-ms"
-            label="Hop Size (ms)"
-            description="Step size of detection in milliseconds: notes will only be detected in increments of this value"
-          >
-            <Input id="hop-size-ms" type="number" />
-          </FormItem>
-          <FormItem
-            htmlFor="pitch-frame-size-ms"
-            label="Pitch Frame Size (ms)"
-            description="Frame size in milliseconds used for pitch estimation"
-          >
-            <Input id="pitch-frame-size-ms" type="number" />
-          </FormItem>
-          <FormItem
-            htmlFor="pitch-hz"
-            label="Detection Pitch Range (Hz)"
-            description="Lowest/Highest pitch to detect"
-          >
-            <div className="flex flex-row gap-2 items-center">
-              <Input id="pitch-min-hz" type="number" />
-              <span className="select-none">~</span>
-              <Input id="pitch-max-hz" type="number" />
-            </div>
-          </FormItem>
-          <FormItem
-            htmlFor="midi"
-            label="Translation MIDI Range"
-            description="Lowest/Highest MIDI note to convert to"
-          >
-            <div className="flex flex-row gap-2 items-center">
-              <Input id="midi-min" type="number" />
-              <span className="select-none">~</span>
-              <Input id="midi-max" type="number" />
-            </div>
-          </FormItem>
-          <FormItem
-            htmlFor="onset-threshold"
-            label="Onset Threshold"
-            description="Peak picking threshold passed to aubio"
-          >
-            <Input id="onset-threshold" type="number" />
-          </FormItem>
-          <FormItem
-            htmlFor="onset-compensation-ms"
-            label="Onset Compensation (ms)"
-            description="Compensation in milliseconds to offset detector latency"
-          >
-            <Input id="onset-compensation-ms" type="number" />
-          </FormItem>
-          <FormItem
-            htmlFor="silence-db"
-            label="Silence Threshold (dB)"
-            description="Audio below this level is treated as silence"
-          >
-            <Input id="silence-db" type="number" />
-          </FormItem>
-          <FormItem
-            htmlFor="min-note-ms"
-            label="Min Note Length (ms)"
-            description="Shortest note length to detect in milliseconds"
-          >
-            <Input id="min-note-ms" type="number" />
-          </FormItem>
-          <FormItem
-            htmlFor="min-pitch-confidence"
-            label="Min Pitch Confidence"
-            description="Minimum confidence of pitch existence required for an audio section to define it as an actual note"
-          >
-            <Input id="min-pitch-confidence" type="number" />
-          </FormItem>
-        </TabsContent>
-        <TabsContent value="judgment" className="flex flex-col gap-4 items-center mr-4 px-2 py-5">
-          <FormItem
-            htmlFor="match-window-ms"
-            label="Match Window"
-            description="Maximum offset of detected note to pair notes from reference score with"
-          >
-            <Input id="match-window-ms" type="number" />
-          </FormItem>
-          <Separator />
-          <FormItem
-            htmlFor="attack-ok-window-ms"
-            label="Attack OK Window (ms)"
-            description="Attack timing window in milliseconds for OK judgment"
-          >
-            <Input id="attack-ok-window-ms" type="number" />
-          </FormItem>
-          <FormItem
-            htmlFor="pitch-tolerance-semitones"
-            label="Pitch Tolerance"
-            description="Allowed pitch error in semitones for OK judgment"
-          >
-            <Input id="pitch-tolerance-semitones" type="number" />
-          </FormItem>
-          <Separator />
-          <FormItem
-            htmlFor="attack-inaccurate-window-ms"
-            label="Attack Inaccurate Window (ms)"
-            description="Attack timing window (ms) for Inaccurate judgment (as opposed to Miss)"
-          >
-            <Input id="attack-inaccurate-window-ms" type="number" />
-          </FormItem>
-          <FormItem
-            htmlFor="release-tolerance-ms"
-            label="Release Tolerance (ms)"
-            description="Release timing tolerance in milliseconds"
-          >
-            <Input id="release-tolerance-ms" type="number" />
-          </FormItem>
-          <FormItem
-            htmlFor="velocity-tolerance-mult"
-            label="Velocity Tolerance"
-            description="Multiplier tolerance for velocity"
-          >
-            <div className="flex flex-row gap-2 items-center">
-              <Input id="velocity-tolerance-mult-lower" type="number" />
-              <span className="select-none">~</span>
-              <Input id="velocity-tolerance-mult-upper" type="number" />
-            </div>
-          </FormItem>
-          <FormItem
-            htmlFor="articulation-tolerance-mult"
-            label="Articulation Tolerance"
-            description="Multiplier tolerance for articulation matching"
-          >
-            <Input id="articulation-tolerance-mult" type="number" />
-          </FormItem>
-        </TabsContent>
+        {renderNumericSettingsTab(
+          'note-detection',
+          'noteDetection',
+          noteDetectionEntries,
+          noteDetection,
+        )}
+        {renderNumericSettingsTab('judgment', 'judgment', judgmentEntries, judgment)}
       </ScrollArea>
     </Tabs>
   );
