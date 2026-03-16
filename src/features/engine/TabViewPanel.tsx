@@ -103,7 +103,7 @@ function TabViewPanel({
   }, [applyZoom, containerRef]);
 
   return (
-    <section className="flex-1 flex flex-col relative w-full h-full overflow-hidden">
+    <section className="flex-1 flex flex-col relative w-full h-full overflow-hidden bg-white">
       {!selectedSong && (
         <div className="flex flex-1 items-center justify-center">
           <h2>No Song Selected</h2>
