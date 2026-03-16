@@ -37,7 +37,7 @@ type SectionStateMap = {
   judgment: JudgmentSettings;
 };
 
-const settingsTabContentClassName = 'flex w-full flex-col gap-4 p-5 items-stretch';
+const settingsTabContentClassName = 'flex w-full flex-col gap-4 items-stretch';
 const colorThemeOptions = [
   { value: 'light', label: 'Light' },
   { value: 'dark', label: 'Dark' },
@@ -245,13 +245,14 @@ function SettingsWindow() {
   }
 
   return (
-    <Tabs defaultValue="audio-device" orientation="vertical" className="h-screen max-h-screen w-full">
-      <TabsList variant="line" className="px-3 py-4">
+    <Tabs defaultValue="audio-device" orientation="vertical" className="px-3 py-6 gap-6 h-screen max-h-screen w-full">
+      <TabsList variant="line">
         <TabsTrigger value="audio-device">Audio Device</TabsTrigger>
         <TabsTrigger value="theme">Theme</TabsTrigger>
         <TabsTrigger value="note-detection">Note Detection</TabsTrigger>
         <TabsTrigger value="judgment">Judgment</TabsTrigger>
       </TabsList>
+      <Separator orientation="vertical" />
       <ScrollArea className="h-full max-h-screen min-w-0 flex-1">
         <TabsContent value="audio-device" className={settingsTabContentClassName} />
         <TabsContent value="theme" className={settingsTabContentClassName}>
