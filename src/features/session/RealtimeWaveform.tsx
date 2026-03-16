@@ -5,6 +5,7 @@ import type {
 } from '../../../shared/types';
 
 import { getCssColor } from '@/lib/utils';
+import { useColorTheme } from '@/components/ui/color-theme-provider';
 
 function RealtimeWaveform({
   audioPath,
@@ -146,6 +147,25 @@ function RealtimeWaveform({
     referenceNotes,
     timelineStartMs,
   ]);
+
+  const { colorTheme } = useColorTheme();
+
+  function applyWaveSurferColors(waveSurfer: WaveSurfer) { 
+    const baseColor = getCssColor('--color-rec-waveform', 'black');
+    waveSurfer.setOptions({ waveColor: baseColor, progressColor: baseColor, }); 
+  }
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      const waveSurfer = waveSurferRef.current;
+      if (!waveSurfer) return;
+      applyWaveSurferColors(waveSurfer);
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
+  }, [colorTheme]);
 
   return (
     <div className={`relative ${className ?? ''}`}>

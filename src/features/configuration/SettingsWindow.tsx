@@ -39,7 +39,6 @@ type SectionStateMap = {
 
 const settingsTabContentClassName = 'flex w-full flex-col gap-4 p-5 items-stretch';
 const colorThemeOptions = [
-  { value: 'system', label: 'System' },
   { value: 'light', label: 'Light' },
   { value: 'dark', label: 'Dark' },
 ] as const;
@@ -257,7 +256,7 @@ function SettingsWindow() {
         <TabsContent value="audio-device" className={settingsTabContentClassName} />
         <TabsContent value="theme" className={settingsTabContentClassName}>
           <FormItem
-            htmlFor="color-theme-system"
+            htmlFor="color-theme-dark"
             label="Color Theme"
             description="Color scheme of app UI"
           >
