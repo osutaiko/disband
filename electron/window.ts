@@ -54,8 +54,8 @@ export function createSettingsWindow({
   parent?: BrowserWindow;
 }): BrowserWindow {
   const win = new BrowserWindow({
-    width: 600,
-    height: 400,
+    width: 800,
+    height: 600,
     resizable: false,
     parent,
     modal: Boolean(parent),
@@ -66,7 +66,6 @@ export function createSettingsWindow({
       preload: path.join(dirName, 'preload.mjs'),
     },
   });
-  win.setMenu(null);
 
   win.once('ready-to-show', () => win.show());
   loadRendererWindow(win, viteDevServerUrl, appRoot, 'window=settings');

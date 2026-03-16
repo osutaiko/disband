@@ -35,7 +35,7 @@ type SectionStateMap = {
   judgment: JudgmentSettings;
 };
 
-const settingsTabContentClassName = 'flex flex-col gap-4 items-center mr-4 px-2 py-5';
+const settingsTabContentClassName = 'flex w-full flex-col gap-4 p-5 items-stretch';
 
 function numberFromInput(value: string, fallback: number): number {
   const next = Number(value);
@@ -54,13 +54,13 @@ function FormItem({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-row justify-between items-center gap-4 w-full">
-      <div className="flex flex-col gap-1">
+    <div className="flex w-full flex-row items-center gap-4">
+      <div className="min-w-0 flex flex-col gap-1">
         <Label htmlFor={htmlFor}>{label}</Label>
         {description
           && <p className="text-muted-foreground text-xs leading-tight">{description}</p>}
       </div>
-      <div className="flex-none w-[150px]">
+      <div className={`ml-auto flex-none shrink-0`}>
         {children}
       </div>
     </div>
@@ -95,6 +95,7 @@ function NumericSettingField<T>({
         step={config.step}
         value={value}
         onChange={handleChange}
+        className="w-[120px]"
       />
     </FormItem>
   );
@@ -135,6 +136,7 @@ function NumericRangeSettingField<T>({
           step={config.minStep}
           value={minValue}
           onChange={handleMinChange}
+          className="w-[80px]"
         />
         <span className="select-none">~</span>
         <Input
@@ -143,6 +145,7 @@ function NumericRangeSettingField<T>({
           step={config.maxStep}
           value={maxValue}
           onChange={handleMaxChange}
+          className="w-[80px]"
         />
       </div>
     </FormItem>
@@ -234,15 +237,15 @@ function SettingsWindow() {
   }
 
   return (
-    <Tabs defaultValue="audio-device" orientation="vertical" className="h-screen max-h-screen">
-      <TabsList variant="line" className="mr-4 px-2 py-4">
+    <Tabs defaultValue="audio-device" orientation="vertical" className="h-screen max-h-screen w-full">
+      <TabsList variant="line" className="px-3 py-4">
         <TabsTrigger value="audio-device">Audio Device</TabsTrigger>
         <TabsTrigger value="theme">Theme</TabsTrigger>
         <TabsTrigger value="note-detection">Note Detection</TabsTrigger>
         <TabsTrigger value="judgment">Judgment</TabsTrigger>
       </TabsList>
-      <ScrollArea className="h-full max-h-screen">
-        <TabsContent value="audio-device" className="mr-4 px-4 py-5" />
+      <ScrollArea className="h-full max-h-screen min-w-0 flex-1">
+        <TabsContent value="audio-device" className={settingsTabContentClassName} />
         <TabsContent value="theme" className={settingsTabContentClassName}>
           <FormItem
             htmlFor="scroll-speed"
@@ -270,6 +273,7 @@ function SettingsWindow() {
                     },
                   }).catch(() => {});
                 }}
+                className="w-[200px]"
               />
             </div>
           </FormItem>
@@ -290,7 +294,7 @@ function SettingsWindow() {
                 })).catch(() => {});
               }}
             >
-              <SelectTrigger id="soundfont-preset">
+              <SelectTrigger id="soundfont-preset" className="w-[150px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
