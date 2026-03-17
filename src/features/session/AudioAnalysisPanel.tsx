@@ -38,7 +38,7 @@ function AudioAnalysisPanel({
 }) {
   const { selectedSong, selectedTrackId } = useLibraryStore();
   const {
-    api, isPlaying, currentMs, endMs, setCurrentMs,
+    api, isPlaying, currentMs, endMs, setCurrentMs, playbackSpeed
   } = useEngineStore();
   const pxPerMs = useConfigStore((state) => state.settings?.theme.pxPerMs);
   const pxPerMsForCalc = pxPerMs ?? 1;
@@ -77,7 +77,7 @@ function AudioAnalysisPanel({
   const trackStartPadding = 1000;
   const totalTrackWidth = endMs * pxPerMsForCalc + (2 * trackStartPadding);
   const currentTranslation = Math.round(
-    playheadOffset - (currentMs * pxPerMsForCalc + trackStartPadding + panelPadding),
+    playheadOffset - (currentMs * pxPerMsForCalc * playbackSpeed + trackStartPadding + panelPadding),
   );
 
   const windowStart = currentMs - 500 / pxPerMsForCalc;
