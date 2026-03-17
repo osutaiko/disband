@@ -1,15 +1,24 @@
+import { useEffect } from 'react';
 import {
-  ChevronFirst, Play, Pause, ChevronLast,
+  ChevronFirst,
+  Play,
+  Pause,
+  ChevronLast,
+  Metronome,
+  CircleGauge,
+  Repeat,
+  ClockArrowDown,
 } from 'lucide-react';
 import { handlePlayPause, handleGotoStart, handleGotoEnd } from './playback';
 import useEngineStore from '@/store/useEngineStore';
 
 import Panel from '@/components/ui/Panel';
 import { Button } from '@/components/ui/button';
+import { Toggle } from '@/components/ui/toggle';
 
 function PlaybackControlPanel() {
   const {
-    api, isPlaying, currentMs, endMs, currentBar, endBar,
+    api, isPlaying, currentMs, endMs, currentBar, endBar, metronomeEnabled, setMetronomeEnabled,
   } = useEngineStore();
 
   const parseMs = (ms: number) => ({
@@ -20,6 +29,11 @@ function PlaybackControlPanel() {
 
   const current = parseMs(currentMs);
   const end = parseMs(endMs);
+
+  useEffect(() => {
+    if (!api) return;
+    api.metronomeVolume = metronomeEnabled ? 1 : 0;
+  }, [api, metronomeEnabled]);
 
   return (
     <Panel className="border-b">
@@ -64,6 +78,35 @@ function PlaybackControlPanel() {
           <p>/</p>
           <p>{endBar}</p>
         </div>
+      </div>
+
+      { /* Practice Tools */ }
+      <div className="flex flex-row gap-1 w-full justify-center">
+        <Toggle
+          title="Metronome"
+          variant="outline"
+          onClick={() => setMetronomeEnabled(!metronomeEnabled)}
+        >
+          <Metronome />
+        </Toggle>
+        <Toggle
+          title="Count-in"
+          variant="outline"
+        >
+          <ClockArrowDown />
+        </Toggle>
+        <Toggle
+          title="Loop"
+          variant="outline"
+        >
+          <Repeat />
+        </Toggle>
+        <Toggle
+          title="Speed"
+          variant="outline"
+        >
+          <CircleGauge />
+        </Toggle>
       </div>
     </Panel>
   );

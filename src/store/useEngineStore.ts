@@ -1,8 +1,9 @@
 import { create } from 'zustand';
+import { AlphaTabApi } from '@coderline/alphatab';
 
 interface EngineState {
-  api: any | null;
-  setApi: (api: any | null) => void;
+  api: AlphaTabApi | null;
+  setApi: (api: AlphaTabApi | null) => void;
 
   isPlaying: boolean;
   setIsPlaying: (playing: boolean) => void;
@@ -16,6 +17,9 @@ interface EngineState {
   setCurrentBar: (current: number) => void;
   endBar: number;
   setEndBar: (end: number) => void;
+
+  metronomeEnabled: boolean;
+  setMetronomeEnabled: (enabled: boolean) => void;
 }
 
 const useEngineStore = create<EngineState>((set) => ({
@@ -34,6 +38,9 @@ const useEngineStore = create<EngineState>((set) => ({
   setCurrentBar: (current) => set({ currentBar: current }),
   endBar: 0,
   setEndBar: (end) => set({ endBar: end }),
+
+  metronomeEnabled: false,
+  setMetronomeEnabled: (enabled) => set({ metronomeEnabled: enabled }),
 }));
 
 export default useEngineStore;
