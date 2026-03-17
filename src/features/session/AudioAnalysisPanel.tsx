@@ -64,7 +64,7 @@ function AudioAnalysisPanel({
   } = useRecordingTake({
     api,
     isPlaying,
-    currentMs,
+    currentMs: currentMs * playbackSpeed,
     selectionId,
   });
 
@@ -77,10 +77,10 @@ function AudioAnalysisPanel({
   const trackStartPadding = 1000;
   const totalTrackWidth = endMs * pxPerMsForCalc + (2 * trackStartPadding);
   const currentTranslation = Math.round(
-    playheadOffset - (currentMs * pxPerMsForCalc * playbackSpeed + trackStartPadding + panelPadding),
+    playheadOffset - (currentMs * playbackSpeed * pxPerMsForCalc + trackStartPadding + panelPadding),
   );
-  const windowStart = currentMs - 500 / pxPerMsForCalc;
-  const windowEnd = currentMs + 2000 / pxPerMsForCalc;
+  const windowStart = currentMs * playbackSpeed - 500 / pxPerMsForCalc;
+  const windowEnd = currentMs * playbackSpeed + 2000 / pxPerMsForCalc;
 
   const barMarkersToRender = barMarkers.filter(
     (marker) => marker.timestamp >= windowStart && marker.timestamp <= windowEnd,
@@ -138,7 +138,7 @@ function AudioAnalysisPanel({
     const startMs = currentRecordStartMs;
     activeWaveformRange = {
       startMs,
-      endMs: getSnappedQuarterEndMs(startMs, currentMs),
+      endMs: getSnappedQuarterEndMs(startMs, currentMs * playbackSpeed),
     };
   } else if (recordedPath && persistedRecordDurationMs !== null) {
     const startMs = fixtureStartMs ?? persistedRecordStartMs ?? 0;
@@ -203,8 +203,8 @@ function AudioAnalysisPanel({
                   setHoveredReferenceIndex(hovered ? marker.referenceIndex : null);
                 }}
                 isCurrentlyPlaying={
-                  currentMs >= marker.timestamp
-                  && currentMs < marker.timestamp + marker.length
+                  currentMs * playbackSpeed >= marker.timestamp
+                  && currentMs * playbackSpeed < marker.timestamp + marker.length
                 }
               />
             ))}
@@ -224,7 +224,7 @@ function AudioAnalysisPanel({
                   key={`${selectionId ?? 'none'}-${recordingEpoch}`}
                   audioPath={recordedPath}
                   referenceNotes={referenceNotesForAnalysis}
-                  currentMs={currentMs}
+                  currentMs={currentMs * playbackSpeed}
                   timelineStartMs={activeWaveformRange?.startMs ?? fallbackStartMs}
                   windowStartMs={windowStart}
                   windowEndMs={windowEnd}
