@@ -103,7 +103,7 @@ function TabViewPanel({
   }, [applyZoom, containerRef]);
 
   return (
-    <section className="flex-1 flex flex-col relative w-full h-full overflow-hidden bg-white">
+    <section className="flex-1 min-w-0 flex flex-col relative w-full h-full overflow-hidden bg-white">
       {!selectedSong && (
         <div className="flex flex-1 items-center justify-center">
           <h2>No Song Selected</h2>
@@ -118,7 +118,7 @@ function TabViewPanel({
 
       {/* Actual TAB */}
       {selectedSong && (
-        <ScrollArea ref={scrollAreaRef} className="flex-1 w-full h-full">
+        <ScrollArea ref={scrollAreaRef} className="flex-1 min-w-0 w-full h-full">
           <div className="flex justify-center w-full p-4">
             <div
               ref={containerRef}

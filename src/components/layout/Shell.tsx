@@ -28,14 +28,14 @@ function Shell() {
       <PlaybackHotkeys />
 
       {/* Left Panel Group */}
-      <aside className="w-80 flex flex-col border-r">
+      <aside className="w-80 shrink-0 flex flex-col border-r">
         <SongOverviewPanel />
         <LibraryPanel />
         <SessionPanel />
       </aside>
 
       {/* Center Panel (Tab & Recorder View) */}
-      <main className="flex-1 flex flex-col">
+      <main className="flex-1 min-w-0 flex flex-col">
         <TabViewPanel
           containerRef={containerRef}
           isTabLoading={isTabLoading}
@@ -46,11 +46,10 @@ function Shell() {
       </main>
 
       {/* Right Panel Group */}
-      <aside className="w-80 flex flex-col border-l">
+      <aside className="w-80 shrink-0 flex flex-col border-l">
         <PlaybackControlPanel />
         <TrackMenuPanel />
       </aside>
-
     </div>
   );
 }
