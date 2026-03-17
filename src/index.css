@@ -23,7 +23,7 @@
   --border: oklch(0.89 0.015 260);
   --input: oklch(0.9 0.02 260);
   --ring: oklch(0.64 0.22 338);
-  --radius: 0.625rem;
+  --radius: 0.4rem;
 
   --playhead: oklch(0.64 0.25 27);
   --bar-startend: oklch(0.47 0.11 250);
@@ -67,7 +67,7 @@
   --border: oklch(0.95 0.01 95 / 16%);
   --input: oklch(0.95 0.01 95 / 22%);
   --ring: oklch(0.7 0.24 338);
-  --radius: 0.625rem;
+  --radius: 0.4rem;
 
   --playhead: oklch(0.68 0.24 27);
   --bar-startend: oklch(0.6 0.12 248);
