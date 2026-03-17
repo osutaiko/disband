@@ -16,6 +16,8 @@ function RealtimeWaveform({
   referenceNotes = [],
   currentMs,
   timelineStartMs = 0,
+  windowStartMs,
+  windowEndMs,
   hoveredReferenceIndex,
   onHoveredReferenceIndexChange,
 }: {
@@ -32,6 +34,8 @@ function RealtimeWaveform({
   }>;
   currentMs?: number;
   timelineStartMs?: number;
+  windowStartMs?: number;
+  windowEndMs?: number;
   hoveredReferenceIndex?: number | null;
   onHoveredReferenceIndexChange?: (index: number | null) => void;
 }) {
@@ -40,6 +44,12 @@ function RealtimeWaveform({
   const [durationMs, setDurationMs] = useState<number | null>(null);
   const [analysisResult, setAnalysisResult] = useState<SessionAnalysisResult | null>(null);
   const analyzedNotes = analysisResult?.playedNotes ?? [];
+  const analyzedNotesToRender = analyzedNotes
+    .map((note, index) => ({ note, index }))
+    .filter(({ note }) => {
+      if (windowStartMs === undefined || windowEndMs === undefined) return true;
+      return note.endMs >= windowStartMs && note.startMs <= windowEndMs;
+    });
 
   useEffect(() => {
     onAnalysisResultChange?.(analysisResult);
@@ -170,9 +180,9 @@ function RealtimeWaveform({
   return (
     <div className={`relative ${className ?? ''}`}>
       <div ref={containerRef} className="absolute inset-0 z-20 pointer-events-none" />
-      {durationMs !== null && durationMs > 0 && analyzedNotes.length > 0 && (
+      {durationMs !== null && durationMs > 0 && analyzedNotesToRender.length > 0 && (
         <div className="pointer-events-none absolute inset-0 overflow-visible">
-            {analyzedNotes.map((note, index) => {
+            {analyzedNotesToRender.map(({ note, index }) => {
               const localStartMs = note.startMs - timelineStartMs;
               const localEndMs = note.endMs - timelineStartMs;
               const startRatio = Math.max(0, Math.min(1, localStartMs / durationMs));

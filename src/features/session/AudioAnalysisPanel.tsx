@@ -79,19 +79,18 @@ function AudioAnalysisPanel({
   const currentTranslation = Math.round(
     playheadOffset - (currentMs * pxPerMsForCalc * playbackSpeed + trackStartPadding + panelPadding),
   );
-
   const windowStart = currentMs - 500 / pxPerMsForCalc;
   const windowEnd = currentMs + 2000 / pxPerMsForCalc;
 
-  const visibleBarMarkers = barMarkers.slice(1).filter(
-    (m) => m.timestamp >= windowStart && m.timestamp <= windowEnd,
+  const barMarkersToRender = barMarkers.filter(
+    (marker) => marker.timestamp >= windowStart && marker.timestamp <= windowEnd,
   );
   const {
     hoveredReferenceIndex,
     setHoveredReferenceIndex,
     noteMarkerStatuses,
     referenceJudgmentByIndex,
-    visibleNoteMarkersWithIndex,
+    noteMarkersToRender,
     referenceNotesForAnalysis,
     handleAnalysisResultChange,
     handleAnalysisRunningChange,
@@ -177,7 +176,7 @@ function AudioAnalysisPanel({
             transform: `translateX(${currentTranslation}px)`,
           }}
         >
-          {visibleBarMarkers.map((marker, index) => (
+          {barMarkersToRender.map((marker, index) => (
             <BarMarker
               key={`${marker.variant}-${marker.timestamp}-${index}`}
               variant={marker.variant}
@@ -189,19 +188,19 @@ function AudioAnalysisPanel({
 
           <div className="relative w-full h-[48px] bg-muted py-2 z-20">
             {/* Note Markers */}
-            {visibleNoteMarkersWithIndex.map(({ marker, index }) => (
+            {noteMarkersToRender.map((marker) => (
               <NoteMarker
-                key={`note-${marker.timestamp}-${marker.length}-${index}`}
+                key={`note-${marker.timestamp}-${marker.length}-${marker.referenceIndex}`}
                 timestamp={marker.timestamp}
                 length={marker.length}
                 offsetBase={trackStartPadding}
                 pxPerMs={pxPerMsForCalc}
-                status={noteMarkerStatuses[index]}
+                status={noteMarkerStatuses[marker.referenceIndex]}
                 midi={marker.midi}
-                judgment={referenceJudgmentByIndex.get(index) ?? null}
-                isHovered={hoveredReferenceIndex === index}
+                judgment={referenceJudgmentByIndex.get(marker.referenceIndex) ?? null}
+                isHovered={hoveredReferenceIndex === marker.referenceIndex}
                 onHoverChange={(hovered) => {
-                  setHoveredReferenceIndex(hovered ? index : null);
+                  setHoveredReferenceIndex(hovered ? marker.referenceIndex : null);
                 }}
                 isCurrentlyPlaying={
                   currentMs >= marker.timestamp
@@ -227,6 +226,8 @@ function AudioAnalysisPanel({
                   referenceNotes={referenceNotesForAnalysis}
                   currentMs={currentMs}
                   timelineStartMs={activeWaveformRange?.startMs ?? fallbackStartMs}
+                  windowStartMs={windowStart}
+                  windowEndMs={windowEnd}
                   hoveredReferenceIndex={hoveredReferenceIndex}
                   onHoveredReferenceIndexChange={setHoveredReferenceIndex}
                   onDurationMsChange={handleWaveformDurationChange}

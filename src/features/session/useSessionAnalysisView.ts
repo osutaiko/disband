@@ -52,9 +52,12 @@ function useSessionAnalysisView({
     return byIndex;
   }, [sessionAnalysis]);
 
-  const visibleNoteMarkersWithIndex = useMemo(() => noteMarkers
-    .map((marker, index) => ({ marker, index }))
-    .filter(({ marker }) => (
+  const noteMarkersToRender = useMemo(() => noteMarkers
+    .map((marker, index) => ({
+      ...marker,
+      referenceIndex: index,
+    }))
+    .filter((marker) => (
       marker.timestamp + marker.length >= windowStart
       && marker.timestamp <= windowEnd
     )), [noteMarkers, windowEnd, windowStart]);
@@ -81,7 +84,7 @@ function useSessionAnalysisView({
     setHoveredReferenceIndex,
     noteMarkerStatuses,
     referenceJudgmentByIndex,
-    visibleNoteMarkersWithIndex,
+    noteMarkersToRender,
     referenceNotesForAnalysis,
     handleAnalysisResultChange,
     handleAnalysisRunningChange,
