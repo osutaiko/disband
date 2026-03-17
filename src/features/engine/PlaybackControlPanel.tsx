@@ -6,6 +6,8 @@ import {
   ChevronLast,
   Metronome,
   CircleGauge,
+  Rabbit,
+  Turtle,
   Repeat,
   ClockArrowDown,
 } from 'lucide-react';
@@ -125,9 +127,9 @@ function PlaybackControlPanel() {
         </Toggle>
         <Card
           title="Speed"
-          className="flex flex-row gap-2 items-center p-2" // fast: rabbit; slow: turtle icon
+          className={`flex flex-row gap-2 items-center p-2 ${playbackSpeed !== 1 ? 'bg-accent' : ''}`}
         >
-          <CircleGauge size={16} />
+          {playbackSpeed > 1 ? <Rabbit size={16} /> : playbackSpeed < 1 ? <Turtle size={16} /> : <CircleGauge size={16} />}
           <Input
             type="number"
             value={draftSpeedPercent}
