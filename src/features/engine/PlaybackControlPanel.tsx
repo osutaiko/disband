@@ -148,7 +148,7 @@ function PlaybackControlPanel() {
                 e.currentTarget.blur();
               }
             }}
-            className="w-[100px]"
+            className="w-[65px]"
           />
           <span>%</span>
         </Card>

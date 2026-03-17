@@ -32,7 +32,7 @@ export const handleSpeedChange = (api: AlphaTabApi | null, speed: number) => {
 
   const { setPlaybackSpeed } = useEngineStore.getState();
   const clampedPercent = Math.min(400, Math.max(20, speed));
-  const playbackSpeed = Math.round(clampedPercent / 100);
+  const playbackSpeed = clampedPercent / 100;
 
   if (api) {
     api.playbackSpeed = playbackSpeed;
