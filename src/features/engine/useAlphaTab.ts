@@ -130,6 +130,25 @@ const useAlphaTab = (
     }
   }, [selectedTrackId]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (!apiRef.current || !apiRef.current.score) return;
+      const container = containerRef.current;
+      const viewport = container?.closest('[data-radix-scroll-area-viewport]') as HTMLElement | null;
+      const nextWidth = viewport?.clientWidth ?? container?.parentElement?.clientWidth ?? container?.clientWidth;
+      if (nextWidth && nextWidth > 0) {
+        apiRef.current.container.width = nextWidth;
+        apiRef.current.renderer.width = nextWidth;
+      }
+      apiRef.current.renderer.resizeRender();
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [containerRef]);
+
   return {
     isTabLoading,
     currentMsRef,
