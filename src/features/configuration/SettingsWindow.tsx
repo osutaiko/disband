@@ -248,14 +248,16 @@ function SettingsWindow() {
     <Tabs defaultValue="audio-device" orientation="vertical" className="px-3 py-6 gap-6 h-screen max-h-screen w-full">
       <TabsList variant="line">
         <TabsTrigger value="audio-device">Audio Device</TabsTrigger>
-        <TabsTrigger value="theme">Theme</TabsTrigger>
+        <TabsTrigger value="appearance">Appearance</TabsTrigger>
+        <TabsTrigger value="tab-display">Tab Display</TabsTrigger>
+        <TabsTrigger value="playback">Playback</TabsTrigger>
         <TabsTrigger value="note-detection">Note Detection</TabsTrigger>
         <TabsTrigger value="judgment">Judgment</TabsTrigger>
       </TabsList>
       <Separator orientation="vertical" />
-      <ScrollArea className="h-full max-h-screen min-w-0 flex-1">
+      <ScrollArea className="h-full max-h-screen min-w-0 flex-1 pr-3">
         <TabsContent value="audio-device" className={settingsTabContentClassName} />
-        <TabsContent value="theme" className={settingsTabContentClassName}>
+        <TabsContent value="appearance" className={settingsTabContentClassName}>
           <FormItem
             htmlFor="color-theme-dark"
             label="Color Theme"
@@ -275,6 +277,37 @@ function SettingsWindow() {
                 </Button>
               ))}
             </div>
+          </FormItem>
+        </TabsContent>
+        <TabsContent value="tab-display" className={settingsTabContentClassName}>
+
+        </TabsContent>
+        <TabsContent value="playback" className={settingsTabContentClassName}>
+          <FormItem
+            htmlFor="soundfont-preset"
+            label="Soundfont"
+            description="Soundfont used in score playback"
+          >
+            <Select
+              value={soundfontPreset}
+              onValueChange={(value: SoundfontPreset) => {
+                updateSettings((previous) => ({
+                  ...previous,
+                  theme: {
+                    ...previous.theme,
+                    soundfontPreset: value,
+                  },
+                })).catch(() => {});
+              }}
+            >
+              <SelectTrigger id="soundfont-preset" className="w-[150px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="sonivox">Sonivox</SelectItem>
+                <SelectItem value="fluidr3">FluidR3</SelectItem>
+              </SelectContent>
+            </Select>
           </FormItem>
           <FormItem
             htmlFor="scroll-speed"
@@ -305,32 +338,6 @@ function SettingsWindow() {
                 className="w-[200px]"
               />
             </div>
-          </FormItem>
-          <FormItem
-            htmlFor="soundfont-preset"
-            label="Soundfont"
-            description="Soundfont used in score playback"
-          >
-            <Select
-              value={soundfontPreset}
-              onValueChange={(value: SoundfontPreset) => {
-                updateSettings((previous) => ({
-                  ...previous,
-                  theme: {
-                    ...previous.theme,
-                    soundfontPreset: value,
-                  },
-                })).catch(() => {});
-              }}
-            >
-              <SelectTrigger id="soundfont-preset" className="w-[150px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="sonivox">Sonivox</SelectItem>
-                <SelectItem value="fluidr3">FluidR3</SelectItem>
-              </SelectContent>
-            </Select>
           </FormItem>
         </TabsContent>
         {renderNumericSettingsTab(
