@@ -136,12 +136,14 @@ function PlaybackControlPanel() {
           >
             <ClockArrowDown />
           </Toggle>
+          {/* 
           <Toggle
             title="Loop"
             variant="outline"
           >
             <Repeat />
-          </Toggle>
+          </Toggle> 
+          */}
         </div>
         <div
           title="Speed"
