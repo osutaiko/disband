@@ -4,8 +4,8 @@ import {
 
 import { Circle, Trash } from 'lucide-react';
 import useAudioAnalysisMarkers from './useAudioAnalysisMarkers';
-import useRecordingTake from './useRecordingTake';
-import useSessionAnalysisView from './useSessionAnalysisView';
+import useRecordingTake from './session/useRecordingTake';
+import useSessionAnalysisView from './session/useSessionAnalysisView';
 
 import useLibraryStore from '@/store/useLibraryStore';
 import useEngineStore from '@/store/useEngineStore';
@@ -13,7 +13,7 @@ import useConfigStore from '@/store/useConfigStore';
 
 import BarMarker from './BarMarker';
 import NoteMarker from './NoteMarker';
-import SessionWaveform from './SessionWaveform';
+import SessionWaveform from './session/SessionWaveform';
 
 import { Button } from '@/components/ui/button';
 
@@ -33,7 +33,7 @@ function parseFixtureStartFromPath(filePath: string): { startMs: number } | null
   };
 }
 
-function AudioAnalysisPanel({
+function TimelinePanel({
   currentMsRef,
 }: {
   currentMsRef: RefObject<number>;
@@ -293,4 +293,4 @@ function AudioAnalysisPanel({
   );
 }
 
-export default AudioAnalysisPanel;
+export default TimelinePanel;

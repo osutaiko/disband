@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import useSessionStore from '@/store/useSessionStore';
-import type { NoteStatus, SessionAnalysisResult } from '../../../shared/types';
+import type { NoteStatus, SessionAnalysisResult } from '../../../../shared/types';
 
 type NoteMarker = {
   timestamp: number;

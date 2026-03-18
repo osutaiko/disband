@@ -1,4 +1,4 @@
-import type { SessionAnalysisResult } from '../../../shared/types';
+import type { SessionAnalysisResult } from '../../../../shared/types';
 import SessionCanvas from './SessionCanvas';
 import SessionMarkers from './SessionMarkers';
 import useSessionWaveSurfer from './useSessionWaveSurfer';

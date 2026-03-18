@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
-import type { SessionAnalysisResult } from '../../../shared/types';
+import type { SessionAnalysisResult } from '../../../../shared/types';
 import { getCssColor } from '@/lib/utils';
 import { useColorTheme } from '@/components/ui/color-theme-provider';
 

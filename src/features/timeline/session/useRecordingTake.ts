@@ -2,7 +2,7 @@ import {
   useCallback, useEffect, useRef, useState,
 } from 'react';
 import type { AlphaTabApi } from '@coderline/alphatab';
-import { handlePlayPause } from '../engine/playback';
+import { handlePlayPause } from '../../engine/playback';
 import useSessionStore from '@/store/useSessionStore';
 
 function useRecordingTake({

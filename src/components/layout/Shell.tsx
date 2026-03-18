@@ -6,11 +6,11 @@ import PlaybackHotkeys from '@/features/engine/PlaybackHotkeys';
 
 import SongOverviewPanel from '@/features/library/SongOverviewPanel';
 import LibraryPanel from '@/features/library/LibraryPanel';
-import SessionPanel from '@/features/session/SessionPanel';
+import SessionPanel from '@/features/timeline/session/SessionPanel';
 
 import TabViewPanel from '@/features/engine/TabViewPanel';
-import AudioAnalysisPanel from '@/features/session/AudioAnalysisPanel';
-import useTestAudioFixtures from '@/features/session/useTestAudioFixtures';
+import TimelinePanel from '@/features/timeline/TimelinePanel';
+import useTestAudioFixtures from '@/features/timeline/session/useTestAudioFixtures';
 
 import PlaybackControlPanel from '@/features/engine/PlaybackControlPanel';
 import TrackMenuPanel from '@/features/tracks/TrackMenuPanel';
@@ -40,7 +40,7 @@ function Shell() {
           containerRef={containerRef}
           isTabLoading={isTabLoading}
         />
-        <AudioAnalysisPanel
+        <TimelinePanel
           currentMsRef={currentMsRef}
         />
       </main>

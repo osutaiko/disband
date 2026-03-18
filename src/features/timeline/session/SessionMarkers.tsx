@@ -1,4 +1,4 @@
-import type { SessionAnalysisResult } from '../../../shared/types';
+import type { SessionAnalysisResult } from '../../../../shared/types';
 
 function SessionMarkers({
   durationMs,
