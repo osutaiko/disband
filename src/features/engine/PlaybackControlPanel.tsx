@@ -25,7 +25,7 @@ import { Input } from '@/components/ui/input';
 function PlaybackControlPanel() {
   const { selectedTrackId } = useLibraryStore();
   const {
-    api, isPlaying, currentMs, endMs, currentBar, endBar, metronomeEnabled, setMetronomeEnabled, playbackSpeed,
+    api, isPlaying, currentMs, endMs, currentBar, endBar, metronomeEnabled, setMetronomeEnabled, countInEnabled, setCountInEnabled, playbackSpeed,
   } = useEngineStore();
   const [draftSpeedPercent, setDraftSpeedPercent] = useState<string>(String(Math.round(playbackSpeed * 100)));
 
@@ -42,6 +42,11 @@ function PlaybackControlPanel() {
     if (!api) return;
     api.metronomeVolume = metronomeEnabled ? 1 : 0;
   }, [api, metronomeEnabled]);
+
+  useEffect(() => {
+    if (!api) return;
+    api.countInVolume = countInEnabled ? 1 : 0;
+  }, [api, countInEnabled]);
 
   useEffect(() => {
     if (!api) return;
@@ -126,6 +131,8 @@ function PlaybackControlPanel() {
           <Toggle
             title="Count-in"
             variant="outline"
+            pressed={countInEnabled}
+            onPressedChange={setCountInEnabled}
           >
             <ClockArrowDown />
           </Toggle>

@@ -20,6 +20,9 @@ interface EngineState {
 
   metronomeEnabled: boolean;
   setMetronomeEnabled: (enabled: boolean) => void;
+
+  countInEnabled: boolean;
+  setCountInEnabled: (enabled: boolean) => void;
   
   playbackSpeed: number;
   setPlaybackSpeed: (speed: number) => void;
@@ -44,6 +47,9 @@ const useEngineStore = create<EngineState>((set) => ({
 
   metronomeEnabled: false,
   setMetronomeEnabled: (enabled) => set({ metronomeEnabled: enabled }),
+
+  countInEnabled: false,
+  setCountInEnabled: (enabled) => set({ countInEnabled: enabled }),
 
   playbackSpeed: 1.0,
   setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),
