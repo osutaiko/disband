@@ -18,6 +18,8 @@ import RealtimeWaveform from './RealtimeWaveform';
 import { Button } from '@/components/ui/button';
 
 const FIXTURE_FILENAME_REGEX = /^(.*?)__tr-(\d+)__start-(\d+)__(\d+)\.wav$/i;
+const MAX_ANIMATION_HZ = 120;
+const MIN_FRAME_MS = 1000 / MAX_ANIMATION_HZ;
 
 function parseFixtureStartFromPath(filePath: string): { startMs: number } | null {
   const fileName = filePath.split('/').pop() ?? filePath.split('\\').pop();
@@ -116,10 +118,14 @@ function AudioAnalysisPanel({
 
   useEffect(() => {
     let rafId: number;
+    let lastUpdateAt = 0;
 
-    const tick = () => {
+    const tick = (now: number) => {
       if (currentMsRef.current !== null) {
-        setCurrentMs(currentMsRef.current);
+        if (lastUpdateAt === 0 || now - lastUpdateAt >= MIN_FRAME_MS) {
+          setCurrentMs(currentMsRef.current);
+          lastUpdateAt = now;
+        }
       }
       rafId = requestAnimationFrame(tick);
     };
