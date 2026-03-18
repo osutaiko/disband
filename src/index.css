@@ -4,91 +4,99 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.985 0.006 95);
-  --foreground: oklch(0.23 0.03 268);
-  --card: oklch(0.995 0.004 95);
-  --card-foreground: oklch(0.23 0.03 268);
-  --popover: oklch(1 0.002 95);
-  --popover-foreground: oklch(0.23 0.03 268);
-  --primary: oklch(0.64 0.22 338);
-  --primary-foreground: oklch(0.99 0.01 95);
-  --secondary: oklch(0.94 0.02 275);
-  --secondary-foreground: oklch(0.32 0.05 264);
-  --muted: oklch(0.955 0.01 280);
-  --muted-foreground: oklch(0.5 0.025 268);
-  --accent: oklch(0.93 0.015 265);
-  --accent-foreground: oklch(0.28 0.03 265);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.89 0.015 260);
-  --input: oklch(0.9 0.02 260);
-  --ring: oklch(0.64 0.22 338);
+  /* Main theme hue */
+  --h: 272;
+
+  /* OK|Inaccurate|Miss hues */
+  --hok: 272;
+  --hin: 85;
+  --hms: 27;
+
+  --background: oklch(0.985 0.003 var(--h));
+  --foreground: oklch(0.23 0.03 var(--h));
+  --card: oklch(0.995 0.002 var(--h));
+  --card-foreground: oklch(0.23 0.03 var(--h));
+  --popover: oklch(1 0.001 var(--h));
+  --popover-foreground: oklch(0.23 0.03 var(--h));
+  --primary: oklch(0.62 0.2 var(--h));
+  --primary-foreground: oklch(0.99 0.004 var(--h));
+  --secondary: oklch(0.94 0.02 var(--h));
+  --secondary-foreground: oklch(0.32 0.05 var(--h));
+  --muted: oklch(0.955 0.01 var(--h));
+  --muted-foreground: oklch(0.5 0.025 var(--h));
+  --accent: oklch(0.93 0.015 var(--h));
+  --accent-foreground: oklch(0.28 0.03 var(--h));
+  --destructive: oklch(0.577 0.245 var(--hms));
+  --destructive-foreground: oklch(0.98 0.004 var(--h));
+  --border: oklch(0.82 0.02 var(--h) / 45%);
+  --input: oklch(0.9 0.02 var(--h) / 20%);
+  --ring: oklch(0.62 0.2 var(--h));
   --radius: 0.4rem;
 
-  --playhead: oklch(0.64 0.25 27);
-  --bar-startend: oklch(0.47 0.11 250);
-  --bar-1: oklch(0.34 0.03 268);
-  --bar-4: oklch(0.52 0.02 268);
-  --bar-16: color-mix(in oklch, oklch(0.8 0.012 260) 45%, transparent);
+  --playhead: oklch(0.64 0.25 var(--hms));
+  --bar-startend: oklch(0.47 0.11 var(--h));
+  --bar-1: oklch(0.34 0.03 var(--h));
+  --bar-4: oklch(0.52 0.02 var(--h));
+  --bar-16: oklch(0.8 0.012 var(--h));
 
-  --note-unj: oklch(0.38 0.06 258);
-  --note-unj-bg: oklch(0.66 0.04 262);
-  --note-ok: oklch(0.55 0.16 276);
-  --note-ok-bg: oklch(0.67 0.16 286);
-  --note-inacc: oklch(0.78 0.18 85);
-  --note-inacc-bg: oklch(0.83 0.16 90);
-  --note-miss: oklch(0.62 0.245 27);
-  --note-miss-bg: oklch(0.7 0.23 27);
-  --rec-track-bg: oklch(0.88 0.065 300);
-  --rec-waveform: oklch(0.23 0.03 268);
-  --rec-note-unj-bg: oklch(0.78 0.03 265);
-  --rec-note-ok-bg: oklch(0.67 0.16 286);
-  --rec-note-inacc-bg: oklch(0.83 0.16 90);
-  --rec-note-miss-bg: oklch(0.7 0.23 27);
+  --note-unj: oklch(0.38 0.06 var(--h));
+  --note-unj-bg: oklch(0.66 0.04 var(--h));
+  --note-ok: oklch(0.55 0.16 var(--hok));
+  --note-ok-bg: oklch(0.67 0.16 var(--hok));
+  --note-inacc: oklch(0.78 0.18 var(--hin));
+  --note-inacc-bg: oklch(0.83 0.16 var(--hin));
+  --note-miss: oklch(0.62 0.245 var(--hms));
+  --note-miss-bg: oklch(0.7 0.23 var(--hms));
+  --rec-track-bg: oklch(0.88 0.065 var(--h));
+  --rec-waveform: oklch(0.23 0.03 var(--h));
+  --rec-note-unj-bg: oklch(0.66 0.04 var(--h));
+  --rec-note-ok-bg: oklch(0.67 0.16 var(--hok));
+  --rec-note-inacc-bg: oklch(0.83 0.16 var(--hin));
+  --rec-note-miss-bg: oklch(0.7 0.23 var(--hms));
 }
 
 .dark {
-  --background: oklch(0.2 0.035 268);
-  --foreground: oklch(0.97 0.01 95);
-  --card: oklch(0.25 0.04 268);
-  --card-foreground: oklch(0.97 0.01 95);
-  --popover: oklch(0.24 0.04 268);
-  --popover-foreground: oklch(0.97 0.01 95);
-  --primary: oklch(0.7 0.24 338);
-  --primary-foreground: oklch(0.22 0.03 268);
-  --secondary: oklch(0.3 0.045 262);
-  --secondary-foreground: oklch(0.95 0.01 95);
-  --muted: oklch(0.285 0.035 268);
-  --muted-foreground: oklch(0.8 0.02 265);
-  --accent: oklch(0.31 0.02 262);
-  --accent-foreground: oklch(0.93 0.012 95);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.95 0.01 95 / 16%);
-  --input: oklch(0.95 0.01 95 / 22%);
-  --ring: oklch(0.7 0.24 338);
+  --background: oklch(0.2 0.035 var(--h));
+  --foreground: oklch(0.97 0.004 var(--h));
+  --card: oklch(0.25 0.04 var(--h));
+  --card-foreground: oklch(0.97 0.004 var(--h));
+  --popover: oklch(0.24 0.04 var(--h));
+  --popover-foreground: oklch(0.97 0.004 var(--h));
+  --primary: oklch(0.72 0.2 var(--h));
+  --primary-foreground: oklch(0.22 0.03 var(--h));
+  --secondary: oklch(0.3 0.03 var(--h));
+  --secondary-foreground: oklch(0.95 0.004 var(--h));
+  --muted: oklch(0.285 0.02 var(--h));
+  --muted-foreground: oklch(0.8 0.02 var(--h));
+  --accent: oklch(0.31 0.035 var(--h));
+  --accent-foreground: oklch(0.93 0.006 var(--h));
+  --destructive: oklch(0.704 0.191 var(--hms));
+  --destructive-foreground: oklch(0.2 0.03 var(--h));
+  --border: oklch(0.95 0.01 var(--h) / 20%);
+  --input: oklch(0.95 0.01 var(--h) / 20%);
+  --ring: oklch(0.72 0.2 var(--h));
   --radius: 0.4rem;
 
-  --playhead: oklch(0.68 0.24 27);
-  --bar-startend: oklch(0.6 0.12 248);
-  --bar-1: oklch(0.78 0.02 260);
-  --bar-4: oklch(0.62 0.02 260);
-  --bar-16: color-mix(in oklch, oklch(0.5 0.02 260) 40%, transparent);
+  --playhead: oklch(0.68 0.24 var(--hms));
+  --bar-startend: oklch(0.6 0.12 var(--h));
+  --bar-1: oklch(0.78 0.02 var(--h));
+  --bar-4: oklch(0.62 0.02 var(--h));
+  --bar-16: oklch(0.5 0.02 var(--h));
 
-  --note-unj: oklch(0.74 0.05 258);
-  --note-unj-bg: oklch(0.5 0.05 260);
-  --note-ok: oklch(0.72 0.19 286);
-  --note-ok-bg: oklch(0.66 0.18 282);
-  --note-inacc: oklch(0.82 0.16 90);
-  --note-inacc-bg: oklch(0.78 0.14 88);
-  --note-miss: oklch(0.75 0.22 25);
-  --note-miss-bg: oklch(0.7 0.2 25);
-  --rec-track-bg: oklch(0.37 0.085 296);
-  --rec-waveform: oklch(0.97 0.01 95);
-  --rec-note-unj-bg: oklch(0.44 0.045 260);
-  --rec-note-ok-bg: oklch(0.66 0.18 282);
-  --rec-note-inacc-bg: oklch(0.78 0.14 88);
-  --rec-note-miss-bg: oklch(0.7 0.2 25);
+  --note-unj: oklch(0.74 0.05 var(--h));
+  --note-unj-bg: oklch(0.5 0.05 var(--h));
+  --note-ok: oklch(0.72 0.19 var(--hok));
+  --note-ok-bg: oklch(0.66 0.18 var(--hok));
+  --note-inacc: oklch(0.82 0.16 var(--hin));
+  --note-inacc-bg: oklch(0.78 0.14 var(--hin));
+  --note-miss: oklch(0.75 0.22 var(--hms));
+  --note-miss-bg: oklch(0.7 0.2 var(--hms));
+  --rec-track-bg: oklch(0.37 0.085 var(--h));
+  --rec-waveform: oklch(0.97 0.01 var(--h));
+  --rec-note-unj-bg: oklch(0.5 0.05 var(--h));
+  --rec-note-ok-bg: oklch(0.66 0.18 var(--hok));
+  --rec-note-inacc-bg: oklch(0.78 0.14 var(--hin));
+  --rec-note-miss-bg: oklch(0.7 0.2 var(--hms));
 }
 
 @theme inline {
