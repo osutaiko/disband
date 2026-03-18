@@ -10,6 +10,8 @@ import {
   Turtle,
   Repeat,
   ClockArrowDown,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { handlePlayPause, handleGotoStart, handleGotoEnd, handleSpeedChange } from './playback';
 import useEngineStore from '@/store/useEngineStore';
@@ -18,7 +20,6 @@ import Panel from '@/components/ui/Panel';
 import { Button } from '@/components/ui/button';
 import { Toggle } from '@/components/ui/toggle';
 import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
 
 function PlaybackControlPanel() {
   const {
@@ -62,12 +63,18 @@ function PlaybackControlPanel() {
   return (
     <Panel className="border-b">
       {/* Playback Buttons */}
-      <div className="flex flex-row gap-1 justify-center p-2">
+      <div className="flex flex-row gap-1 justify-center items-center mb-4">
         <Button title="Go to Start" variant="outline" size="icon" onClick={() => handleGotoStart(api)} className="rounded-full">
           <ChevronFirst />
         </Button>
+        <Button title="Previous Bar" variant="outline" size="icon" onClick={() => handleGotoEnd(api, endMs)} className="rounded-full">
+          <ChevronLeft />
+        </Button>
         <Button title={isPlaying ? 'Pause' : 'Play'} size="lg" onClick={() => handlePlayPause(api)} className="rounded-full">
           {isPlaying ? <Pause className="fill-current" /> : <Play className="fill-current" />}
+        </Button>
+        <Button title="Next Bar" variant="outline" size="icon" onClick={() => handleGotoEnd(api, endMs)} className="rounded-full">
+          <ChevronRight />
         </Button>
         <Button title="Go to End" variant="outline" size="icon" onClick={() => handleGotoEnd(api, endMs)} className="rounded-full">
           <ChevronLast />
@@ -75,7 +82,7 @@ function PlaybackControlPanel() {
       </div>
 
       {/* Time/Bar Display */}
-      <div className="flex flex-row gap-1 font-mono p-2">
+      <div className="flex flex-row gap-1 font-mono mb-2">
         <div title="Time" className="flex flex-row w-2/3 justify-center items-center gap-1 bg-muted rounded-md p-2">
           <p>
             {current.minutes}
@@ -105,29 +112,31 @@ function PlaybackControlPanel() {
       </div>
 
       { /* Practice Tools */ }
-      <div className="flex flex-row gap-1 w-full justify-center items-center">
-        <Toggle
-          title="Metronome"
-          variant="outline"
-          onClick={() => setMetronomeEnabled(!metronomeEnabled)}
-        >
-          <Metronome />
-        </Toggle>
-        <Toggle
-          title="Count-in"
-          variant="outline"
-        >
-          <ClockArrowDown />
-        </Toggle>
-        <Toggle
-          title="Loop"
-          variant="outline"
-        >
-          <Repeat />
-        </Toggle>
-        <Card
+      <div className="flex flex-row gap-2 w-full justify-between items-center">
+        <div className="flex flex-row gap-1 justify-center items-center">
+          <Toggle
+            title="Metronome"
+            variant="outline"
+            onClick={() => setMetronomeEnabled(!metronomeEnabled)}
+          >
+            <Metronome />
+          </Toggle>
+          <Toggle
+            title="Count-in"
+            variant="outline"
+          >
+            <ClockArrowDown />
+          </Toggle>
+          <Toggle
+            title="Loop"
+            variant="outline"
+          >
+            <Repeat />
+          </Toggle>
+        </div>
+        <div
           title="Speed"
-          className={`flex flex-row gap-2 items-center p-2 ${playbackSpeed !== 1 ? 'bg-accent' : ''}`}
+          className={`flex flex-row gap-2 items-center h-[32px] rounded-lg border px-2 ${playbackSpeed !== 1 ? 'bg-accent' : ''}`}
         >
           {playbackSpeed > 1 ? <Rabbit size={16} /> : playbackSpeed < 1 ? <Turtle size={16} /> : <CircleGauge size={16} />}
           <Input
@@ -148,10 +157,10 @@ function PlaybackControlPanel() {
                 e.currentTarget.blur();
               }
             }}
-            className="w-[65px]"
+            className="w-[65px] h-[24px] rounded-none"
           />
-          <span>%</span>
-        </Card>
+          <span className="text-sm">%</span>
+        </div>
       </div>
     </Panel>
   );
