@@ -13,6 +13,7 @@ import {
   type SettingsRowConfig,
 } from './settingsEntries';
 
+import Panel from '@/components/ui/Panel';
 import {
   Tabs, TabsContent, TabsList, TabsTrigger,
 } from '@/components/ui/tabs';
@@ -29,7 +30,11 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
+
 import { useColorTheme } from '@/components/ui/color-theme-provider';
+import {
+  RotateCcw,
+} from 'lucide-react';
 
 type NumericSection = 'noteDetection' | 'judgment';
 type SectionStateMap = {
@@ -241,8 +246,20 @@ function SettingsWindow() {
     );
   }
 
+  function handleReset() {
+    window.electron.resetSettings().catch(() => {});
+  }
+
   return (
-    <Tabs defaultValue="audio-device" orientation="vertical" className="px-3 py-6 gap-6 h-screen max-h-screen w-full">
+    <Panel
+      title="Settings"
+      className="h-screen max-h-screen overflow-hidden"
+      contentClassName="flex-1 min-h-0 overflow-hidden"
+      actions={[
+        { title: 'Reset Settings', icon: <RotateCcw />, onClick: handleReset },
+      ]}
+    >
+    <Tabs defaultValue="audio-device" orientation="vertical" className="gap-6 h-full min-h-0 w-full">
       <TabsList variant="line">
         <TabsTrigger value="audio-device">Audio Device</TabsTrigger>
         <TabsTrigger value="appearance">Appearance</TabsTrigger>
@@ -252,7 +269,7 @@ function SettingsWindow() {
         <TabsTrigger value="judgment">Judgment</TabsTrigger>
       </TabsList>
       <Separator orientation="vertical" />
-      <ScrollArea className="h-full max-h-screen min-w-0 flex-1 pr-3">
+      <ScrollArea className="min-h-0 min-w-0 flex-1 pr-3">
         <TabsContent value="audio-device" className={settingsTabContentClassName} />
         <TabsContent value="appearance" className={settingsTabContentClassName}>
           <FormItem
@@ -346,6 +363,7 @@ function SettingsWindow() {
         {renderNumericSettingsTab('judgment', 'judgment', judgmentEntries, judgment)}
       </ScrollArea>
     </Tabs>
+    </Panel>
   );
 }
 

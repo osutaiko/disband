@@ -44,6 +44,7 @@ contextBridge.exposeInMainWorld('electron', {
   onRecordingReanalyzeMenu: (handler: () => void) => onMenu('menu:recording-reanalyze', handler),
   getSettings: () => ipcRenderer.invoke('settings-get'),
   setSettings: (settings: AppSettings) => ipcRenderer.invoke('settings-set', settings),
+  resetSettings: () => ipcRenderer.invoke('settings-reset'),
   onSettingsChanged: (handler: (settings: AppSettings) => void) => onSettings('settings-changed', handler),
 });
 

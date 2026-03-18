@@ -14,7 +14,7 @@ import {
   startAudioSidecar,
   stopAudioSidecar,
 } from './audio-sidecar';
-import { getSettings, setSettings } from './settings-store';
+import { getSettings, resetSettings, setSettings } from './settings-store';
 import type { AppSettings } from '../shared/settings';
 
 import { SUPPORTED_EXTENSIONS } from '../shared/constants';
@@ -237,4 +237,10 @@ ipcMain.handle('settings-set', async (_event, nextSettings: AppSettings) => {
   const savedSettings = setSettings(nextSettings);
   broadcastSettingsChanged(savedSettings);
   return savedSettings;
+});
+
+ipcMain.handle('settings-reset', async () => {
+  const reset = resetSettings();
+  broadcastSettingsChanged(reset);
+  return reset;
 });
