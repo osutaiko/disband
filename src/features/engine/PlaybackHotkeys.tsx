@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
-import { model } from '@coderline/alphatab';
 import {
-  handleGotoEnd, handleGotoStart, handlePlayPause,
+  handleGotoEnd, handleGotoNextBar, handleGotoPreviousBar, handleGotoStart, handlePlayPause,
 } from './playback';
 
 import useLibraryStore from '@/store/useLibraryStore';
@@ -65,25 +64,14 @@ function PlaybackHotkeys() {
         return;
       }
 
-      if (e.code === 'ArrowUp' || e.code === 'ArrowDown') {
+      if (e.code === 'ArrowUp') {
         e.preventDefault();
-        const currentBar = lookup.beat.voice.bar;
-        const nextBar = e.code === 'ArrowUp' ? currentBar.previousBar : currentBar.nextBar;
-        if (!nextBar) return;
-        let targetBeat = nextBar.voices[0]?.beats?.[0] ?? null;
-        if (!targetBeat) {
-          const voiceWithBeats = nextBar.voices.find(
-            (voice: model.Voice) => voice.beats?.length,
-          );
-
-          if (voiceWithBeats) {
-            const [firstBeat] = voiceWithBeats.beats;
-            targetBeat = firstBeat;
-          }
-        }
-        if (!targetBeat) return;
-        api.tickPosition = api.tickCache.getBeatStart(targetBeat);
-        api.scrollToCursor();
+        handleGotoPreviousBar(api, selectedTrackId);
+      }
+      
+      if (e.code === 'ArrowDown') {
+        e.preventDefault();
+        handleGotoNextBar(api, selectedTrackId);
       }
     };
 

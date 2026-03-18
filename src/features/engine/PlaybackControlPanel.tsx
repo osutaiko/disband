@@ -13,8 +13,9 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
-import { handlePlayPause, handleGotoStart, handleGotoEnd, handleSpeedChange } from './playback';
+import { handlePlayPause, handleGotoStart, handleGotoEnd, handleSpeedChange, handleGotoPreviousBar, handleGotoNextBar } from './playback';
 import useEngineStore from '@/store/useEngineStore';
+import useLibraryStore from '@/store/useLibraryStore';
 
 import Panel from '@/components/ui/Panel';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ import { Toggle } from '@/components/ui/toggle';
 import { Input } from '@/components/ui/input';
 
 function PlaybackControlPanel() {
+  const { selectedTrackId } = useLibraryStore();
   const {
     api, isPlaying, currentMs, endMs, currentBar, endBar, metronomeEnabled, setMetronomeEnabled, playbackSpeed,
   } = useEngineStore();
@@ -67,13 +69,13 @@ function PlaybackControlPanel() {
         <Button title="Go to Start" variant="outline" size="icon" onClick={() => handleGotoStart(api)} className="rounded-full">
           <ChevronFirst />
         </Button>
-        <Button title="Previous Bar" variant="outline" size="icon" onClick={() => handleGotoEnd(api, endMs)} className="rounded-full">
+        <Button title="Previous Bar" variant="outline" size="icon" onClick={() => handleGotoPreviousBar(api, selectedTrackId)} className="rounded-full">
           <ChevronLeft />
         </Button>
         <Button title={isPlaying ? 'Pause' : 'Play'} size="lg" onClick={() => handlePlayPause(api)} className="rounded-full">
           {isPlaying ? <Pause className="fill-current" /> : <Play className="fill-current" />}
         </Button>
-        <Button title="Next Bar" variant="outline" size="icon" onClick={() => handleGotoEnd(api, endMs)} className="rounded-full">
+        <Button title="Next Bar" variant="outline" size="icon" onClick={() => handleGotoNextBar(api, selectedTrackId)} className="rounded-full">
           <ChevronRight />
         </Button>
         <Button title="Go to End" variant="outline" size="icon" onClick={() => handleGotoEnd(api, endMs)} className="rounded-full">
