@@ -13,7 +13,7 @@ import useConfigStore from '@/store/useConfigStore';
 
 import BarMarker from './BarMarker';
 import NoteMarker from './NoteMarker';
-import RealtimeWaveform from './RealtimeWaveform';
+import SessionWaveform from './SessionWaveform';
 
 import { Button } from '@/components/ui/button';
 
@@ -226,7 +226,7 @@ function AudioAnalysisPanel({
               }}
             >
               {shouldRenderWaveform && (
-                <RealtimeWaveform
+                <SessionWaveform
                   key={`${selectionId ?? 'none'}-${recordingEpoch}`}
                   audioPath={recordedPath}
                   referenceNotes={referenceNotesForAnalysis}
