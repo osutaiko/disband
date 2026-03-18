@@ -16,7 +16,7 @@ function SongOverviewPanel() {
   const { songsMetadata, selectedSong } = useLibraryStore();
 
   return (
-    <Panel className="h-min border-b">
+    <Panel className="h-min">
       {selectedSong ? (
         <div className="flex flex-col gap-4 p-2">
           <div className="flex flex-col gap-1">

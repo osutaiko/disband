@@ -28,10 +28,10 @@ function Shell() {
       <PlaybackHotkeys />
 
       {/* Left Panel Group */}
-      <aside className="w-80 shrink-0 flex flex-col border-r">
+      <aside className="w-80 shrink-0 flex flex-col border-r divide-y">
         <SongOverviewPanel />
         <LibraryPanel />
-        <SessionPanel />
+        <TrackMenuPanel />
       </aside>
 
       {/* Center Panel (Tab & Recorder View) */}
@@ -46,9 +46,9 @@ function Shell() {
       </main>
 
       {/* Right Panel Group */}
-      <aside className="w-80 shrink-0 flex flex-col border-l">
+      <aside className="w-80 shrink-0 flex flex-col border-l divide-y">
         <PlaybackControlPanel />
-        <TrackMenuPanel />
+        <SessionPanel />
       </aside>
     </div>
   );
