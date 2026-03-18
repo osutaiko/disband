@@ -33,6 +33,13 @@ let audioSidecar: ReturnType<typeof import('node:child_process').spawn> | null =
 let audioRecordingPath: string | null = null;
 let audioRecordingUrl: string | null = null;
 
+function broadcastSettingsChanged(settings: AppSettings) {
+  [win, settingsWin].forEach((targetWindow) => {
+    if (!targetWindow || targetWindow.isDestroyed()) return;
+    targetWindow.webContents.send('settings-changed', settings);
+  });
+}
+
 function openSettingsWindow() {
   if (settingsWin && !settingsWin.isDestroyed()) {
     if (settingsWin.isMinimized()) {
@@ -228,5 +235,6 @@ ipcMain.handle('settings-get', async () => getSettings());
 
 ipcMain.handle('settings-set', async (_event, nextSettings: AppSettings) => {
   const savedSettings = setSettings(nextSettings);
+  broadcastSettingsChanged(savedSettings);
   return savedSettings;
 });

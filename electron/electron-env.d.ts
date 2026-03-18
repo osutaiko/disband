@@ -40,6 +40,7 @@ export interface IElectronAPI {
   onRecordingReanalyzeMenu: (handler: () => void) => () => void;
   getSettings: () => Promise<AppSettings>;
   setSettings: (settings: AppSettings) => Promise<AppSettings>;
+  onSettingsChanged: (handler: (settings: AppSettings) => void) => () => void;
   startAudioCapture: () => Promise<{
     ok: boolean; sidecarFound?: boolean; port?: number; alreadyRunning?: boolean
   }>;

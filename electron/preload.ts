@@ -13,9 +13,16 @@ type MenuChannel =
   | 'menu:recording-toggle'
   | 'menu:recording-delete-take'
   | 'menu:recording-reanalyze';
+type SettingsChannel = 'settings-changed';
 
 function onMenu(channel: MenuChannel, handler: () => void) {
   const listener = () => handler();
+  ipcRenderer.on(channel, listener);
+  return () => ipcRenderer.removeListener(channel, listener);
+}
+
+function onSettings(channel: SettingsChannel, handler: (settings: AppSettings) => void) {
+  const listener = (_event: unknown, settings: AppSettings) => handler(settings);
   ipcRenderer.on(channel, listener);
   return () => ipcRenderer.removeListener(channel, listener);
 }
@@ -37,6 +44,7 @@ contextBridge.exposeInMainWorld('electron', {
   onRecordingReanalyzeMenu: (handler: () => void) => onMenu('menu:recording-reanalyze', handler),
   getSettings: () => ipcRenderer.invoke('settings-get'),
   setSettings: (settings: AppSettings) => ipcRenderer.invoke('settings-set', settings),
+  onSettingsChanged: (handler: (settings: AppSettings) => void) => onSettings('settings-changed', handler),
 });
 
 contextBridge.exposeInMainWorld('audio', {

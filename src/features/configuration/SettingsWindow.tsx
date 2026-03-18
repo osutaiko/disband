@@ -195,7 +195,6 @@ function SettingsRows<T>({
 function SettingsWindow() {
   const settings = useConfigStore((state) => state.settings);
   const setSettings = useConfigStore((state) => state.setSettings);
-  const updateSettings = useConfigStore((state) => state.updateSettings);
 
   if (!settings) {
     return null;
@@ -215,15 +214,13 @@ function SettingsWindow() {
     key: NumericKeys<SectionStateMap[K]>,
     value: number,
   ) {
-    updateSettings((previous) => {
-      const nextSection = {
-        ...previous[section],
-        [key]: value,
-      } as SectionStateMap[K];
-      return {
-        ...previous,
-        [section]: nextSection,
-      };
+    const nextSection = {
+      ...settings![section],
+      [key]: value,
+    } as SectionStateMap[K];
+    setSettings({
+      ...settings!,
+      [section]: nextSection,
     }).catch(() => {});
   }
 
@@ -291,13 +288,13 @@ function SettingsWindow() {
             <Select
               value={soundfontPreset}
               onValueChange={(value: SoundfontPreset) => {
-                updateSettings((previous) => ({
-                  ...previous,
+                setSettings({
+                  ...settings!,
                   theme: {
-                    ...previous.theme,
+                    ...settings!.theme,
                     soundfontPreset: value,
                   },
-                })).catch(() => {});
+                }).catch(() => {});
               }}
             >
               <SelectTrigger id="soundfont-preset" className="w-[150px]">
@@ -328,9 +325,9 @@ function SettingsWindow() {
                 step={0.01}
                 onValueChange={(values) => {
                   setSettings({
-                    ...settings,
+                    ...settings!,
                     theme: {
-                      ...settings.theme,
+                      ...settings!.theme,
                       pxPerMs: values[0] ?? pxPerMs,
                     },
                   }).catch(() => {});
