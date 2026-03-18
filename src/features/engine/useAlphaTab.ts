@@ -53,6 +53,8 @@ const useAlphaTab = (
             // --- Event Listeners --- //
             api.scoreLoaded.on((score) => {
               setTracks(score.tracks);
+              api.changeTrackVolume(score.tracks, 1.0);
+              
               const trackExists = score.tracks.some((t) => t.index === selectedTrackId);
               if (!trackExists && score.tracks.length > 0) {
                 setSelectedTrackId(score.tracks[0].index);

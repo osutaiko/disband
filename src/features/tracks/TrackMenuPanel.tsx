@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   RotateCcw, View, MicVocal, Guitar, Drum, Piano, Music,
@@ -21,27 +21,45 @@ function TrackMenuPanel() {
   const { recordedPaths } = useSessionStore();
   const [mutedTracks, setMutedTracks] = useState<string[]>([]);
   const [soloTracks, setSoloTracks] = useState<string[]>([]);
+  const [originalVolumes, setOriginalVolumes] = useState<Record<string, number>>({});
   const [recordedVolumes, setRecordedVolumes] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (!selectedSong) return;
+    setMutedTracks([]);
+    setSoloTracks([]);
+    setOriginalVolumes({});
+    setRecordedVolumes({});
+
+    if (!api || !tracks) return;
+    api.changeTrackVolume(tracks as any, 1.0);
+    api.changeTrackMute(tracks as any, false);
+    api.changeTrackSolo(tracks as any, false);
+  }, [selectedSong, api, tracks]);
 
   const handleReset = () => {
     if (!api || !tracks) return;
 
     // Reset track volumes
-    tracks.forEach((track) => {
-      // FIXME: get track volume from API
-      api.changeTrackVolume([track], 1.0);
-      api.changeTrackMute([track], false);
-      api.changeTrackSolo([track], false);
-    });
+    // FIXME: get track volume from API
+    api.changeTrackVolume(tracks as any, 1.0);
+    api.changeTrackMute(tracks as any, false);
+    api.changeTrackSolo(tracks as any, false);
 
     setMutedTracks([]);
     setSoloTracks([]);
+    setOriginalVolumes({});
     setRecordedVolumes({});
   };
 
   const handleVolumeChange = (track: any, values: number[]) => {
     if (!api) return;
-    api.changeTrackVolume([track], values[0] / 100);
+    const selectionId = getTrackSelectionId(track);
+    setOriginalVolumes((prev) => ({
+      ...prev,
+      [selectionId]: values[0],
+    }));
+    api.changeTrackVolume([track], values[0]);
   };
 
   const getTrackSelectionId = (track: any) => `${selectedSong ?? 'no-song'}::${track.index}`;
@@ -87,7 +105,7 @@ function TrackMenuPanel() {
     if (layer === 'original') {
       if (!api) return;
       if (tracks) {
-        api.changeTrackSolo(tracks, false);
+        api.changeTrackSolo(tracks as any, false);
       }
       api.changeTrackSolo([track], true);
     }
@@ -99,7 +117,7 @@ function TrackMenuPanel() {
     const selectionId = getTrackSelectionId(track);
     setRecordedVolumes((prev) => ({
       ...prev,
-      [selectionId]: values[0] / 100,
+      [selectionId]: values[0],
     }));
   };
 
@@ -133,12 +151,11 @@ function TrackMenuPanel() {
     const hasRecording = Boolean(recordedPaths[trackSelectionId]);
     const isRecordedMuted = mutedTracks.includes(recordedLayerSelectionId);
     const isRecordedSoloed = soloTracks.includes(recordedLayerSelectionId);
+    const originalTrackVolume = originalVolumes[trackSelectionId] ?? 1;
     const recordedTrackVolume = recordedVolumes[trackSelectionId] ?? 1;
-    // FIXME: me too
-    const trackVol = 1;
 
     return (
-      <div key={track.index} className="relative grid w-full gap-1 p-3">
+      <div key={trackSelectionId} className="relative grid w-full gap-1 p-3">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
           <div className="flex min-w-0 items-center gap-2">
             <span className="shrink-0">{getInstrumentIcon(track)}</span>
@@ -160,9 +177,10 @@ function TrackMenuPanel() {
             <div className="flex flex-row gap-1 items-center">
               <Slider
                 className="w-[90px] mr-3"
-                defaultValue={[trackVol * 100]}
-                max={100}
-                step={1}
+                value={[originalTrackVolume]}
+                min={0}
+                max={2}
+                step={0.01}
                 disabled={isMuted}
                 onValueChange={(vals) => handleVolumeChange(track, vals)}
               />
@@ -195,9 +213,10 @@ function TrackMenuPanel() {
               <div className="flex flex-row gap-1 items-center">
                 <Slider
                   className="w-[90px] mr-3"
-                  value={[recordedTrackVolume * 100]}
-                  max={100}
-                  step={1}
+                  value={[recordedTrackVolume]}
+                  min={0}
+                  max={2}
+                  step={0.01}
                   disabled={isRecordedMuted}
                   onValueChange={(vals) => handleRecordedVolumeChange(track, vals)}
                 />
