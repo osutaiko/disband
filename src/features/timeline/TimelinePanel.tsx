@@ -42,7 +42,7 @@ function TimelinePanel({
   const {
     api, isPlaying, currentMs, endMs, setCurrentMs, playbackSpeed
   } = useEngineStore();
-  const pxPerMs = useConfigStore((state) => state.settings?.theme.pxPerMs);
+  const pxPerMs = useConfigStore((state) => state.settings?.playback.pxPerMs);
   const pxPerMsForCalc = pxPerMs ?? 1;
   const {
     noteMarkers = [],

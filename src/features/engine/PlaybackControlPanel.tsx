@@ -8,7 +8,6 @@ import {
   CircleGauge,
   Rabbit,
   Turtle,
-  Repeat,
   ClockArrowDown,
   ChevronLeft,
   ChevronRight,
@@ -41,17 +40,9 @@ function PlaybackControlPanel() {
   useEffect(() => {
     if (!api) return;
     api.metronomeVolume = metronomeEnabled ? 1 : 0;
-  }, [api, metronomeEnabled]);
-
-  useEffect(() => {
-    if (!api) return;
     api.countInVolume = countInEnabled ? 1 : 0;
-  }, [api, countInEnabled]);
-
-  useEffect(() => {
-    if (!api) return;
     api.playbackSpeed = playbackSpeed;
-  }, [api, playbackSpeed]);
+  }, [api, metronomeEnabled, countInEnabled, playbackSpeed]);
 
   useEffect(() => {
     setDraftSpeedPercent(String(Math.round(playbackSpeed * 100)));
@@ -63,7 +54,7 @@ function PlaybackControlPanel() {
     const nextPercent = Number.isFinite(parsed)
       ? Math.min(400, Math.max(20, parsed))
       : fallback;
-    handleSpeedChange(api, nextPercent);
+    handleSpeedChange(nextPercent);
     setDraftSpeedPercent(String(Math.round(nextPercent)));
   };
 

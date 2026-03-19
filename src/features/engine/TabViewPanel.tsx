@@ -5,6 +5,7 @@ import {
 import { ZoomIn, ZoomOut } from 'lucide-react';
 import useLibraryStore from '@/store/useLibraryStore';
 import useEngineStore from '@/store/useEngineStore';
+import { applyAlphaTabSettings } from './alphaTabSettings';
 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Slider } from '@/components/ui/slider';
@@ -31,9 +32,9 @@ function TabViewPanel({
     const clampedZoom = Math.min(Math.max(newZoomPercent, ZOOM_MIN), ZOOM_MAX);
     setZoom(clampedZoom);
 
-    api.settings.display.scale = clampedZoom / 100;
-    api.updateSettings();
-    api.render();
+    applyAlphaTabSettings(api, (settings) => {
+      settings.display.scale = clampedZoom / 100;
+    });
   }, [api]);
 
   const applyZoomPreset = useCallback((percent: number) => {
@@ -73,8 +74,9 @@ function TabViewPanel({
     const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement | null;
     if (!viewport) return;
 
-    api.settings.player.scrollElement = viewport;
-    api.updateSettings();
+    applyAlphaTabSettings(api, (settings) => {
+      settings.player.scrollElement = viewport;
+    });
   }, [api, selectedSong, selectedTrackId, isTabLoading]);
 
   // Ctrl + scroll behavior

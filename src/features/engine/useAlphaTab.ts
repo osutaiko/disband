@@ -3,8 +3,12 @@ import { AlphaTabApi, Settings } from '@coderline/alphatab';
 
 import useLibraryStore from '@/store/useLibraryStore';
 import useEngineStore from '@/store/useEngineStore';
+import useConfigStore from '@/store/useConfigStore';
 
-import alphaTabSettings from './alphaTabSettings.json';
+import {
+  applyRebuiltAlphaTabSettings,
+  buildAlphaTabSettings,
+} from './alphaTabSettings';
 
 const useAlphaTab = (
   containerRef: React.RefObject<HTMLDivElement | null>,
@@ -14,6 +18,7 @@ const useAlphaTab = (
   const {
     setApi, setIsPlaying, setEndMs, setCurrentBar, setEndBar,
   } = useEngineStore();
+  const { settings } = useConfigStore();
 
   const [isTabLoading, setIsTabLoading] = useState(false);
   const apiRef = useRef<AlphaTabApi | null>(null);
@@ -45,7 +50,8 @@ const useAlphaTab = (
         setTimeout(() => {
           if (!containerRef.current) return;
 
-          const api = new AlphaTabApi(containerRef.current, alphaTabSettings as Settings);
+          const initialSettings = buildAlphaTabSettings(settings?.playback);
+          const api = new AlphaTabApi(containerRef.current, initialSettings as unknown as Settings);
           apiRef.current = api;
           setApi(api);
 
@@ -131,6 +137,14 @@ const useAlphaTab = (
       }
     }
   }, [selectedTrackId]);
+
+  useEffect(() => {
+    const api = apiRef.current;
+    const playback = settings?.playback;
+    if (!api || !playback) return;
+
+    applyRebuiltAlphaTabSettings(api, playback);
+  }, [settings?.playback]);
 
   useEffect(() => {
     const handleResize = () => {

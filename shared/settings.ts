@@ -1,8 +1,10 @@
-export type SoundfontPreset = 'sonivox' | 'fluidr3';
+export type SoundfontPreset = 'sonivox' | 'generaluser-gs';
 
-export type AudioIOSettings = Record<string, never>;
+export type AudioDeviceSettings = Record<string, never>;
+export type AppearanceSettings = Record<string, never>;
+export type TabDisplaySettings = Record<string, never>;
 
-export type ThemeSettings = {
+export type PlaybackSettings = {
   pxPerMs: number;
   soundfontPreset: SoundfontPreset;
 };
@@ -33,8 +35,10 @@ export type JudgmentSettings = {
 };
 
 export type AppSettings = {
-  audioIO: AudioIOSettings;
-  theme: ThemeSettings;
+  audioDevice: AudioDeviceSettings;
+  appearance: AppearanceSettings;
+  tabDisplay: TabDisplaySettings;
+  playback: PlaybackSettings;
   noteDetection: NoteDetectionSettings;
   judgment: JudgmentSettings;
 };

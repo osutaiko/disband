@@ -67,15 +67,12 @@ export const handleGotoNextBar = (api: AlphaTabApi | null, selectedTrackId: numb
   handleGotoAdjacentBar(api, selectedTrackId, 'next');
 };
 
-export const handleSpeedChange = (api: AlphaTabApi | null, speed: number) => {
+export const handleSpeedChange = (speed: number) => {
   if (!Number.isFinite(speed)) return;
 
   const { setPlaybackSpeed } = useEngineStore.getState();
   const clampedPercent = Math.min(400, Math.max(20, speed));
   const playbackSpeed = clampedPercent / 100;
 
-  if (api) {
-    api.playbackSpeed = playbackSpeed;
-  }
   setPlaybackSpeed(playbackSpeed);
 };

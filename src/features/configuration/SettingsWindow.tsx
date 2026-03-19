@@ -206,11 +206,11 @@ function SettingsWindow() {
   }
 
   const {
-    theme,
+    playback,
     noteDetection,
     judgment,
   } = settings;
-  const { pxPerMs, soundfontPreset } = theme;
+  const { pxPerMs, soundfontPreset } = playback;
 
   const { colorTheme, setColorTheme } = useColorTheme();
 
@@ -305,13 +305,13 @@ function SettingsWindow() {
             <Select
               value={soundfontPreset}
               onValueChange={(value: SoundfontPreset) => {
-                setSettings({
-                  ...settings!,
-                  theme: {
-                    ...settings!.theme,
-                    soundfontPreset: value,
-                  },
-                }).catch(() => {});
+                  setSettings({
+                    ...settings!,
+                    playback: {
+                      ...settings!.playback,
+                      soundfontPreset: value,
+                    },
+                  }).catch(() => {});
               }}
             >
               <SelectTrigger id="soundfont-preset" className="w-[150px]">
@@ -319,7 +319,7 @@ function SettingsWindow() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="sonivox">Sonivox</SelectItem>
-                <SelectItem value="fluidr3">FluidR3</SelectItem>
+                <SelectItem value="generaluser-gs">GeneralUser GS</SelectItem>
               </SelectContent>
             </Select>
           </FormItem>
@@ -341,13 +341,13 @@ function SettingsWindow() {
                 max={1.0}
                 step={0.01}
                 onValueChange={(values) => {
-                  setSettings({
-                    ...settings!,
-                    theme: {
-                      ...settings!.theme,
-                      pxPerMs: values[0] ?? pxPerMs,
-                    },
-                  }).catch(() => {});
+                    setSettings({
+                      ...settings!,
+                      playback: {
+                        ...settings!.playback,
+                        pxPerMs: values[0] ?? pxPerMs,
+                      },
+                    }).catch(() => {});
                 }}
                 className="w-[200px]"
               />
