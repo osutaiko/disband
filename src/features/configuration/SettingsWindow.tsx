@@ -261,9 +261,9 @@ function SettingsWindow() {
     >
     <Tabs defaultValue="audio-device" orientation="vertical" className="gap-6 h-full min-h-0 w-full">
       <TabsList variant="line">
-        <TabsTrigger value="audio-device">Audio Device</TabsTrigger>
+        {/* <TabsTrigger value="audio-device">Audio Device</TabsTrigger> */}
         <TabsTrigger value="appearance">Appearance</TabsTrigger>
-        <TabsTrigger value="tab-display">Tab Display</TabsTrigger>
+        {/* <TabsTrigger value="tab-display">Tab Display</TabsTrigger> */}
         <TabsTrigger value="playback">Playback</TabsTrigger>
         <TabsTrigger value="note-detection">Note Detection</TabsTrigger>
         <TabsTrigger value="judgment">Judgment</TabsTrigger>
@@ -293,9 +293,7 @@ function SettingsWindow() {
             </div>
           </FormItem>
         </TabsContent>
-        <TabsContent value="tab-display" className={settingsTabContentClassName}>
-
-        </TabsContent>
+        <TabsContent value="tab-display" className={settingsTabContentClassName} />
         <TabsContent value="playback" className={settingsTabContentClassName}>
           <FormItem
             htmlFor="soundfont-preset"
