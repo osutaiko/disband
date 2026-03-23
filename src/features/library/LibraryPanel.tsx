@@ -75,7 +75,7 @@ function LibraryPanel() {
                 >
                   <Button
                     variant={selectedSong === song ? 'default' : 'ghost'}
-                    className="px-2 py-1 h-min flex-1 justify-start overflow-hidden"
+                    className="px-2 py-1 h-7 flex-1 justify-start overflow-hidden"
                     onClick={() => { if (selectedSong !== song) setConfirming(song); }}
                     title={song}
                   >
@@ -88,7 +88,7 @@ function LibraryPanel() {
                   {confirming === song && (
                   <Button
                     variant="secondary"
-                    className="shrink-0 w-8 h-6 animate-in fade-in zoom-in duration-200"
+                    className="shrink-0 w-6 h-7 animate-in fade-in zoom-in duration-200"
                     onClick={() => {
                       setSelectedSong(song);
                       setSelectedTrackId(null);
