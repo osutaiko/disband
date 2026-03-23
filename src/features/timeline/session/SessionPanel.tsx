@@ -109,10 +109,7 @@ function SessionPanel() {
   }, [playedNotes, sessionAnalysis]);
 
   return (
-    <Panel
-      title="This Session"
-      isCollapsible
-    >
+    <Panel title="This Session">
       {!hasRecording ? (
         <p className="p-2 text-sm text-muted-foreground">
           No recording for this track yet. Record audio with the "
