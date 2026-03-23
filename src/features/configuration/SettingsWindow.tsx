@@ -297,7 +297,7 @@ function SettingsWindow() {
               onValueChange={setSelectedAudioInputDevice}
               disabled={audioDevices.inputs.length === 0}
             >
-              <SelectTrigger id="audio-input-device">
+              <SelectTrigger className="w-[400px]">
                 <SelectValue placeholder="No device found" />
               </SelectTrigger>
               <SelectContent>
@@ -318,7 +318,7 @@ function SettingsWindow() {
               onValueChange={setSelectedAudioOutputDevice}
               disabled={audioDevices.outputs.length === 0}
             >
-              <SelectTrigger id="audio-output-device">
+              <SelectTrigger className="w-[400px]">
                 <SelectValue placeholder="No device found" />
               </SelectTrigger>
               <SelectContent>
