@@ -29,7 +29,7 @@
   --destructive: oklch(0.577 0.245 var(--hms));
   --destructive-foreground: oklch(0.98 0.004 var(--h));
   --border: oklch(0.82 0.02 var(--h) / 45%);
-  --input: oklch(0.9 0.02 var(--h) / 20%);
+  --input: oklch(0.82 0.02 var(--h) / 60%);
   --ring: oklch(0.62 0.2 var(--h));
   --radius: 0.4rem;
 
