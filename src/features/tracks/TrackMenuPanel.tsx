@@ -9,9 +9,14 @@ import useSessionStore from '@/store/useSessionStore';
 
 import Panel from '@/components/ui/Panel';
 import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
+import VolumeDbSlider, { MIN_DB } from './VolumeDbSlider';
 
 type TrackLayer = 'original' | 'recorded';
+
+function dbToGain(db: number): number {
+  if (!Number.isFinite(db) || db <= MIN_DB) return 0;
+  return 10 ** (db / 20);
+}
 
 function TrackMenuPanel() {
   const {
@@ -52,14 +57,14 @@ function TrackMenuPanel() {
     setRecordedVolumes({});
   };
 
-  const handleVolumeChange = (track: any, values: number[]) => {
+  const handleVolumeChange = (track: any, db: number) => {
     if (!api) return;
     const selectionId = getTrackSelectionId(track);
     setOriginalVolumes((prev) => ({
       ...prev,
-      [selectionId]: values[0],
+      [selectionId]: db,
     }));
-    api.changeTrackVolume([track], values[0]);
+    api.changeTrackVolume([track], dbToGain(db));
   };
 
   const getTrackSelectionId = (track: any) => `${selectedSong ?? 'no-song'}::${track.index}`;
@@ -113,11 +118,11 @@ function TrackMenuPanel() {
     setSoloTracks([layerSelectionId]);
   };
 
-  const handleRecordedVolumeChange = (track: any, values: number[]) => {
+  const handleRecordedVolumeChange = (track: any, db: number) => {
     const selectionId = getTrackSelectionId(track);
     setRecordedVolumes((prev) => ({
       ...prev,
-      [selectionId]: values[0],
+      [selectionId]: db,
     }));
   };
 
@@ -151,8 +156,8 @@ function TrackMenuPanel() {
     const hasRecording = Boolean(recordedPaths[trackSelectionId]);
     const isRecordedMuted = mutedTracks.includes(recordedLayerSelectionId);
     const isRecordedSoloed = soloTracks.includes(recordedLayerSelectionId);
-    const originalTrackVolume = originalVolumes[trackSelectionId] ?? 1;
-    const recordedTrackVolume = recordedVolumes[trackSelectionId] ?? 1;
+    const originalTrackVolumeDb = originalVolumes[trackSelectionId] ?? 0;
+    const recordedTrackVolumeDb = recordedVolumes[trackSelectionId] ?? 0;
 
     return (
       <div key={trackSelectionId} className="relative grid w-full gap-1 p-3">
@@ -174,15 +179,11 @@ function TrackMenuPanel() {
         <div className="grid gap-1">
           <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
             <span title="Original Track Volume" className="text-sm text-end text-muted-foreground">Original</span>
-            <div className="flex flex-row gap-1 items-center">
-              <Slider
-                className="w-[90px] mr-3"
-                value={[originalTrackVolume]}
-                min={0}
-                max={2}
-                step={0.01}
+              <div className="flex flex-row gap-1 items-center">
+              <VolumeDbSlider
+                db={originalTrackVolumeDb}
                 disabled={isMuted}
-                onValueChange={(vals) => handleVolumeChange(track, vals)}
+                onDbChange={(db) => handleVolumeChange(track, db)}
               />
               <Button
                 title={isMuted ? 'Unmute Track' : 'Mute Track'}
@@ -211,14 +212,10 @@ function TrackMenuPanel() {
             <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
               <span title="Recorded Track Volume" className="text-sm text-end text-note-ok">Recorded</span>
               <div className="flex flex-row gap-1 items-center">
-                <Slider
-                  className="w-[90px] mr-3"
-                  value={[recordedTrackVolume]}
-                  min={0}
-                  max={2}
-                  step={0.01}
+                <VolumeDbSlider
+                  db={recordedTrackVolumeDb}
                   disabled={isRecordedMuted}
-                  onValueChange={(vals) => handleRecordedVolumeChange(track, vals)}
+                  onDbChange={(db) => handleRecordedVolumeChange(track, db)}
                 />
                 <Button
                   title={isRecordedMuted ? 'Unmute Recorded' : 'Mute Recorded'}
