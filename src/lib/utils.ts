@@ -19,3 +19,29 @@ export function midiToNoteName(midi: number | null | undefined) {
   const octave = Math.floor(rounded / 12) - 1;
   return `${names[pitchClass]}${octave}`;
 }
+
+
+export function valsMean(values: number[]): number {
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+export function valsTruncatedMean(values: number[], threshold: number): number {
+  if (values.length === 0) return 0;
+
+  if (threshold === 0) {
+    return valsMean(values);
+  }
+
+  const sorted = [...values].sort((a, b) => a - b);
+  const trimCount = Math.floor(sorted.length * threshold);
+  const trimmed = sorted.slice(trimCount, sorted.length - trimCount);
+  
+  return valsMean(trimmed.length > 0 ? trimmed : sorted);
+}
+
+export function valsStdDev(values: number[]): number {
+  if (values.length === 0) return 0;
+  const mean = valsMean(values);
+  const variance = values.reduce((sum, value) => sum + ((value - mean) ** 2), 0) / values.length;
+  return Math.sqrt(variance);
+}

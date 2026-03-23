@@ -54,7 +54,7 @@ function Shell() {
       </main>
 
       {/* Right Panel Group (Analysis Session Data) */}
-      <aside className="w-80 shrink-0 flex flex-col border-l divide-y">
+      <aside className="w-80 shrink-0 min-h-0 flex flex-col border-l divide-y">
         <PlaybackControlPanel />
         <SessionPanel />
       </aside>

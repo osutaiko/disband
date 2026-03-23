@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { Circle, Square } from 'lucide-react';
 import useLibraryStore from '@/store/useLibraryStore';
 import useSessionStore from '@/store/useSessionStore';
+import { valsStdDev, valsTruncatedMean } from '@/lib/utils';
 
 import Panel from '@/components/ui/Panel';
 import { Card } from '@/components/ui/card';
@@ -38,13 +39,6 @@ function formatDurationMs(durationMs: number): string {
   return `${minutes}:${String(seconds).padStart(2, '0')}.${String(millis).padStart(3, '0')}`;
 }
 
-function standardDeviation(values: number[]): number {
-  if (values.length === 0) return 0;
-  const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
-  const variance = values.reduce((sum, value) => sum + ((value - mean) ** 2), 0) / values.length;
-  return Math.sqrt(variance);
-}
-
 function SessionPanel() {
   const { selectedSong, selectedTrackId } = useLibraryStore();
   const { recordedPaths, sessionAnalysisBySelection, analysisInProgressBySelection } = useSessionStore();
@@ -64,6 +58,7 @@ function SessionPanel() {
     badAttackCount,
     badReleaseCount,
     wrongPitchCount,
+    rhythmBiasMs,
     rhythmStdDevMs,
     accuracyPercent,
     recordingLengthMs,
@@ -102,27 +97,33 @@ function SessionPanel() {
       badAttackCount: badAttack,
       badReleaseCount: badRelease,
       wrongPitchCount: wrongPitch,
-      rhythmStdDevMs: standardDeviation(matchedAttackErrors),
+      rhythmBiasMs: valsTruncatedMean(matchedAttackErrors, 0.25),
+      rhythmStdDevMs: valsStdDev(matchedAttackErrors),
       accuracyPercent: accuracy,
       recordingLengthMs: recordingLength,
     };
   }, [playedNotes, sessionAnalysis]);
 
   return (
-    <Panel title="This Session">
+    <Panel
+      title="This Session"
+      className="flex flex-col overflow-hidden pr-4"
+      contentClassName="flex-1 overflow-hidden"
+      isScrollable
+    >
       {!hasRecording ? (
-        <p className="p-2 text-sm text-muted-foreground">
+        <p className="p-2 pr-4 text-sm text-muted-foreground">
           No recording for this track yet. Record audio with the "
           <Circle className="inline-flex" stroke="red" size={12} />
           " button to see analysis results.
         </p>
       ) : (
-        <div className="flex flex-col gap-4 p-2 select-text">
+        <div className="flex flex-col gap-4 pr-4 select-text">
           {isAnalysisRunning ? (
             <h2 className="text-base font-medium animate-pulse">Analysis in Progress...</h2>
           ) : (
             <>
-              <div className="w-full flex flex-col gap-2">
+              <div className="w-full flex flex-col px-2 gap-2">
                 <DataCountRow
                   name="Recording Length"
                   description="Total recording duration"
@@ -136,7 +137,7 @@ function SessionPanel() {
                 <DataCountRow
                   name="Timing Bias"
                   description="Overall rushing/dragging tendency"
-                  content="20.0 ms dragging"
+                  content={`${Math.abs(rhythmBiasMs).toFixed(2)} ms ${rhythmBiasMs > 0 ? 'dragging' : 'rushing'}`}
                 />
                 <DataCountRow
                   name="Rhythm Instability (std. dev)"
