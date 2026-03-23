@@ -26,7 +26,7 @@ export default function VolumeDbSlider({
           if (!disabled) onDbChange(0);
         }}
       >
-        <span className="absolute top-[7px] left-0 font-mono text-[10px] text-muted-foreground">
+        <span className="pointer-events-none select-none absolute top-[7px] left-0 font-mono text-[10px] text-muted-foreground">
           {formatDbLabel(db)}
         </span>
         <Slider
@@ -44,7 +44,8 @@ export default function VolumeDbSlider({
           max={MAX_DB}
           step={0.5}
           disabled={disabled}
-          onValueChange={(vals) => onDbChange(vals[0])}
+          onValueChange={(vals) => onDbChange(vals[0] ?? db)}
+          onValueCommit={(vals) => onDbChange(vals[0] ?? db)}
         />
         <span
           className="pointer-events-none absolute top-1/2 z-0 h-[14px] w-px -translate-y-1/2 bg-border"
