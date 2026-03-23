@@ -188,7 +188,7 @@ function TrackMenuPanel() {
                 title={isMuted ? 'Unmute Track' : 'Mute Track'}
                 size="icon"
                 variant={isMuted ? 'destructive' : 'secondary'}
-                className={`w-6 h-6 flex-0 aspect-square ${isMuted ? 'text-white' : 'text-black'}`}
+                className={`w-6 h-6 flex-0 aspect-square`}
                 onClick={() => handleMuteToggle(track, 'original')}
               >
                 M
@@ -197,7 +197,7 @@ function TrackMenuPanel() {
                 title={isSoloed ? 'Unsolo Track' : 'Solo Track'}
                 size="icon"
                 variant={isSoloed ? 'destructive' : 'secondary'}
-                className={`w-6 h-6 flex-0 aspect-square ${isSoloed ? 'text-white' : 'text-black'}`}
+                className={`w-6 h-6 flex-0 aspect-square`}
                 onClick={() => handleSoloToggle(track, 'original')}
               >
                 S
@@ -224,7 +224,7 @@ function TrackMenuPanel() {
                   title={isRecordedMuted ? 'Unmute Recorded' : 'Mute Recorded'}
                   size="icon"
                   variant={isRecordedMuted ? 'destructive' : 'secondary'}
-                  className={`w-6 h-6 flex-0 aspect-square ${isRecordedMuted ? 'text-white' : 'text-black'}`}
+                  className={`w-6 h-6 flex-0 aspect-square`}
                   onClick={() => handleRecordedMuteToggle(track)}
                 >
                   M
@@ -233,7 +233,7 @@ function TrackMenuPanel() {
                   title={isRecordedSoloed ? 'Unsolo Recorded' : 'Solo Recorded'}
                   size="icon"
                   variant={isRecordedSoloed ? 'destructive' : 'secondary'}
-                  className={`w-6 h-6 flex-0 aspect-square ${isRecordedSoloed ? 'text-white' : 'text-black'}`}
+                  className={`w-6 h-6 flex-0 aspect-square`}
                   onClick={() => handleRecordedSoloToggle(track)}
                 >
                   S
