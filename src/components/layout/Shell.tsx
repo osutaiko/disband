@@ -15,11 +15,19 @@ import useTestAudioFixtures from '@/features/timeline/session/useTestAudioFixtur
 import PlaybackControlPanel from '@/features/engine/PlaybackControlPanel';
 import TrackMenuPanel from '@/features/tracks/TrackMenuPanel';
 
+/**
+ * Global app layout.
+ */ 
 function Shell() {
+  // Run loadAllMetadata() on initial mount
   useSongMetadata();
+
+  // Load test fixtures when in test mode env:VITE_ENABLE_TEST_AUDIO_FIXTURES='1'
   useTestAudioFixtures();
 
   const { selectedSong } = useLibraryStore();
+
+  // Container passed to AlphaTab rendering
   const containerRef = useRef<HTMLDivElement | null>(null);
   const { isTabLoading, currentMsRef } = useAlphaTab(containerRef, selectedSong);
 
@@ -27,14 +35,14 @@ function Shell() {
     <div className="flex h-screen w-full overflow-hidden select-none">
       <PlaybackHotkeys />
 
-      {/* Left Panel Group */}
+      {/* Left Panel Group (1-dimensional Song/Track Navigation) */}
       <aside className="w-80 shrink-0 flex flex-col border-r divide-y">
         <SongOverviewPanel />
         <LibraryPanel />
         <TrackMenuPanel />
       </aside>
 
-      {/* Center Panel (Tab & Recorder View) */}
+      {/* Center Panel (Visualizations) */}
       <main className="flex-1 min-w-0 flex flex-col">
         <TabViewPanel
           containerRef={containerRef}
@@ -45,7 +53,7 @@ function Shell() {
         />
       </main>
 
-      {/* Right Panel Group */}
+      {/* Right Panel Group (Analysis Session Data) */}
       <aside className="w-80 shrink-0 flex flex-col border-l divide-y">
         <PlaybackControlPanel />
         <SessionPanel />
