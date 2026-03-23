@@ -41,6 +41,10 @@ export interface IElectronAPI {
   getSettings: () => Promise<AppSettings>;
   setSettings: (settings: AppSettings) => Promise<AppSettings>;
   resetSettings: () => Promise<AppSettings>;
+  getAudioDevices: () => Promise<{
+    inputs: string[];
+    outputs: string[];
+  }>;
   onSettingsChanged: (handler: (settings: AppSettings) => void) => () => void;
   startAudioCapture: () => Promise<{
     ok: boolean; sidecarFound?: boolean; port?: number; alreadyRunning?: boolean

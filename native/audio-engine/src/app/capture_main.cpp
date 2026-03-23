@@ -15,6 +15,11 @@ namespace disband::audio_capture
 {
 namespace
 {
+struct CommandLineOptions
+{
+    bool listDevices = false;
+};
+
 constexpr double kSampleRate = 48000.0;
 constexpr unsigned int kChannels = 1;
 constexpr int kBitsPerSample = 16;
@@ -27,6 +32,18 @@ void log(const char* format, ...)
     std::vfprintf(stderr, format, args);
     va_end(args);
     std::fflush(stderr);
+}
+
+CommandLineOptions parseCommandLineOptions()
+{
+    CommandLineOptions options;
+    const auto args = juce::JUCEApplication::getInstance()->getCommandLineParameterArray();
+    for (int i = 0; i < args.size(); ++i)
+    {
+        if (args[i] == "--list-devices")
+            options.listDevices = true;
+    }
+    return options;
 }
 } // namespace
 
@@ -142,6 +159,14 @@ public:
 
     void initialise(const juce::String&) override
     {
+        const auto options = parseCommandLineOptions();
+        if (options.listDevices)
+        {
+            printDevices();
+            quit();
+            return;
+        }
+
         if (!initialiseInputDevice())
         {
             quit();
@@ -164,6 +189,50 @@ public:
     }
 
 private:
+    void collectDeviceNames(bool input, juce::StringArray& outNames)
+    {
+        juce::AudioDeviceManager tempDeviceManager;
+        juce::OwnedArray<juce::AudioIODeviceType> deviceTypes;
+        tempDeviceManager.createAudioDeviceTypes(deviceTypes);
+
+        for (auto* type : deviceTypes)
+        {
+            if (type == nullptr)
+                continue;
+
+            type->scanForDevices();
+            const auto names = type->getDeviceNames(input);
+            for (const auto& name : names)
+            {
+                if (!outNames.contains(name))
+                    outNames.add(name);
+            }
+        }
+    }
+
+    void printDevices()
+    {
+        juce::StringArray inputDeviceNames;
+        juce::StringArray outputDeviceNames;
+        collectDeviceNames(true, inputDeviceNames);
+        collectDeviceNames(false, outputDeviceNames);
+
+        juce::Array<juce::var> inputJson;
+        juce::Array<juce::var> outputJson;
+        for (const auto& name : inputDeviceNames)
+            inputJson.add(juce::var(name));
+        for (const auto& name : outputDeviceNames)
+            outputJson.add(juce::var(name));
+
+        auto* rootObj = new juce::DynamicObject();
+        rootObj->setProperty("inputs", juce::var(inputJson));
+        rootObj->setProperty("outputs", juce::var(outputJson));
+        const juce::var root(rootObj);
+
+        std::fprintf(stdout, "%s\n", juce::JSON::toString(root).toRawUTF8());
+        std::fflush(stdout);
+    }
+
     bool initialiseInputDevice()
     {
         const auto initResult = deviceManager.initialise(1, 0, nullptr, true);

@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import useConfigStore from '@/store/useConfigStore';
 import type {
   JudgmentSettings,
@@ -200,6 +201,22 @@ function SettingsRows<T>({
 function SettingsWindow() {
   const settings = useConfigStore((state) => state.settings);
   const setSettings = useConfigStore((state) => state.setSettings);
+  const [audioDevices, setAudioDevices] = useState<{ inputs: string[]; outputs: string[]; }>({
+    inputs: [],
+    outputs: [],
+  });
+  const [selectedAudioInputDevice, setSelectedAudioInputDevice] = useState<string>('');
+  const [selectedAudioOutputDevice, setSelectedAudioOutputDevice] = useState<string>('');
+
+  useEffect(() => {
+    window.electron.getAudioDevices()
+      .then((devices) => {
+        setAudioDevices(devices);
+      })
+      .catch(() => {
+        setAudioDevices({ inputs: [], outputs: [] });
+      });
+  }, []);
 
   if (!settings) {
     return null;
@@ -261,7 +278,7 @@ function SettingsWindow() {
     >
     <Tabs defaultValue="audio-device" orientation="vertical" className="gap-6 h-full min-h-0 w-full">
       <TabsList variant="line">
-        {/* <TabsTrigger value="audio-device">Audio Device</TabsTrigger> */}
+        <TabsTrigger value="audio-device">Audio Device</TabsTrigger>
         <TabsTrigger value="appearance">Appearance</TabsTrigger>
         {/* <TabsTrigger value="tab-display">Tab Display</TabsTrigger> */}
         <TabsTrigger value="playback">Playback</TabsTrigger>
@@ -270,7 +287,50 @@ function SettingsWindow() {
       </TabsList>
       <Separator orientation="vertical" />
       <ScrollArea className="min-h-0 min-w-0 flex-1 pr-3">
-        <TabsContent value="audio-device" className={settingsTabContentClassName} />
+        <TabsContent value="audio-device" className={settingsTabContentClassName}>
+          <FormItem
+            htmlFor="audio-input-device"
+            label="Input Device"
+          >
+            <Select
+              value={selectedAudioInputDevice}
+              onValueChange={setSelectedAudioInputDevice}
+              disabled={audioDevices.inputs.length === 0}
+            >
+              <SelectTrigger id="audio-input-device">
+                <SelectValue placeholder="No device found" />
+              </SelectTrigger>
+              <SelectContent>
+                {audioDevices.inputs.map((deviceName) => (
+                  <SelectItem key={deviceName} value={deviceName}>
+                    {deviceName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormItem>
+          <FormItem
+            htmlFor="audio-output-device"
+            label="Output Device"
+          >
+            <Select
+              value={selectedAudioOutputDevice}
+              onValueChange={setSelectedAudioOutputDevice}
+              disabled={audioDevices.outputs.length === 0}
+            >
+              <SelectTrigger id="audio-output-device">
+                <SelectValue placeholder="No device found" />
+              </SelectTrigger>
+              <SelectContent>
+                {audioDevices.outputs.map((deviceName) => (
+                  <SelectItem key={deviceName} value={deviceName}>
+                    {deviceName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormItem>
+        </TabsContent>
         <TabsContent value="appearance" className={settingsTabContentClassName}>
           <FormItem
             htmlFor="color-theme-dark"

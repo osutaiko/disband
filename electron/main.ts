@@ -4,7 +4,9 @@ import {
 import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import {
+  getAudioCapturePath,
   resolveAndValidateRecordingPath,
 } from './utils';
 import { createSettingsWindow, createWindow } from './window';
@@ -230,6 +232,35 @@ ipcMain.handle('audio-analyze', async (
     resolveRecordingPath,
   })
 ));
+
+// Get list of available audio IO devices
+ipcMain.handle('audio-get-devices', async () => {
+  const exe = getAudioCapturePath(process.env.APP_ROOT!);
+  const result = spawnSync(exe, ['--list-devices'], {
+    encoding: 'utf8',
+  });
+
+  if (result.error || result.status !== 0) {
+    throw new Error('[audio-get-devices] failed');
+  }
+
+  const stdout = (result.stdout || '').trim();
+  const parsed: unknown = JSON.parse(stdout);
+  if (!parsed || typeof parsed !== 'object') {
+    throw new Error('[audio-get-devices] invalid payload');
+  }
+
+  const inputs = (parsed as { inputs?: unknown }).inputs;
+  const outputs = (parsed as { outputs?: unknown }).outputs;
+  if (!Array.isArray(inputs) || !Array.isArray(outputs)) {
+    throw new Error('[audio-get-devices] invalid payload');
+  }
+  
+  return {
+    inputs: inputs as string[],
+    outputs: outputs as string[],
+  };
+});
 
 ipcMain.handle('settings-get', async () => getSettings());
 

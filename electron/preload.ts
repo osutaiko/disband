@@ -45,6 +45,7 @@ contextBridge.exposeInMainWorld('electron', {
   getSettings: () => ipcRenderer.invoke('settings-get'),
   setSettings: (settings: AppSettings) => ipcRenderer.invoke('settings-set', settings),
   resetSettings: () => ipcRenderer.invoke('settings-reset'),
+  getAudioDevices: () => ipcRenderer.invoke('audio-get-devices'),
   onSettingsChanged: (handler: (settings: AppSettings) => void) => onSettings('settings-changed', handler),
 });
 
