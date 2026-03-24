@@ -7,7 +7,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 type PanelAction = {
   title: string;
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
+  text?: string;
+  variant?: string;
+  disabled?: boolean;
   onClick: () => void;
 };
 
@@ -53,11 +56,12 @@ const Panel = ({
               <Button
                 key={`${action.title}-${index}`}
                 title={action.title}
-                variant="ghost"
-                size="icon"
+                variant={action.variant ?? 'ghost'}
+                disabled={action.disabled}
+                size={action.icon ? 'icon' : 'default'}
                 onClick={action.onClick}
               >
-                {action.icon}
+                {action.icon || action.text}
               </Button>
             ))}
           </div>

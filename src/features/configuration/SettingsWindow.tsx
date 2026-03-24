@@ -33,9 +33,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 
 import { useColorTheme } from '@/components/ui/color-theme-provider';
-import {
-  RotateCcw,
-} from 'lucide-react';
 
 type NumericSection = 'noteDetection' | 'judgment';
 type SectionStateMap = {
@@ -278,13 +275,18 @@ function SettingsWindow() {
     window.electron.resetSettings().catch(() => {});
   }
 
+  function handleCommit() {
+
+  }
+
   return (
     <Panel
       title="Settings"
       className="h-screen max-h-screen overflow-hidden"
       contentClassName="flex-1 min-h-0 overflow-hidden"
       actions={[
-        { title: 'Reset Settings', icon: <RotateCcw />, onClick: handleReset },
+        { title: 'Reset Settings', text: 'Reset to Default', variant: 'destructive', onClick: handleReset },
+        { title: 'Confirm Settings', text: 'Confirm', variant: 'default', onClick: handleCommit },
       ]}
     >
     <Tabs defaultValue="audio-device" orientation="vertical" className="gap-6 h-full min-h-0 w-full">
