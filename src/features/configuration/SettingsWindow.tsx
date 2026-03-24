@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import useConfigStore from '@/store/useConfigStore';
 import type {
+  AppSettings,
   JudgmentSettings,
   NoteDetectionSettings,
   SoundfontPreset,
@@ -198,6 +199,7 @@ function SettingsRows<T>({
 function SettingsWindow() {
   const settings = useConfigStore((state) => state.settings);
   const setSettings = useConfigStore((state) => state.setSettings);
+  const [draftSettings, setDraftSettings] = useState<AppSettings | null>(null);
   const [audioDevices, setAudioDevices] = useState<{ inputs: string[]; outputs: string[]; }>({
     inputs: [],
     outputs: [],
@@ -213,7 +215,12 @@ function SettingsWindow() {
       });
   }, []);
 
-  if (!settings) {
+  useEffect(() => {
+    if (!settings) return;
+    setDraftSettings(settings);
+  }, [settings]);
+
+  if (!settings || !draftSettings) {
     return null;
   }
 
@@ -221,22 +228,26 @@ function SettingsWindow() {
     playback,
     noteDetection,
     judgment,
-  } = settings;
+  } = draftSettings;
   const { pxPerMs, soundfontPreset } = playback;
 
   const { colorTheme, setColorTheme } = useColorTheme();
+
+  function updateDraft(updater: (current: AppSettings) => AppSettings) {
+    setDraftSettings((current) => (current ? updater(current) : current));
+  }
 
   function updateAudioDevices(next: {
     input?: string;
     output?: string;
   }) {
-    setSettings({
-      ...settings!,
+    updateDraft((current) => ({
+      ...current,
       audioDevice: {
-        ...settings!.audioDevice,
+        ...current.audioDevice,
         ...next,
       },
-    }).catch(() => {});
+    }));
   }
 
   function updateSection<K extends NumericSection>(
@@ -244,14 +255,13 @@ function SettingsWindow() {
     key: NumericKeys<SectionStateMap[K]>,
     value: number,
   ) {
-    const nextSection = {
-      ...settings![section],
-      [key]: value,
-    } as SectionStateMap[K];
-    setSettings({
-      ...settings!,
-      [section]: nextSection,
-    }).catch(() => {});
+    updateDraft((current) => ({
+      ...current,
+      [section]: {
+        ...current[section],
+        [key]: value,
+      } as SectionStateMap[K],
+    }));
   }
 
   function renderNumericSettingsTab<K extends NumericSection>(
@@ -276,7 +286,9 @@ function SettingsWindow() {
   }
 
   function handleCommit() {
-
+    const currentDraft = draftSettings;
+    if (!currentDraft) return;
+    setSettings(currentDraft).catch(() => {});
   }
 
   return (
@@ -286,7 +298,13 @@ function SettingsWindow() {
       contentClassName="flex-1 min-h-0 overflow-hidden"
       actions={[
         { title: 'Reset Settings', text: 'Reset to Default', variant: 'destructive', onClick: handleReset },
-        { title: 'Confirm Settings', text: 'Confirm', variant: 'default', onClick: handleCommit },
+        {
+          title: 'Confirm Settings',
+          text: 'Confirm',
+          variant:'default',
+          disabled: JSON.stringify(draftSettings) !== JSON.stringify(settings),
+          onClick: handleCommit,
+        },
       ]}
     >
     <Tabs defaultValue="audio-device" orientation="vertical" className="gap-6 h-full min-h-0 w-full">
@@ -306,7 +324,7 @@ function SettingsWindow() {
             label="Input Device"
           >
             <Select
-              value={settings.audioDevice.input || undefined}
+              value={draftSettings.audioDevice.input || undefined}
               onValueChange={(value) => updateAudioDevices({ input: value })}
               disabled={audioDevices.inputs.length === 0}
             >
@@ -327,7 +345,7 @@ function SettingsWindow() {
             label="Output Device"
           >
             <Select
-              value={settings.audioDevice.output || undefined}
+              value={draftSettings.audioDevice.output || undefined}
               onValueChange={(value) => updateAudioDevices({ output: value })}
               disabled={audioDevices.outputs.length === 0}
             >
@@ -376,13 +394,13 @@ function SettingsWindow() {
             <Select
               value={soundfontPreset}
               onValueChange={(value: SoundfontPreset) => {
-                  setSettings({
-                    ...settings!,
+                  updateDraft((current) => ({
+                    ...current,
                     playback: {
-                      ...settings!.playback,
+                      ...current.playback,
                       soundfontPreset: value,
                     },
-                  }).catch(() => {});
+                  }));
               }}
             >
               <SelectTrigger id="soundfont-preset" className="w-[150px]">
@@ -412,13 +430,13 @@ function SettingsWindow() {
                 max={1.0}
                 step={0.01}
                 onValueChange={(values) => {
-                    setSettings({
-                      ...settings!,
-                      playback: {
-                        ...settings!.playback,
-                        pxPerMs: values[0] ?? pxPerMs,
-                      },
-                    }).catch(() => {});
+                  updateDraft((current) => ({
+                    ...current,
+                    playback: {
+                      ...current.playback,
+                      pxPerMs: values[0] ?? pxPerMs,
+                    },
+                  }));
                 }}
                 className="w-[200px]"
               />
