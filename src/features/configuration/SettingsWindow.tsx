@@ -226,10 +226,12 @@ function SettingsWindow() {
     return null;
   }
 
-  const playback = draftSettings.playback ?? settings.playback;
-  const noteDetection = draftSettings.noteDetection ?? settings.noteDetection;
-  const judgment = draftSettings.judgment ?? settings.judgment;
-  const pxPerMs = Number.isFinite(playback?.pxPerMs) ? playback.pxPerMs : 0.1;
+  const {
+    playback,
+    noteDetection,
+    judgment,
+  } = draftSettings ?? settings;
+  const pxPerMs = playback?.pxPerMs;
   const soundfontPreset = (playback?.soundfontPreset ?? 'sonivox') as SoundfontPreset;
 
   function updateDraft(updater: (current: AppSettings) => AppSettings) {
