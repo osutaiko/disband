@@ -35,6 +35,14 @@ let audioSidecar: ReturnType<typeof import('node:child_process').spawn> | null =
 let audioRecordingPath: string | null = null;
 let audioRecordingUrl: string | null = null;
 
+function getConfiguredAudioDevices() {
+  const settings = getSettings();
+  return {
+    inputDevice: settings.audioDevice.input,
+    outputDevice: settings.audioDevice.output,
+  };
+}
+
 function broadcastSettingsChanged(settings: AppSettings) {
   [win, settingsWin].forEach((targetWindow) => {
     if (!targetWindow || targetWindow.isDestroyed()) return;
@@ -81,6 +89,7 @@ app.whenReady().then(() => {
     recordingsPath: RECORDINGS_PATH,
     appRoot: process.env.APP_ROOT!,
     startRecording: false,
+    ...getConfiguredAudioDevices(),
   });
 });
 
@@ -196,6 +205,7 @@ ipcMain.handle('audio-start', async () => {
     state: audioState,
     recordingsPath: RECORDINGS_PATH,
     appRoot: process.env.APP_ROOT!,
+    ...getConfiguredAudioDevices(),
   });
   return {
     ok: true,
@@ -266,6 +276,15 @@ ipcMain.handle('settings-get', async () => getSettings());
 
 ipcMain.handle('settings-set', async (_event, nextSettings: AppSettings) => {
   const savedSettings = setSettings(nextSettings);
+  await disposeAudioSidecar({ state: audioState });
+  startAudioSidecar({
+    state: audioState,
+    recordingsPath: RECORDINGS_PATH,
+    appRoot: process.env.APP_ROOT!,
+    startRecording: false,
+    inputDevice: savedSettings.audioDevice.input,
+    outputDevice: savedSettings.audioDevice.output,
+  });
   broadcastSettingsChanged(savedSettings);
   return savedSettings;
 });

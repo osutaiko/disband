@@ -25,17 +25,28 @@ export function startAudioSidecar({
   recordingsPath,
   appRoot,
   startRecording = true,
+  inputDevice,
+  outputDevice,
 }: {
   state: AudioStateAccess;
   recordingsPath: string;
   appRoot: string;
   startRecording?: boolean;
+  inputDevice?: string;
+  outputDevice?: string;
 }) {
   const exe = getAudioCapturePath(appRoot);
   let sidecar = state.getAudioSidecar();
 
   if (!sidecar) {
-    sidecar = spawn(exe, ['--record-stdio'], {
+    const args = ['--record-stdio'];
+    if (inputDevice) {
+      args.push('--input-device', inputDevice);
+    }
+    if (outputDevice) {
+      args.push('--output-device', outputDevice);
+    }
+    sidecar = spawn(exe, args, {
       stdio: ['pipe', 'ignore', 'pipe'],
     });
 

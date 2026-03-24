@@ -1,6 +1,9 @@
 export type SoundfontPreset = 'sonivox' | 'generaluser-gs';
 
-export type AudioDeviceSettings = Record<string, never>;
+export type AudioDeviceSettings = {
+  input?: string;
+  output?: string;
+};
 export type AppearanceSettings = Record<string, never>;
 export type TabDisplaySettings = Record<string, never>;
 

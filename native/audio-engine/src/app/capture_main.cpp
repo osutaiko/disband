@@ -18,6 +18,8 @@ namespace
 struct CommandLineOptions
 {
     bool listDevices = false;
+    juce::String inputDeviceName;
+    juce::String outputDeviceName;
 };
 
 constexpr double kSampleRate = 48000.0;
@@ -42,6 +44,10 @@ CommandLineOptions parseCommandLineOptions()
     {
         if (args[i] == "--list-devices")
             options.listDevices = true;
+        else if (args[i] == "--input-device" && i + 1 < args.size())
+            options.inputDeviceName = args[i + 1];
+        else if (args[i] == "--output-device" && i + 1 < args.size())
+            options.outputDeviceName = args[i + 1];
     }
     return options;
 }
@@ -167,7 +173,7 @@ public:
             return;
         }
 
-        if (!initialiseInputDevice())
+        if (!initialiseInputDevice(options))
         {
             quit();
             return;
@@ -233,7 +239,7 @@ private:
         std::fflush(stdout);
     }
 
-    bool initialiseInputDevice()
+    bool initialiseInputDevice(const CommandLineOptions& options)
     {
         const auto initResult = deviceManager.initialise(1, 0, nullptr, true);
         if (initResult.isNotEmpty())
@@ -242,7 +248,7 @@ private:
             return false;
         }
 
-        configureDevice();
+        configureDevice(options);
         if (deviceManager.getCurrentAudioDevice() == nullptr)
         {
             log("no audio device available\n");
@@ -252,10 +258,14 @@ private:
         return true;
     }
 
-    void configureDevice()
+    void configureDevice(const CommandLineOptions& options)
     {
         juce::AudioDeviceManager::AudioDeviceSetup setup;
         deviceManager.getAudioDeviceSetup(setup);
+        if (options.inputDeviceName.isNotEmpty())
+            setup.inputDeviceName = options.inputDeviceName;
+        if (options.outputDeviceName.isNotEmpty())
+            setup.outputDeviceName = options.outputDeviceName;
         setup.sampleRate = kSampleRate;
         setup.bufferSize = 128;
         const auto result = deviceManager.setAudioDeviceSetup(setup, true);

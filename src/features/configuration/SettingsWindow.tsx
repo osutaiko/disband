@@ -205,8 +205,6 @@ function SettingsWindow() {
     inputs: [],
     outputs: [],
   });
-  const [selectedAudioInputDevice, setSelectedAudioInputDevice] = useState<string>('');
-  const [selectedAudioOutputDevice, setSelectedAudioOutputDevice] = useState<string>('');
 
   useEffect(() => {
     window.electron.getAudioDevices()
@@ -230,6 +228,19 @@ function SettingsWindow() {
   const { pxPerMs, soundfontPreset } = playback;
 
   const { colorTheme, setColorTheme } = useColorTheme();
+
+  function updateAudioDevices(next: {
+    input?: string;
+    output?: string;
+  }) {
+    setSettings({
+      ...settings!,
+      audioDevice: {
+        ...settings!.audioDevice,
+        ...next,
+      },
+    }).catch(() => {});
+  }
 
   function updateSection<K extends NumericSection>(
     section: K,
@@ -293,8 +304,8 @@ function SettingsWindow() {
             label="Input Device"
           >
             <Select
-              value={selectedAudioInputDevice}
-              onValueChange={setSelectedAudioInputDevice}
+              value={settings.audioDevice.input || undefined}
+              onValueChange={(value) => updateAudioDevices({ input: value })}
               disabled={audioDevices.inputs.length === 0}
             >
               <SelectTrigger className="w-[400px]">
@@ -314,8 +325,8 @@ function SettingsWindow() {
             label="Output Device"
           >
             <Select
-              value={selectedAudioOutputDevice}
-              onValueChange={setSelectedAudioOutputDevice}
+              value={settings.audioDevice.output || undefined}
+              onValueChange={(value) => updateAudioDevices({ output: value })}
               disabled={audioDevices.outputs.length === 0}
             >
               <SelectTrigger className="w-[400px]">

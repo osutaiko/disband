@@ -35,45 +35,36 @@ function mergeSection<T extends Record<string, unknown>>(input: unknown, fallbac
   } as T;
 }
 
-function getLegacyPlaybackSource(source: Record<string, unknown>): Record<string, unknown> {
-  if (source.pxPerMs === undefined && source.soundfontPreset === undefined) {
-    return {};
-  }
+function normalizeAudioDeviceSource(input: unknown): AppSettings['audioDevice'] {
+  const source = toRecord(input);
   return {
-    pxPerMs: source.pxPerMs,
-    soundfontPreset: source.soundfontPreset,
+    input: typeof source.input === 'string' ? source.input : undefined,
+    output: typeof source.output === 'string' ? source.output : undefined,
   };
-}
-
-function getLegacyNoteDetectionSource(source: Record<string, unknown>): Record<string, unknown> {
-  return toRecord(source.detection);
 }
 
 function parseNativeDefaultSettings(input: unknown): AppSettings {
   const source = toRecord(input);
-  const playbackSource = source.playback ?? source.theme ?? getLegacyPlaybackSource(source);
-  const noteDetectionSource = source.noteDetection ?? getLegacyNoteDetectionSource(source);
 
   return {
-    audioDevice: toRecord(source.audioDevice ?? source.audioIO) as AppSettings['audioDevice'],
+    audioDevice: normalizeAudioDeviceSource(source.audioDevice),
     appearance: toRecord(source.appearance) as AppSettings['appearance'],
     tabDisplay: toRecord(source.tabDisplay) as AppSettings['tabDisplay'],
-    playback: toRecord(playbackSource) as AppSettings['playback'],
-    noteDetection: toRecord(noteDetectionSource) as AppSettings['noteDetection'],
+    playback: toRecord(source.playback) as AppSettings['playback'],
+    noteDetection: toRecord(source.noteDetection) as AppSettings['noteDetection'],
     judgment: toRecord(source.judgment) as AppSettings['judgment'],
   };
 }
 
 function normalizeSettings(input: unknown, defaults: AppSettings): AppSettings {
   const source = toRecord(input);
-  const playbackSource = source.playback ?? source.theme ?? getLegacyPlaybackSource(source);
-  const noteDetectionSource = source.noteDetection ?? getLegacyNoteDetectionSource(source);
+  const audioDeviceSource = normalizeAudioDeviceSource(source.audioDevice);
   return {
-    audioDevice: mergeSection(source.audioDevice ?? source.audioIO, defaults.audioDevice),
+    audioDevice: mergeSection(audioDeviceSource, defaults.audioDevice),
     appearance: mergeSection(source.appearance, defaults.appearance),
     tabDisplay: mergeSection(source.tabDisplay, defaults.tabDisplay),
-    playback: mergeSection(playbackSource, defaults.playback),
-    noteDetection: mergeSection(noteDetectionSource, defaults.noteDetection),
+    playback: mergeSection(source.playback, defaults.playback),
+    noteDetection: mergeSection(source.noteDetection, defaults.noteDetection),
     judgment: mergeSection(source.judgment, defaults.judgment),
   };
 }
