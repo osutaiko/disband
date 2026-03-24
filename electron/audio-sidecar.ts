@@ -41,10 +41,10 @@ export function startAudioSidecar({
   if (!sidecar) {
     const args = ['--record-stdio'];
     if (inputDevice) {
-      args.push('--input-device', inputDevice);
+      args.push('--input-device', encodeURIComponent(inputDevice));
     }
     if (outputDevice) {
-      args.push('--output-device', outputDevice);
+      args.push('--output-device', encodeURIComponent(outputDevice));
     }
     sidecar = spawn(exe, args, {
       stdio: ['pipe', 'ignore', 'pipe'],
