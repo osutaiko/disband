@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import { Button, type ButtonProps } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 type PanelAction = {
   title: string;
   icon?: React.ReactNode;
   text?: string;
-  variant?: string;
+  variant?: ButtonProps['variant'];
   disabled?: boolean;
   onClick: () => void;
 };
