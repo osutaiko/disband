@@ -220,18 +220,17 @@ function SettingsWindow() {
     setDraftSettings(settings);
   }, [settings]);
 
+  const { colorTheme, setColorTheme } = useColorTheme();
+
   if (!settings || !draftSettings) {
     return null;
   }
 
-  const {
-    playback,
-    noteDetection,
-    judgment,
-  } = draftSettings;
-  const { pxPerMs, soundfontPreset } = playback;
-
-  const { colorTheme, setColorTheme } = useColorTheme();
+  const playback = draftSettings.playback ?? settings.playback;
+  const noteDetection = draftSettings.noteDetection ?? settings.noteDetection;
+  const judgment = draftSettings.judgment ?? settings.judgment;
+  const pxPerMs = Number.isFinite(playback?.pxPerMs) ? playback.pxPerMs : 0.1;
+  const soundfontPreset = (playback?.soundfontPreset ?? 'sonivox') as SoundfontPreset;
 
   function updateDraft(updater: (current: AppSettings) => AppSettings) {
     setDraftSettings((current) => (current ? updater(current) : current));
