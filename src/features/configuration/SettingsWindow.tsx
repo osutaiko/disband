@@ -301,7 +301,7 @@ function SettingsWindow() {
           title: 'Confirm Settings',
           text: 'Confirm',
           variant:'default',
-          disabled: JSON.stringify(draftSettings) !== JSON.stringify(settings),
+          disabled: JSON.stringify(draftSettings) === JSON.stringify(settings),
           onClick: handleCommit,
         },
       ]}
