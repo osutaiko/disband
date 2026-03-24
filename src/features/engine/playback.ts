@@ -1,10 +1,24 @@
 /* eslint-disable no-param-reassign */
 import useEngineStore from '@/store/useEngineStore';
 import { AlphaTabApi, model } from '@coderline/alphatab';
+import {
+  pauseRecordedWaveform,
+  playRecordedWaveform,
+  setRecordedWaveformPlaybackRate,
+  seekRecordedWaveform,
+} from '@/features/timeline/session/useSessionWaveSurfer';
 
 export const handlePlayPause = (api: AlphaTabApi | null) => {
   if (!api || !api.isReadyForPlayback) return;
+  const { currentMs } = useEngineStore.getState();
+  const wasPlaying = api.playerState === 1;
+  seekRecordedWaveform(currentMs);
   api.playPause();
+  if (wasPlaying) {
+    pauseRecordedWaveform();
+  } else {
+    playRecordedWaveform();
+  }
 };
 
 export const handleGotoStart = (api: AlphaTabApi | null) => {
@@ -14,6 +28,7 @@ export const handleGotoStart = (api: AlphaTabApi | null) => {
     api.pause();
   }
   api.timePosition = 0;
+  seekRecordedWaveform(0);
   api.scrollToCursor();
 };
 
@@ -26,6 +41,7 @@ export const handleGotoEnd = (api: AlphaTabApi | null, endMs: number) => {
 
   // TODO: jump to start of final bar instead
   api.timePosition = Math.max(0, endMs - 1);
+  seekRecordedWaveform(Math.max(0, endMs - 1));
   api.scrollToCursor();
 };
 
@@ -75,4 +91,5 @@ export const handleSpeedChange = (speed: number) => {
   const playbackSpeed = clampedPercent / 100;
 
   setPlaybackSpeed(playbackSpeed);
+  setRecordedWaveformPlaybackRate(playbackSpeed);
 };

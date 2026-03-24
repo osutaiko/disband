@@ -4,6 +4,36 @@ import type { SessionAnalysisResult } from '../../../../shared/types';
 import { getCssColor } from '@/lib/utils';
 import { useColorTheme } from '@/components/ui/color-theme-provider';
 
+let waveSurferPlayback: WaveSurfer | null = null;
+let recordedTimelineStartMs = 0;
+
+export function registerRecordedWaveSurfer(next: WaveSurfer | null) {
+  waveSurferPlayback = next;
+}
+
+export function registerRecordedTimelineStart(nextTimelineStartMs: number) {
+  recordedTimelineStartMs = nextTimelineStartMs;
+}
+
+export function playRecordedWaveform() {
+  waveSurferPlayback?.play();
+}
+
+export function pauseRecordedWaveform() {
+  waveSurferPlayback?.pause();
+}
+
+export function seekRecordedWaveform(currentMs: number) {
+  const duration = waveSurferPlayback?.getDuration() ?? 0;
+  if (duration <= 0) return;
+  const relativeMs = Math.max(0, currentMs - recordedTimelineStartMs);
+  waveSurferPlayback?.seekTo(Math.min(1, Math.max(0, relativeMs / (duration * 1000))));
+}
+
+export function setRecordedWaveformPlaybackRate(playbackRate: number) {
+  waveSurferPlayback?.setPlaybackRate(playbackRate);
+}
+
 function useSessionWaveSurfer({
   audioPath,
   onDurationMsChange,
@@ -47,8 +77,11 @@ function useSessionWaveSurfer({
       dragToSeek: false,
       normalize: true,
     });
+    registerRecordedWaveSurfer(waveSurferRef.current);
+    registerRecordedTimelineStart(timelineStartMs);
 
     return () => {
+      registerRecordedWaveSurfer(null);
       waveSurferRef.current?.destroy();
       waveSurferRef.current = null;
     };
