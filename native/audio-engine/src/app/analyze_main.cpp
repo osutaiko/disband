@@ -86,13 +86,13 @@ private:
 
         auto* rootObj = new juce::DynamicObject();
         juce::var root(rootObj);
-        auto* audioIoObj = new juce::DynamicObject();
-        rootObj->setProperty("audioIO", juce::var(audioIoObj));
+        auto* audioDeviceObj = new juce::DynamicObject();
+        rootObj->setProperty("audioDevice", juce::var(audioDeviceObj));
 
-        auto* themeObj = new juce::DynamicObject();
-        themeObj->setProperty("pxPerMs", 0.25);
-        themeObj->setProperty("soundfontPreset", "sonivox");
-        rootObj->setProperty("theme", juce::var(themeObj));
+        auto* playbackObj = new juce::DynamicObject();
+        playbackObj->setProperty("pxPerMs", 0.25);
+        playbackObj->setProperty("soundfontPreset", "sonivox");
+        rootObj->setProperty("playback", juce::var(playbackObj));
 
         auto* noteDetectionObj = new juce::DynamicObject();
         noteDetectionObj->setProperty("hopSizeMs", detectionDefaults.hopSizeMs);
