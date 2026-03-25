@@ -46,12 +46,6 @@ export interface IElectronAPI {
     outputs: string[];
   }>;
   onSettingsChanged: (handler: (settings: AppSettings) => void) => () => void;
-  startAudioCapture: () => Promise<{
-    ok: boolean; sidecarFound?: boolean; port?: number; alreadyRunning?: boolean
-  }>;
-  stopAudioCapture: () => Promise<{ ok: boolean; alreadyStopped?: boolean }>;
-  onAudioCaptureChunk: (handler: (data: ArrayBuffer) => void) => () => void;
-  onAudioCaptureMessage: (handler: (message: string) => void) => () => void;
 }
 
 // Used in Renderer process, expose in `preload.ts`
