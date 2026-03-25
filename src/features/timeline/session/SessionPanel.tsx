@@ -1,18 +1,24 @@
 import { useMemo } from 'react';
 
-import { Circle, Square } from 'lucide-react';
+import { Circle } from 'lucide-react';
 import useLibraryStore from '@/store/useLibraryStore';
 import useSessionStore from '@/store/useSessionStore';
 import { valsStdDev, valsTruncatedMean } from '@/lib/utils';
 
 import Panel from '@/components/ui/Panel';
-import { Card } from '@/components/ui/card';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 function DataCountRow({
   name,
@@ -55,9 +61,7 @@ function SessionPanel() {
     okCount,
     inaccurateCount,
     missCount,
-    badAttackCount,
-    badReleaseCount,
-    wrongPitchCount,
+    criteriaFailCounts,
     rhythmBiasMs,
     rhythmStdDevMs,
     accuracyPercent,
@@ -73,15 +77,14 @@ function SessionPanel() {
     const ok = judged.filter((entry) => entry.status === 'ok').length;
     const inaccurate = judged.filter((entry) => entry.status === 'inaccurate').length;
     const miss = judged.filter((entry) => entry.status === 'miss').length;
-    const badAttack = judged
-      .filter((entry) => entry.judgment.criteria.attack.pass === false)
-      .length;
-    const badRelease = judged
-      .filter((entry) => entry.judgment.criteria.release.pass === false)
-      .length;
-    const wrongPitch = judged
-      .filter((entry) => entry.judgment.criteria.pitch.pass === false)
-      .length;
+    const attackInaccurate = judged.filter((entry) => entry.status === 'inaccurate' && entry.judgment.criteria.attack.pass === false).length;
+    const attackMiss = judged.filter((entry) => entry.status === 'miss' && entry.judgment.criteria.attack.pass === false).length;
+    const pitchMiss = judged.filter((entry) => entry.status === 'miss' && entry.judgment.criteria.pitch.pass === false).length;
+    const releaseFail = judged.filter((entry) => entry.judgment.criteria.release.pass === false).length;
+    const mutingFail = judged.filter((entry) => entry.judgment.criteria.muting.pass === false).length;
+    const articulationFail = judged.filter((entry) => entry.judgment.criteria.articulation.pass === false).length;
+    const velocityFail = judged.filter((entry) => entry.judgment.criteria.velocity.pass === false).length;
+    const skippedNotes = judged.filter((entry) => entry.status === 'miss' && entry.judgment.playedIndex === null).length;
     const matchedAttackErrors = judgmentsWithStatus
       .map((entry) => entry.judgment)
       .filter((judgment) => judgment.playedIndex !== null)
@@ -94,9 +97,20 @@ function SessionPanel() {
       okCount: ok,
       inaccurateCount: inaccurate,
       missCount: miss,
-      badAttackCount: badAttack,
-      badReleaseCount: badRelease,
-      wrongPitchCount: wrongPitch,
+      criteriaFailCounts: {
+        attack: {
+          inaccurate: attackInaccurate,
+          miss: attackMiss,
+        },
+        pitch: {
+          miss: pitchMiss,
+        },
+        release: releaseFail,
+        muting: mutingFail,
+        articulation: articulationFail,
+        velocity: velocityFail,
+      },
+      skippedNotesCount: skippedNotes,
       rhythmBiasMs: valsTruncatedMean(matchedAttackErrors, 0.25),
       rhythmStdDevMs: valsStdDev(matchedAttackErrors),
       accuracyPercent: accuracy,
@@ -145,97 +159,160 @@ function SessionPanel() {
                   content={`${rhythmStdDevMs.toFixed(1)} ms`}
                 />
               </div>
-              <Card className="flex flex-col gap-2 px-4 py-2">
-                <Accordion
-                  type="multiple"
-                  className="max-w-lg"
-                  defaultValue={[]}
-                >
-                  <AccordionItem value="OK">
-                    <AccordionTrigger className="flex flex-row items-center justify-between gap-4">
-                      <div className="w-full flex flex-row items-center gap-2">
-                        <Square className="text-note-ok fill-current" size={12} />
-                        <p>OK</p>
-                      </div>
-                      <p className="text-note-ok">{`${okCount}×`}</p>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      Notes that pass all grading criteria!
-                      <br />
-                      If you think some of these notes do not deserve an
+
+              <Card>
+                <CardHeader className="p-4">
+                  <CardTitle>Session Status</CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-4">
+                  <Tabs defaultValue="ok" className="w-full">
+                    <TabsList variant="line" className="w-full">
+                      <TabsTrigger title="OK" value="ok">
+                        <span className="inline-flex items-center gap-2">
+                          <span className="inline-flex h-3 w-3 rounded-[3px] bg-note-ok" />
+                          <span className="text-sm">{`${okCount}×`}</span>
+                        </span>
+                      </TabsTrigger>
+                      <TabsTrigger title="Inaccurate" value="inaccurate">
+                        <span className="inline-flex items-center gap-2">
+                          <span className="inline-flex h-3 w-3 rounded-[3px] bg-note-inacc" />
+                          <span className="text-sm">{`${inaccurateCount}×`}</span>
+                        </span>
+                      </TabsTrigger>
+                      <TabsTrigger title="Miss" value="miss">
+                        <span className="inline-flex items-center gap-2">
+                          <span className="inline-flex h-3 w-3 rounded-[3px] bg-note-miss" />
+                          <span className="text-sm">{`${missCount}×`}</span>
+                        </span>
+                      </TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="ok">
+                      <span className="text-note-ok">OK</span> notes:
+                      <div>TODO</div>
+                    </TabsContent>
+                    <TabsContent value="inaccurate">
+                      <span className="text-note-inacc">Inaccurate</span> notes:
                       {' '}
-                      <span className="text-note-ok">OK</span>
-                      ,
-                      adjust your tolerance settings in the
+                      <div>TODO</div>
+                    </TabsContent>
+                    <TabsContent value="miss">
+                      <span className="text-note-miss">Missed</span> notes:
                       {' '}
-                      <h2 className="inline-flex text-sm underline">OPTIONS</h2>
-                      {' '}
-                      panel.
-                    </AccordionContent>
-                  </AccordionItem>
-                  <AccordionItem value="Inaccurate">
-                    <AccordionTrigger className="flex flex-row items-center justify-between gap-4">
-                      <div className="w-full flex flex-row items-center gap-2">
-                        <Square className="text-note-inacc fill-current" size={12} />
-                        <p>Inaccurate</p>
-                      </div>
-                      <p className="text-note-inacc">{`${inaccurateCount}×`}</p>
-                    </AccordionTrigger>
-                    <AccordionContent className="h-fit flex flex-col gap-2">
-                      <DataCountRow
-                        name="Inaccurate Attack"
-                        description="Notes played with inaccurate attack (start of note) timing"
-                        content={`${badAttackCount}×`}
-                      />
-                      <DataCountRow
-                        name="Bad Release"
-                        description="Notes played with inaccurate release timing, either absolute timestamp (for longer notes) or note duration (for shorter notes)"
-                        content={`${badReleaseCount}×`}
-                      />
-                      <DataCountRow
-                        name="Inconsistent Velocity"
-                        description="N/A"
-                        content="0×"
-                      />
-                      <DataCountRow
-                        name="Bad Muting"
-                        description="N/A"
-                        content="0×"
-                      />
-                      <DataCountRow
-                        name="Bad Articulation"
-                        description="N/A"
-                        content="0×"
-                      />
-                    </AccordionContent>
-                  </AccordionItem>
-                  <AccordionItem value="Miss">
-                    <AccordionTrigger className="flex flex-row items-center justify-between gap-4">
-                      <div className="w-full flex flex-row items-center gap-2">
-                        <Square className="text-note-miss fill-current" size={12} />
-                        <p>Miss</p>
-                      </div>
-                      <p className="text-note-miss">{`${missCount}x`}</p>
-                    </AccordionTrigger>
-                    <AccordionContent className="h-fit flex flex-col gap-2">
-                      <DataCountRow
-                        name="Wrong Pitch"
-                        description="Notes played with the wrong pitch"
-                        content={`${wrongPitchCount}×`}
-                      />
-                      <DataCountRow
-                        name="Bad Attack"
-                        description="Notes played with attack timing way off"
-                        content={`${badAttackCount}×`}
-                      />
-                      <DataCountRow
-                        name="Skipped Notes"
-                        description="Notes undetected in recording"
-                        content={`${playedNotes.length - wrongPitchCount - badAttackCount}×`}
-                      />
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
+                      <div>TODO</div>
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="p-4">
+                  <CardTitle>Breakdown</CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-4">
+                  <Tabs defaultValue="primary" className="w-full">
+                    <TabsList variant="line" className="w-full">
+                      <TabsTrigger value="primary">Critical</TabsTrigger>
+                      <TabsTrigger value="secondary">Secondary</TabsTrigger>
+                      <TabsTrigger value="tertiary">Minor</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="primary">
+                      <Accordion type="single" className="w-full">
+                        <AccordionItem value="attack-miss">
+                          <AccordionTrigger>
+                            <DataCountRow
+                              name="Bad Attack"
+                              description="Attack outside the acceptable window"
+                              content={`${criteriaFailCounts.attack.miss}×`}
+                            />
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div>TODO</div>
+                          </AccordionContent>
+                        </AccordionItem>
+                        <AccordionItem value="pitch-miss">
+                          <AccordionTrigger>
+                            <DataCountRow
+                              name="Wrong Pitch"
+                              description="Note played with the wrong pitch"
+                              content={`${criteriaFailCounts.pitch.miss}×`}
+                            />
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div>TODO</div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    </TabsContent>
+                    <TabsContent value="secondary">
+                      <Accordion type="single" className="w-full">
+                        <AccordionItem value="inaccurate-attack">
+                          <AccordionTrigger>
+                            <DataCountRow
+                              name="Inaccurate Attack"
+                              description="Note attack timing that is off but still within a reasonable window"
+                              content={`${criteriaFailCounts.attack.inaccurate}×`}
+                            />
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div>TODO</div>
+                          </AccordionContent>
+                        </AccordionItem>
+                        <AccordionItem value="release-fail">
+                          <AccordionTrigger>
+                            <DataCountRow
+                              name="Bad Release"
+                              description="Inaccurate note release timing"
+                              content={`${criteriaFailCounts.release}×`}
+                            />
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div>TODO</div>
+                          </AccordionContent>
+                        </AccordionItem>
+                        <AccordionItem value="muting-fail">
+                          <AccordionTrigger>
+                            <DataCountRow
+                              name="Bad Muting"
+                              description="Failure to mute properly with audible unintentionally ringing notes"
+                              content={`${criteriaFailCounts.muting}×`}
+                            />
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div>TODO</div>
+                          </AccordionContent>
+                        </AccordionItem>
+                        <AccordionItem value="articulation-fail">
+                          <AccordionTrigger>
+                            <DataCountRow
+                              name="Bad Articulation"
+                              description="Outlier waveform compared to the rest of the song"
+                              content={`${criteriaFailCounts.articulation}×`}
+                            />
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div>TODO</div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    </TabsContent>
+                    <TabsContent value="tertiary">
+                      <Accordion type="single" className="w-full">
+                        <AccordionItem value="velocity-fail">
+                          <AccordionTrigger>
+                            <DataCountRow
+                              name="Inconsistent Velocity"
+                              description="Outlier velocity (either too loud or too quiet) compared to the rest of the song"
+                              content={`${criteriaFailCounts.velocity}×`}
+                            />
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div>TODO</div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
               </Card>
             </>
           )}
