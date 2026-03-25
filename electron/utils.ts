@@ -60,7 +60,8 @@ export function makeRecordingFileName(date = new Date()) {
   const hh = pad2(date.getHours());
   const min = pad2(date.getMinutes());
   const ss = pad2(date.getSeconds());
-  return `capture-${yyyy}${mm}${dd}-${hh}${min}${ss}.wav`;
+  const ms = date.getMilliseconds().toString().padStart(3, '0');
+  return `capture-${yyyy}${mm}${dd}-${hh}${min}${ss}-${ms}.wav`;
 }
 
 export function writePcm16WavFile(filePath: string, pcm16Data: Buffer) {
