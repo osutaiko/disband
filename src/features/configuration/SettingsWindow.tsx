@@ -297,15 +297,21 @@ function SettingsWindow() {
       title="Settings"
       className="h-screen max-h-screen overflow-hidden"
       contentClassName="flex-1 min-h-0 overflow-hidden"
-      actions={[
-        { title: 'Reset Settings', text: 'Reset to Default', variant: 'destructive', onClick: handleReset },
-        {
-          title: 'Confirm Settings',
-          text: 'Confirm',
-          variant:'default',
-          disabled: JSON.stringify(draftSettings) === JSON.stringify(settings),
-          onClick: handleCommit,
-        },
+      buttonGroup={[
+        (
+          <Button key="reset-settings" variant="destructive" onClick={handleReset}>
+            Reset to Default
+          </Button>
+        ),
+        (
+          <Button
+            key="confirm-settings"
+            onClick={handleCommit}
+            disabled={JSON.stringify(draftSettings) === JSON.stringify(settings)}
+          >
+            Confirm
+          </Button>
+        ),
       ]}
     >
     <Tabs defaultValue="audio-device" orientation="vertical" className="gap-6 h-full min-h-0 w-full">

@@ -33,17 +33,17 @@ function LibraryPanel() {
       isCollapsible
       isScrollable
       title="Library"
-      actions={[
-        {
-          title: 'Import Song File',
-          icon: <FolderOpen />,
-          onClick: openSongsFolder,
-        },
-        {
-          title: 'Refresh Song List',
-          icon: <ListRestart />,
-          onClick: fetchSongs,
-        },
+      buttonGroup={[
+        (
+          <Button key="import-song" title="Import Song File" variant="ghost" size="icon" onClick={openSongsFolder}>
+            <FolderOpen />
+          </Button>
+        ),
+        (
+          <Button key="refresh-library" title="Refresh Song List" variant="ghost" size="icon" onClick={fetchSongs}>
+            <ListRestart />
+          </Button>
+        ),
       ]}
     >
       {/* TODO: Search/filter functionality */}

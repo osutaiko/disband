@@ -254,8 +254,12 @@ function TrackMenuPanel() {
       isCollapsible
       isScrollable
       title="Tracks"
-      actions={[
-        { title: 'Reset Track Settings', icon: <RotateCcw />, onClick: handleReset },
+      buttonGroup={[
+        (
+          <Button key="reset-track-settings" title="Reset Track Settings" variant="ghost" size="icon" onClick={handleReset}>
+            <RotateCcw />
+          </Button>
+        ),
       ]}
     >
       {!tracks || tracks.length === 0

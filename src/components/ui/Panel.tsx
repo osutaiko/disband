@@ -2,21 +2,12 @@ import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { Button, type ButtonProps } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-
-type PanelAction = {
-  title: string;
-  icon?: React.ReactNode;
-  text?: string;
-  variant?: ButtonProps['variant'];
-  disabled?: boolean;
-  onClick: () => void;
-};
 
 const Panel = ({
   title,
-  actions = [],
+  buttonGroup = [],
   isCollapsible = false,
   defaultCollapsed = false,
   isScrollable = false,
@@ -25,7 +16,7 @@ const Panel = ({
   children,
 }: {
   title?: string;
-  actions?: PanelAction[];
+  buttonGroup?: React.ReactNode[];
   isCollapsible?: boolean;
   defaultCollapsed?: boolean;
   isScrollable?: boolean;
@@ -52,18 +43,7 @@ const Panel = ({
             <h2 className="underline p-2">{title}</h2>
           )}
           <div className="flex gap-1">
-            {actions.map((action, index) => (
-              <Button
-                key={`${action.title}-${index}`}
-                title={action.title}
-                variant={action.variant ?? 'ghost'}
-                disabled={action.disabled}
-                size={action.icon ? 'icon' : 'default'}
-                onClick={action.onClick}
-              >
-                {action.icon || action.text}
-              </Button>
-            ))}
+            {buttonGroup}
           </div>
         </div>
       )}
