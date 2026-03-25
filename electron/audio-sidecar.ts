@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { spawn } from 'node:child_process';
+import { Buffer } from 'node:buffer';
 import type { SessionAnalysisResult } from '../shared/types';
 import {
   getAudioAnalyzePath,
@@ -41,10 +42,10 @@ export function startAudioSidecar({
   if (!sidecar) {
     const args = ['--record-stdio'];
     if (inputDevice) {
-      args.push('--input-device', encodeURIComponent(inputDevice));
+      args.push('--input-device', Buffer.from(inputDevice, 'utf8').toString('base64'));
     }
     if (outputDevice) {
-      args.push('--output-device', encodeURIComponent(outputDevice));
+      args.push('--output-device', Buffer.from(outputDevice, 'utf8').toString('base64'));
     }
     sidecar = spawn(exe, args, {
       stdio: ['pipe', 'ignore', 'pipe'],
