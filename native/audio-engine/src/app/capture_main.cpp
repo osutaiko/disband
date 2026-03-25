@@ -22,6 +22,15 @@ struct CommandLineOptions
     juce::String outputDeviceName;
 };
 
+juce::String decodeBase64Arg(const juce::String& encoded)
+{
+    juce::MemoryBlock decoded;
+    if (!decoded.fromBase64Encoding(encoded))
+        return {};
+
+    return juce::String::fromUTF8(static_cast<const char*>(decoded.getData()), static_cast<int>(decoded.getSize()));
+}
+
 constexpr double kSampleRate = 48000.0;
 constexpr unsigned int kChannels = 1;
 constexpr int kBitsPerSample = 16;
@@ -45,9 +54,9 @@ CommandLineOptions parseCommandLineOptions()
         if (args[i] == "--list-devices")
             options.listDevices = true;
         else if (args[i] == "--input-device" && i + 1 < args.size())
-            options.inputDeviceName = args[i + 1];
+            options.inputDeviceName = decodeBase64Arg(args[i + 1]);
         else if (args[i] == "--output-device" && i + 1 < args.size())
-            options.outputDeviceName = args[i + 1];
+            options.outputDeviceName = decodeBase64Arg(args[i + 1]);
     }
     return options;
 }
