@@ -32,6 +32,16 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 import { useColorTheme } from '@/components/ui/color-theme-provider';
 
@@ -299,9 +309,27 @@ function SettingsWindow() {
       contentClassName="flex-1 min-h-0 overflow-hidden"
       buttonGroup={[
         (
-          <Button key="reset-settings" variant="destructive" onClick={handleReset}>
-            Reset to Default
-          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button key="reset-settings" variant="destructive">
+                Reset to Default
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Reset all settings to default?</DialogTitle>
+                <DialogDescription>
+                  This cannot be undone.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <DialogClose asChild> 
+                  <Button variant="outline">Cancel</Button>
+                  <Button onClick={handleReset}>Confirm</Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         ),
         (
           <Button
