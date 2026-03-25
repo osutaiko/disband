@@ -91,7 +91,7 @@ private:
 
         auto* playbackObj = new juce::DynamicObject();
         playbackObj->setProperty("pxPerMs", 0.25);
-        playbackObj->setProperty("soundfontPreset", "sonivox");
+        playbackObj->setProperty("soundfontPreset", "generaluser-gs");
         rootObj->setProperty("playback", juce::var(playbackObj));
 
         auto* noteDetectionObj = new juce::DynamicObject();

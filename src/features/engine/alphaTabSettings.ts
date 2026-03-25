@@ -16,7 +16,7 @@ export function applyAlphaTabSettings(
 
 export function buildAlphaTabSettings(playback?: PlaybackSettings | null): Settings {
   const settings = structuredClone(alphaTabDefaultSettings) as unknown as Settings;
-  const preset = playback?.soundfontPreset ?? 'sonivox';
+  const preset = playback?.soundfontPreset ?? 'generaluser-gs';
   settings.player.soundFont = SOUNDFONT_PATH_BY_PRESET[preset];
   return settings;
 }

@@ -232,7 +232,7 @@ function SettingsWindow() {
     judgment,
   } = draftSettings ?? settings;
   const pxPerMs = playback?.pxPerMs;
-  const soundfontPreset = (playback?.soundfontPreset ?? 'sonivox') as SoundfontPreset;
+  const soundfontPreset = (playback?.soundfontPreset ?? 'generaluser-gs') as SoundfontPreset;
 
   function updateDraft(updater: (current: AppSettings) => AppSettings) {
     setDraftSettings((current) => (current ? updater(current) : current));
