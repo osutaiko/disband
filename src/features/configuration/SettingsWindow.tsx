@@ -155,13 +155,13 @@ function SettingsWindow() {
       contentClassName="flex-1 min-h-0 overflow-hidden"
       buttonGroup={[
         (
-          <Dialog>
+          <Dialog key="reset-settings">
             <DialogTrigger asChild>
-              <Button key="reset-settings" variant="destructive">
+              <Button variant="destructive">
                 Reset to Default
               </Button>
             </DialogTrigger>
-              <DialogContent>
+            <DialogContent>
               <DialogHeader>
                 <DialogTitle>Reset all settings to default?</DialogTitle>
                 <DialogDescription>
@@ -169,8 +169,10 @@ function SettingsWindow() {
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
-                <DialogClose asChild> 
+                <DialogClose asChild>
                   <Button variant="outline">Cancel</Button>
+                </DialogClose>
+                <DialogClose asChild>
                   <Button onClick={handleReset}>Confirm</Button>
                 </DialogClose>
               </DialogFooter>
