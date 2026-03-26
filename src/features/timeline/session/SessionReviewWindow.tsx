@@ -55,6 +55,32 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
     const hasJudgmentSelection = selectedJudgments.length > 0;
     if (!hasJudgmentSelection) return [];
 
+    const matchesCriterion = (
+      criterion: 'attack' | 'pitch' | 'release' | 'velocity' | 'muting' | 'articulation',
+      row: ReviewRow,
+    ) => {
+      const selection = selectedCriteria[criterion];
+      const judgment = row.criteria[criterion];
+
+      if (selection === 'any') return true;
+
+      switch (criterion) {
+        case 'attack':
+          if (selection === 'ok') return row.status === 'ok' && judgment.pass === true;
+          if (selection === 'inaccurate') return row.status === 'inaccurate' && judgment.pass === false;
+          if (selection === 'miss') return row.status === 'miss' && judgment.pass === false;
+          return true;
+        case 'pitch':
+          if (selection === 'ok') return judgment.pass === true;
+          if (selection === 'miss') return judgment.pass === false;
+          return true;
+        default:
+          if (selection === 'ok') return judgment.pass === true;
+          if (selection === 'bad') return judgment.pass === false;
+          return true;
+      }
+    };
+
     return sessionAnalysis.referenceJudgments
       .map((judgment) => {
         const playedNote = judgment.playedIndex !== null
@@ -68,8 +94,10 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
           criteria: judgment.criteria,
         };
       })
-      .filter((row) => hasJudgmentSelection && selectedJudgments.includes(row.status as ReviewRow['status']));
-  }, [selectedJudgments, sessionAnalysis]);
+      .filter((row) => selectedJudgments.includes(row.status as ReviewRow['status']))
+      .filter((row) => (['attack', 'pitch', 'release', 'velocity', 'muting', 'articulation'] as const)
+        .every((criterion) => matchesCriterion(criterion, row)));
+  }, [selectedCriteria, selectedJudgments, sessionAnalysis]);
 
   const reviewTimelineMarkers = useMemo(() => reviewRows
     .filter((row) => row.startMs !== null)
@@ -150,7 +178,7 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
               </section>
               <CollapsibleContent className="ml-4 grid gap-1">
                 {(['attack', 'pitch', 'release', 'velocity', 'muting', 'articulation'] as const).map((criterion) => (
-                  <div key={criterion} className="grid grid-cols-[120px_1fr] items-center gap-3">
+                  <div key={criterion} className="grid grid-cols-[100px_1fr] items-center gap-3">
                     <span className="text-sm capitalize">{criterion}</span>
                     <ToggleGroup
                       type="single"
@@ -165,22 +193,22 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
                       >
                         {criterion === 'attack' ? (
                           <>
-                            <ToggleGroupItem value="any" className="mr-1">Any</ToggleGroupItem>
-                            <ToggleGroupItem value="ok">OK</ToggleGroupItem>
-                            <ToggleGroupItem value="inaccurate">Inaccurate</ToggleGroupItem>
-                            <ToggleGroupItem value="miss">Miss</ToggleGroupItem>
+                            <ToggleGroupItem value="any" className="mr-3 !rounded-lg">Any</ToggleGroupItem>
+                            <ToggleGroupItem value="ok" className="text-note-ok !rounded-none !rounded-l-lg">OK</ToggleGroupItem>
+                            <ToggleGroupItem value="inaccurate" className="text-note-inacc !rounded-none">Inaccurate</ToggleGroupItem>
+                            <ToggleGroupItem value="miss" className="text-note-miss !rounded-none !rounded-r-lg">Miss</ToggleGroupItem>
                           </>
                         ) : criterion === 'pitch' ? (
                           <>
-                            <ToggleGroupItem value="any" className="mr-1">Any</ToggleGroupItem>
-                            <ToggleGroupItem value="ok">OK</ToggleGroupItem>
-                            <ToggleGroupItem value="miss">Miss</ToggleGroupItem>
+                            <ToggleGroupItem value="any" className="mr-3 !rounded-lg">Any</ToggleGroupItem>
+                            <ToggleGroupItem value="ok" className="text-note-ok !rounded-none !rounded-l-lg">OK</ToggleGroupItem>
+                            <ToggleGroupItem value="miss" className="text-note-miss !rounded-none !rounded-r-lg">Miss</ToggleGroupItem>
                           </>
                         ) : (
                           <>
-                            <ToggleGroupItem value="any" className="mr-1">Any</ToggleGroupItem>
-                            <ToggleGroupItem value="ok">OK</ToggleGroupItem>
-                            <ToggleGroupItem value="bad">Bad</ToggleGroupItem>
+                            <ToggleGroupItem value="any" className="mr-3 !rounded-lg">Any</ToggleGroupItem>
+                            <ToggleGroupItem value="ok" className="text-note-ok !rounded-none !rounded-l-lg">OK</ToggleGroupItem>
+                            <ToggleGroupItem value="bad" className="text-note-inacc !rounded-none !rounded-r-lg">Bad</ToggleGroupItem>
                           </>
                         )}
                       </ToggleGroup>
