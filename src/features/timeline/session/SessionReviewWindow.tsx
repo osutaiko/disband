@@ -29,7 +29,7 @@ type ReviewRow = {
 
 function SessionReviewWindow({ onClose }: { onClose: () => void }) {
   const { selectedSong, selectedTrackId } = useLibraryStore();
-  const { endMs } = useEngineStore();
+  const { endMs, currentMs } = useEngineStore();
   const { sessionAnalysisBySelection } = useSessionStore();
   const [selectedJudgments, setSelectedJudgments] = useState<Array<'ok' | 'inaccurate' | 'miss'>>([
     'ok',
@@ -106,6 +106,14 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
       startMs: row.startMs as number,
       endMs: row.endMs ?? row.startMs as number,
     })), [reviewRows]);
+
+  const recordedRange = useMemo(() => {
+    if (!sessionAnalysis || sessionAnalysis.playedNotes.length === 0) return null;
+    const startMs = sessionAnalysis.playedNotes.reduce((min, note) => Math.min(min, note.startMs), Number.POSITIVE_INFINITY);
+    const endMsValue = sessionAnalysis.playedNotes.reduce((max, note) => Math.max(max, note.endMs), 0);
+    if (!Number.isFinite(startMs) || endMsValue <= startMs) return null;
+    return { startMs, endMs: endMsValue };
+  }, [sessionAnalysis]);
 
   const songLengthMs = endMs;
 
@@ -224,8 +232,24 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
               <div className="text-xs text-muted-foreground">{reviewRows.length} notes</div>
             </div>
 
-            <div className="border p-3 rounded-md">
-              <div className="relative w-full h-6 bg-muted">
+            <div className="border py-2 rounded-md">
+            <div className="relative w-full h-10 overflow-visible">
+              {recordedRange && (
+                <div
+                  className="absolute -top-2 -bottom-2 bg-rec-track-bg pointer-events-none z-0"
+                  style={{
+                    left: `${(recordedRange.startMs / Math.max(songLengthMs, 1)) * 100}%`,
+                    width: `${((recordedRange.endMs - recordedRange.startMs) / Math.max(songLengthMs, 1)) * 100}%`,
+                  }}
+                />
+              )}
+              <div
+                className="absolute -top-2 -bottom-2 w-px bg-playhead pointer-events-none z-0"
+                style={{
+                  left: `${Math.max(0, Math.min(1, currentMs / Math.max(songLengthMs, 1))) * 100}%`,
+                }}
+              />
+              <div className="absolute inset-y-2 left-0 right-0 z-10 bg-muted">
                 {reviewTimelineMarkers.map((marker, index) => {
                   const startRatio = Math.max(0, Math.min(1, marker.startMs / Math.max(songLengthMs, 1)));
                   const endRatio = Math.max(startRatio, Math.min(1, marker.endMs / Math.max(songLengthMs, 1)));
@@ -240,11 +264,12 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
                       className={`absolute top-0 h-full ${markerClassName}`}
                       style={{
                         left: `${startRatio * 100}%`,
-                        width: `${(endRatio - startRatio) * 100}%`,
+                        width: `${Math.max((endRatio - startRatio) * 100, (1 / Math.max(songLengthMs, 1)) * 100)}%`,
                       }}
                     />
                   );
                 })}
+              </div>
               </div>
             </div>
           </section>
