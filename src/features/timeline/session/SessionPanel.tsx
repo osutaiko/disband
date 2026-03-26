@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { Circle, Search } from 'lucide-react';
+import { Circle, Diamond, Search } from 'lucide-react';
 import useLibraryStore from '@/store/useLibraryStore';
 import useSessionStore from '@/store/useSessionStore';
 import { valsStdDev, valsTruncatedMean } from '@/lib/utils';
@@ -182,6 +182,21 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
             <h2 className="text-base font-medium animate-pulse">Analysis in Progress...</h2>
           ) : (
             <>
+              <div className="grid grid-cols-3 gap-2 select-none">
+                <Card className="flex flex-row gap-2 px-4 py-2 justify-between items-center">
+                  <Diamond size={14} className="stroke-note-ok fill-note-ok" />
+                  <span>{okCount}×</span>
+                </Card>
+                <Card className="flex flex-row gap-2 px-4 py-2 justify-between items-center">
+                  <Diamond size={14} className="stroke-note-inacc fill-note-inacc" />
+                  <span>{inaccurateCount}×</span>
+                </Card>
+                <Card className="flex flex-row gap-2 px-4 py-2 justify-between items-center">
+                  <Diamond size={14} className="stroke-note-miss fill-note-miss" />
+                  <span>{missCount}×</span>
+                </Card>
+              </div>
+
               <div className="w-full flex flex-col px-2 gap-2">
                 <DataCountRow
                   name="Recording Length"
@@ -204,50 +219,6 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
                   content={`${rhythmStdDevMs.toFixed(1)} ms`}
                 />
               </div>
-
-              <Card>
-                <CardHeader className="p-4">
-                  <CardTitle>Session Status</CardTitle>
-                </CardHeader>
-                <CardContent className="px-4 pb-4">
-                  <Tabs defaultValue="ok" className="w-full">
-                    <TabsList variant="line" className="w-full">
-                      <TabsTrigger title="OK" value="ok">
-                        <span className="inline-flex items-center gap-2">
-                          <span className="inline-flex h-3 w-3 rounded-[3px] bg-note-ok" />
-                          <span className="text-sm">{`${okCount}×`}</span>
-                        </span>
-                      </TabsTrigger>
-                      <TabsTrigger title="Inaccurate" value="inaccurate">
-                        <span className="inline-flex items-center gap-2">
-                          <span className="inline-flex h-3 w-3 rounded-[3px] bg-note-inacc" />
-                          <span className="text-sm">{`${inaccurateCount}×`}</span>
-                        </span>
-                      </TabsTrigger>
-                      <TabsTrigger title="Miss" value="miss">
-                        <span className="inline-flex items-center gap-2">
-                          <span className="inline-flex h-3 w-3 rounded-[3px] bg-note-miss" />
-                          <span className="text-sm">{`${missCount}×`}</span>
-                        </span>
-                      </TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="ok">
-                      <span className="text-note-ok">OK</span> notes:
-                      <div>TODO</div>
-                    </TabsContent>
-                    <TabsContent value="inaccurate">
-                      <span className="text-note-inacc">Inaccurate</span> notes:
-                      {' '}
-                      <div>TODO</div>
-                    </TabsContent>
-                    <TabsContent value="miss">
-                      <span className="text-note-miss">Missed</span> notes:
-                      {' '}
-                      <div>TODO</div>
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
 
               <Card>
                 <CardHeader className="p-4">
