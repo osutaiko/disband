@@ -1,23 +1,14 @@
 import { useMemo } from 'react';
 
-import { Circle } from 'lucide-react';
+import { Circle, Search } from 'lucide-react';
 import useLibraryStore from '@/store/useLibraryStore';
 import useSessionStore from '@/store/useSessionStore';
 import { valsStdDev, valsTruncatedMean } from '@/lib/utils';
 
 import Panel from '@/components/ui/Panel';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 function DataCountRow({
@@ -45,7 +36,7 @@ function formatDurationMs(durationMs: number): string {
   return `${minutes}:${String(seconds).padStart(2, '0')}.${String(millis).padStart(3, '0')}`;
 }
 
-function SessionPanel() {
+function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
   const { selectedSong, selectedTrackId } = useLibraryStore();
   const { recordedPaths, sessionAnalysisBySelection, analysisInProgressBySelection } = useSessionStore();
 
@@ -84,7 +75,6 @@ function SessionPanel() {
     const mutingFail = judged.filter((entry) => entry.judgment.criteria.muting.pass === false).length;
     const articulationFail = judged.filter((entry) => entry.judgment.criteria.articulation.pass === false).length;
     const velocityFail = judged.filter((entry) => entry.judgment.criteria.velocity.pass === false).length;
-    const skippedNotes = judged.filter((entry) => entry.status === 'miss' && entry.judgment.playedIndex === null).length;
     const matchedAttackErrors = judgmentsWithStatus
       .map((entry) => entry.judgment)
       .filter((judgment) => judgment.playedIndex !== null)
@@ -110,7 +100,6 @@ function SessionPanel() {
         articulation: articulationFail,
         velocity: velocityFail,
       },
-      skippedNotesCount: skippedNotes,
       rhythmBiasMs: valsTruncatedMean(matchedAttackErrors, 0.25),
       rhythmStdDevMs: valsStdDev(matchedAttackErrors),
       accuracyPercent: accuracy,
@@ -124,6 +113,14 @@ function SessionPanel() {
       className="flex flex-col overflow-hidden pr-4"
       contentClassName="flex-1 overflow-hidden"
       isScrollable
+      buttonGroup={[
+        (
+          <Button key="session-review" onClick={onOpenReview}>
+            <Search />
+            Review
+          </Button>
+        ),
+      ]}
     >
       {!hasRecording ? (
         <p className="p-2 pr-4 text-sm text-muted-foreground">

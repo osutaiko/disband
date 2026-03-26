@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useState, useRef } from 'react';
 import useSongMetadata from '@/features/library/useSongMetadata';
 import useLibraryStore from '@/store/useLibraryStore';
 import useAlphaTab from '@/features/engine/useAlphaTab';
@@ -14,6 +14,7 @@ import useTestAudioFixtures from '@/features/timeline/session/useTestAudioFixtur
 
 import PlaybackControlPanel from '@/features/engine/PlaybackControlPanel';
 import TrackMenuPanel from '@/features/tracks/TrackMenuPanel';
+import SessionReviewWindow from '@/features/timeline/session/SessionReviewWindow';
 
 /**
  * Global app layout.
@@ -30,6 +31,7 @@ function Shell() {
   // Container passed to AlphaTab rendering
   const containerRef = useRef<HTMLDivElement | null>(null);
   const { isTabLoading, currentMsRef } = useAlphaTab(containerRef, selectedSong);
+  const [isSessionReviewOpen, setIsSessionReviewOpen] = useState(false);
 
   return (
     <div className="flex h-screen w-full overflow-hidden select-none">
@@ -56,8 +58,12 @@ function Shell() {
       {/* Right Panel Group (Analysis Session Data) */}
       <aside className="w-80 shrink-0 min-h-0 flex flex-col border-l divide-y">
         <PlaybackControlPanel />
-        <SessionPanel />
+        <SessionPanel onOpenReview={() => setIsSessionReviewOpen(true)} />
       </aside>
+
+      {isSessionReviewOpen && (
+        <SessionReviewWindow onClose={() => setIsSessionReviewOpen(false)} />
+      )}
     </div>
   );
 }
