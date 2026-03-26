@@ -232,7 +232,7 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
                       <TabsTrigger value="tertiary" title="Tertiary Errors: potential improvements">Minor</TabsTrigger>
                     </TabsList>
                     <TabsContent value="primary">
-                      <Accordion type="single" className="w-full">
+                      <Accordion type="multiple" className="w-full">
                         <AccordionItem value="attack-miss">
                           <AccordionTrigger>
                             <DataCountRow
@@ -282,7 +282,7 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
                       </Accordion>
                     </TabsContent>
                     <TabsContent value="secondary">
-                      <Accordion type="single" className="w-full">
+                      <Accordion type="multiple" className="w-full">
                         <AccordionItem value="inaccurate-attack">
                           <AccordionTrigger>
                             <DataCountRow
@@ -378,7 +378,7 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
                       </Accordion>
                     </TabsContent>
                     <TabsContent value="tertiary">
-                      <Accordion type="single" className="w-full">
+                      <Accordion type="multiple" className="w-full">
                         <AccordionItem value="velocity-fail">
                           <AccordionTrigger>
                             <DataCountRow
