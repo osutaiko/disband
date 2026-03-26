@@ -17,12 +17,12 @@ function DataCountRow({
   content,
 }: {
   name: string;
-  description: string;
+  description?: string;
   content: string;
 }) {
   return (
     <div className="flex flex-row items-center justify-between gap-4">
-      <span title={description} className="hover:cursor-help text-sm">{name}</span>
+      <span title={description} className={`${description ? 'hover:cursor-help' : ''} text-sm`}>{name}</span>
       <span className="text-sm">{content}</span>
     </div>
   );
@@ -34,6 +34,20 @@ function formatDurationMs(durationMs: number): string {
   const seconds = Math.floor((safeMs % 60000) / 1000);
   const millis = safeMs % 1000;
   return `${minutes}:${String(seconds).padStart(2, '0')}.${String(millis).padStart(3, '0')}`;
+}
+
+function formatMsValue(ms: number | null): string {
+  return ms === null ? '-' : `${Math.abs(ms).toFixed(1)} ms`;
+}
+
+function getErrorStats(errors: Array<number | null>) {
+  const values = errors.filter((error): error is number => error !== null);
+  const count = values.length;
+  const total = errors.length;
+  const average = count > 0 ? valsTruncatedMean(values.map((value) => Math.abs(value)), 0.25) : null;
+  const worst = count > 0 ? Math.max(...values.map((value) => Math.abs(value))) : null;
+
+  return { count, total, average, worst };
 }
 
 function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
@@ -52,7 +66,8 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
     okCount,
     inaccurateCount,
     missCount,
-    criteriaFailCounts,
+    breakdownStats,
+    totalJudgedCount,
     rhythmBiasMs,
     rhythmStdDevMs,
     accuracyPercent,
@@ -82,6 +97,27 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
       .filter((error): error is number => error !== null);
     const totalReference = judged.length;
     const accuracy = totalReference > 0 ? (ok / totalReference) * 100 : 0;
+    const badAttackErrors = judged
+      .filter((entry) => entry.judgment.criteria.attack.pass === false)
+      .map((entry) => entry.judgment.criteria.attack.error);
+    const wrongPitchErrors = judged
+      .filter((entry) => entry.judgment.criteria.pitch.pass === false)
+      .map((entry) => entry.judgment.criteria.pitch.error);
+    const inaccurateAttackErrors = judged
+      .filter((entry) => entry.status === 'inaccurate' && entry.judgment.criteria.attack.pass === false)
+      .map((entry) => entry.judgment.criteria.attack.error);
+    const releaseErrors = judged
+      .filter((entry) => entry.judgment.criteria.release.pass === false)
+      .map((entry) => entry.judgment.criteria.release.error);
+    const mutingErrors = judged
+      .filter((entry) => entry.judgment.criteria.muting.pass === false)
+      .map((entry) => entry.judgment.criteria.muting.error);
+    const articulationErrors = judged
+      .filter((entry) => entry.judgment.criteria.articulation.pass === false)
+      .map((entry) => entry.judgment.criteria.articulation.error);
+    const velocityErrors = judged
+      .filter((entry) => entry.judgment.criteria.velocity.pass === false)
+      .map((entry) => entry.judgment.criteria.velocity.error);
 
     return {
       okCount: ok,
@@ -100,12 +136,24 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
         articulation: articulationFail,
         velocity: velocityFail,
       },
+      breakdownStats: {
+        attackMiss: getErrorStats(badAttackErrors),
+        pitchMiss: getErrorStats(wrongPitchErrors),
+        attackInaccurate: getErrorStats(inaccurateAttackErrors),
+        release: getErrorStats(releaseErrors),
+        muting: getErrorStats(mutingErrors),
+        articulation: getErrorStats(articulationErrors),
+        velocity: getErrorStats(velocityErrors),
+      },
+      totalJudgedCount: judged.length,
       rhythmBiasMs: valsTruncatedMean(matchedAttackErrors, 0.25),
       rhythmStdDevMs: valsStdDev(matchedAttackErrors),
       accuracyPercent: accuracy,
       recordingLengthMs: recordingLength,
     };
   }, [playedNotes, sessionAnalysis]);
+
+  const formatBreakdownPercent = (count: number) => `${(totalJudgedCount > 0 ? (count / totalJudgedCount) * 100 : 0).toFixed(1)}%`;
 
   return (
     <Panel
@@ -203,14 +251,14 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
 
               <Card>
                 <CardHeader className="p-4">
-                  <CardTitle>Breakdown</CardTitle>
+                  <CardTitle>Error Breakdown</CardTitle>
                 </CardHeader>
                 <CardContent className="px-4 pb-4">
                   <Tabs defaultValue="primary" className="w-full">
                     <TabsList variant="line" className="w-full">
-                      <TabsTrigger value="primary">Critical</TabsTrigger>
-                      <TabsTrigger value="secondary">Secondary</TabsTrigger>
-                      <TabsTrigger value="tertiary">Minor</TabsTrigger>
+                      <TabsTrigger value="primary" title="Critical Errors: instant [Miss]">Critical</TabsTrigger>
+                      <TabsTrigger value="secondary" title="Secondary Errors: may cause [Inaccurate]">Secondary</TabsTrigger>
+                      <TabsTrigger value="tertiary" title="Tertiary Errors: potential improvements">Minor</TabsTrigger>
                     </TabsList>
                     <TabsContent value="primary">
                       <Accordion type="single" className="w-full">
@@ -219,11 +267,22 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
                             <DataCountRow
                               name="Bad Attack"
                               description="Attack outside the acceptable window"
-                              content={`${criteriaFailCounts.attack.miss}×`}
+                              content={`${breakdownStats.attackMiss.count}×`}
                             />
                           </AccordionTrigger>
-                          <AccordionContent>
-                            <div>TODO</div>
+                          <AccordionContent className="space-y-1 pb-2">
+                            <DataCountRow
+                              name="Percent"
+                              content={formatBreakdownPercent(breakdownStats.attackMiss.count)}
+                            />
+                            <DataCountRow
+                              name="Average error"
+                              content={formatMsValue(breakdownStats.attackMiss.average)}
+                            />
+                            <DataCountRow
+                              name="Worst error"
+                              content={formatMsValue(breakdownStats.attackMiss.worst)}
+                            />
                           </AccordionContent>
                         </AccordionItem>
                         <AccordionItem value="pitch-miss">
@@ -231,11 +290,22 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
                             <DataCountRow
                               name="Wrong Pitch"
                               description="Note played with the wrong pitch"
-                              content={`${criteriaFailCounts.pitch.miss}×`}
+                              content={`${breakdownStats.pitchMiss.count}×`}
                             />
                           </AccordionTrigger>
-                          <AccordionContent>
-                            <div>TODO</div>
+                          <AccordionContent className="space-y-1 pb-2">
+                            <DataCountRow
+                              name="Percent"
+                              content={formatBreakdownPercent(breakdownStats.pitchMiss.count)}
+                            />
+                            <DataCountRow
+                              name="Average error"
+                              content={formatMsValue(breakdownStats.pitchMiss.average)}
+                            />
+                            <DataCountRow
+                              name="Worst error"
+                              content={formatMsValue(breakdownStats.pitchMiss.worst)}
+                            />
                           </AccordionContent>
                         </AccordionItem>
                       </Accordion>
@@ -247,11 +317,22 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
                             <DataCountRow
                               name="Inaccurate Attack"
                               description="Note attack timing that is off but still within a reasonable window"
-                              content={`${criteriaFailCounts.attack.inaccurate}×`}
+                              content={`${breakdownStats.attackInaccurate.count}×`}
                             />
                           </AccordionTrigger>
-                          <AccordionContent>
-                            <div>TODO</div>
+                          <AccordionContent className="space-y-1 pb-2">
+                            <DataCountRow
+                              name="Percent"
+                              content={formatBreakdownPercent(breakdownStats.attackInaccurate.count)}
+                            />
+                            <DataCountRow
+                              name="Average error"
+                              content={formatMsValue(breakdownStats.attackInaccurate.average)}
+                            />
+                            <DataCountRow
+                              name="Worst error"
+                              content={formatMsValue(breakdownStats.attackInaccurate.worst)}
+                            />
                           </AccordionContent>
                         </AccordionItem>
                         <AccordionItem value="release-fail">
@@ -259,11 +340,22 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
                             <DataCountRow
                               name="Bad Release"
                               description="Inaccurate note release timing"
-                              content={`${criteriaFailCounts.release}×`}
+                              content={`${breakdownStats.release.count}×`}
                             />
                           </AccordionTrigger>
-                          <AccordionContent>
-                            <div>TODO</div>
+                          <AccordionContent className="space-y-1 pb-2">
+                            <DataCountRow
+                              name="Percent"
+                              content={formatBreakdownPercent(breakdownStats.release.count)}
+                            />
+                            <DataCountRow
+                              name="Average error"
+                              content={formatMsValue(breakdownStats.release.average)}
+                            />
+                            <DataCountRow
+                              name="Worst error"
+                              content={formatMsValue(breakdownStats.release.worst)}
+                            />
                           </AccordionContent>
                         </AccordionItem>
                         <AccordionItem value="muting-fail">
@@ -271,11 +363,22 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
                             <DataCountRow
                               name="Bad Muting"
                               description="Failure to mute properly with audible unintentionally ringing notes"
-                              content={`${criteriaFailCounts.muting}×`}
+                              content={`${breakdownStats.muting.count}×`}
                             />
                           </AccordionTrigger>
-                          <AccordionContent>
-                            <div>TODO</div>
+                          <AccordionContent className="space-y-1 pb-2">
+                            <DataCountRow
+                              name="Percent"
+                              content={formatBreakdownPercent(breakdownStats.muting.count)}
+                            />
+                            <DataCountRow
+                              name="Average error"
+                              content={formatMsValue(breakdownStats.muting.average)}
+                            />
+                            <DataCountRow
+                              name="Worst error"
+                              content={formatMsValue(breakdownStats.muting.worst)}
+                            />
                           </AccordionContent>
                         </AccordionItem>
                         <AccordionItem value="articulation-fail">
@@ -283,11 +386,22 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
                             <DataCountRow
                               name="Bad Articulation"
                               description="Outlier waveform compared to the rest of the song"
-                              content={`${criteriaFailCounts.articulation}×`}
+                              content={`${breakdownStats.articulation.count}×`}
                             />
                           </AccordionTrigger>
-                          <AccordionContent>
-                            <div>TODO</div>
+                          <AccordionContent className="space-y-1 pb-2">
+                            <DataCountRow
+                              name="Percent"
+                              content={formatBreakdownPercent(breakdownStats.articulation.count)}
+                            />
+                            <DataCountRow
+                              name="Average error"
+                              content={formatMsValue(breakdownStats.articulation.average)}
+                            />
+                            <DataCountRow
+                              name="Worst error"
+                              content={formatMsValue(breakdownStats.articulation.worst)}
+                            />
                           </AccordionContent>
                         </AccordionItem>
                       </Accordion>
@@ -299,11 +413,22 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
                             <DataCountRow
                               name="Inconsistent Velocity"
                               description="Outlier velocity (either too loud or too quiet) compared to the rest of the song"
-                              content={`${criteriaFailCounts.velocity}×`}
+                              content={`${breakdownStats.velocity.count}×`}
                             />
                           </AccordionTrigger>
-                          <AccordionContent>
-                            <div>TODO</div>
+                          <AccordionContent className="space-y-1 pb-2">
+                            <DataCountRow
+                              name="Percent"
+                              content={formatBreakdownPercent(breakdownStats.velocity.count)}
+                            />
+                            <DataCountRow
+                              name="Average error"
+                              content={formatMsValue(breakdownStats.velocity.average)}
+                            />
+                            <DataCountRow
+                              name="Worst error"
+                              content={formatMsValue(breakdownStats.velocity.worst)}
+                            />
                           </AccordionContent>
                         </AccordionItem>
                       </Accordion>
