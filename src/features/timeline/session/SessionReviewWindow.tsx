@@ -3,7 +3,8 @@ import { Rnd } from 'react-rnd';
 
 import Panel from '@/components/ui/Panel';
 import { Button } from '@/components/ui/button';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import useEngineStore from '@/store/useEngineStore';
 import useLibraryStore from '@/store/useLibraryStore';
 import useSessionStore from '@/store/useSessionStore';
@@ -28,7 +29,11 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
   const { selectedSong, selectedTrackId } = useLibraryStore();
   const { endMs } = useEngineStore();
   const { sessionAnalysisBySelection } = useSessionStore();
-  const [selectedJudgments, setSelectedJudgments] = useState<Array<'ok' | 'inaccurate' | 'miss'>>([]);
+  const [selectedJudgments, setSelectedJudgments] = useState<Array<'ok' | 'inaccurate' | 'miss'>>([
+    'ok',
+    'inaccurate',
+    'miss',
+  ]);
 
   const selectionId = selectedTrackId === null
     ? null
@@ -104,22 +109,25 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
         ]}
       >
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <h3>Judgments</h3>
-            <ToggleGroup
-              type="multiple"
-              variant="outline"
-              size="sm"
-              spacing={0}
-              value={selectedJudgments}
-              onValueChange={(values) => setSelectedJudgments(values as typeof selectedJudgments)}
-            >
-              {(['ok', 'inaccurate', 'miss'] as const).map((status) => (
-                <ToggleGroupItem key={status} value={status}>
-                  {status.toUpperCase()}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
+          <div className="flex flex-row items-center gap-6">
+            {(['ok', 'inaccurate', 'miss'] as const).map((status) => (
+              <div key={status} className="inline-flex items-center gap-2">
+                <Checkbox
+                  id={`review-status-${status}`}
+                  checked={selectedJudgments.includes(status)}
+                  onCheckedChange={(checked) => {
+                    setSelectedJudgments((prev) => (
+                      checked
+                        ? [...prev, status]
+                        : prev.filter((value) => value !== status)
+                    ));
+                  }}
+                />
+                <Label htmlFor={`review-status-${status}`}>
+                  {status === 'ok' ? 'OK' : status === 'inaccurate' ? 'Inaccurate' : 'Miss'}
+                </Label>
+              </div>
+            ))}
           </div>
 
           <div className="flex flex-col gap-2">
