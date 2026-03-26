@@ -3,12 +3,14 @@ import { Rnd } from 'react-rnd';
 
 import Panel from '@/components/ui/Panel';
 import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import useEngineStore from '@/store/useEngineStore';
 import useLibraryStore from '@/store/useLibraryStore';
 import useSessionStore from '@/store/useSessionStore';
-import { X } from 'lucide-react';
+import { ChevronDown, Filter, X } from 'lucide-react';
 
 type ReviewRow = {
   referenceIndex: number;
@@ -34,6 +36,14 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
     'inaccurate',
     'miss',
   ]);
+  const [selectedCriteria, setSelectedCriteria] = useState<Record<'attack' | 'pitch' | 'release' | 'velocity' | 'muting' | 'articulation', 'any' | 'ok' | 'inaccurate' | 'miss' | 'bad'>>({
+    attack: 'any',
+    pitch: 'any',
+    release: 'any',
+    velocity: 'any',
+    muting: 'any',
+    articulation: 'any',
+  });
 
   const selectionId = selectedTrackId === null
     ? null
@@ -108,29 +118,79 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
           ),
         ]}
       >
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-row items-center gap-6">
-            {(['ok', 'inaccurate', 'miss'] as const).map((status) => (
-              <div key={status} className="inline-flex items-center gap-2">
-                <Checkbox
-                  id={`review-status-${status}`}
-                  checked={selectedJudgments.includes(status)}
-                  onCheckedChange={(checked) => {
-                    setSelectedJudgments((prev) => (
-                      checked
-                        ? [...prev, status]
-                        : prev.filter((value) => value !== status)
-                    ));
-                  }}
-                />
-                <Label htmlFor={`review-status-${status}`}>
-                  {status === 'ok' ? 'OK' : status === 'inaccurate' ? 'Inaccurate' : 'Miss'}
-                </Label>
-              </div>
-            ))}
-          </div>
+        <div className="flex flex-col gap-6">
+          <Collapsible defaultOpen>
+            <section className="flex flex-col gap-3">
+              <CollapsibleTrigger asChild className="w-min">
+                <Button variant="secondary" className="flex flex-row items-center gap-2">
+                  <Filter size={16} />
+                  <h3>Judgment Criteria</h3>
+                  <ChevronDown className="ml-2 group-data-[state=open]:rotate-180" />
+                </Button>
+              </CollapsibleTrigger>
+              <section className="flex flex-row items-center gap-6">
+                {(['ok', 'inaccurate', 'miss'] as const).map((status) => (
+                  <div key={status} className="inline-flex items-center gap-2">
+                    <Checkbox
+                      id={`review-status-${status}`}
+                      checked={selectedJudgments.includes(status)}
+                      onCheckedChange={(checked) => {
+                        setSelectedJudgments((prev) => (
+                          checked
+                            ? [...prev, status]
+                            : prev.filter((value) => value !== status)
+                        ));
+                      }}
+                    />
+                    <Label htmlFor={`review-status-${status}`}>
+                      {status === 'ok' ? 'OK' : status === 'inaccurate' ? 'Inaccurate' : 'Miss'} notes
+                    </Label>
+                  </div>
+                ))}
+              </section>
+              <CollapsibleContent className="ml-4 grid gap-1">
+                {(['attack', 'pitch', 'release', 'velocity', 'muting', 'articulation'] as const).map((criterion) => (
+                  <div key={criterion} className="grid grid-cols-[120px_1fr] items-center gap-3">
+                    <span className="text-sm capitalize">{criterion}</span>
+                    <ToggleGroup
+                      type="single"
+                      variant="outline"
+                      size="sm"
+                      spacing={0}
+                      value={selectedCriteria[criterion]}
+                      onValueChange={(value) => {
+                        if (!value) return;
+                        setSelectedCriteria((prev) => ({ ...prev, [criterion]: value as typeof prev[typeof criterion] }));
+                      }}
+                      >
+                        {criterion === 'attack' ? (
+                          <>
+                            <ToggleGroupItem value="any" className="mr-1">Any</ToggleGroupItem>
+                            <ToggleGroupItem value="ok">OK</ToggleGroupItem>
+                            <ToggleGroupItem value="inaccurate">Inaccurate</ToggleGroupItem>
+                            <ToggleGroupItem value="miss">Miss</ToggleGroupItem>
+                          </>
+                        ) : criterion === 'pitch' ? (
+                          <>
+                            <ToggleGroupItem value="any" className="mr-1">Any</ToggleGroupItem>
+                            <ToggleGroupItem value="ok">OK</ToggleGroupItem>
+                            <ToggleGroupItem value="miss">Miss</ToggleGroupItem>
+                          </>
+                        ) : (
+                          <>
+                            <ToggleGroupItem value="any" className="mr-1">Any</ToggleGroupItem>
+                            <ToggleGroupItem value="ok">OK</ToggleGroupItem>
+                            <ToggleGroupItem value="bad">Bad</ToggleGroupItem>
+                          </>
+                        )}
+                      </ToggleGroup>
+                  </div>
+                ))}
+              </CollapsibleContent>
+            </section>
+          </Collapsible>
 
-          <div className="flex flex-col gap-2">
+          <section className="flex flex-col gap-2">
             <div className="flex flex-row items-end justify-between gap-3">
               <h3>Timeline</h3>
               <div className="text-xs text-muted-foreground">{reviewRows.length} notes</div>
@@ -159,7 +219,7 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
                 })}
               </div>
             </div>
-          </div>
+          </section>
         </div>
       </Panel>
     </Rnd>
