@@ -31,7 +31,7 @@ const Panel = ({
   return (
     <section className={cn('flex flex-col', className)}>
       {title && (
-        <div className={cn('flex items-center justify-between shrink-0 px-4 pt-4', headerClassName)}>
+        <div className={cn('flex items-center justify-between shrink-0 p-4', headerClassName)}>
           {isCollapsible ? (
             <Button
               variant="ghost"
@@ -52,7 +52,7 @@ const Panel = ({
 
       {!isCollapsed && (
         isScrollable ? (
-          <div className={cn('-mr-4 min-h-0 p-4', contentClassName)}>
+          <div className={cn('-mr-4 min-h-0 px-4 pb-4', contentClassName)}>
             <ScrollArea className="h-full">
               {children}
             </ScrollArea>
