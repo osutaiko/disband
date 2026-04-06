@@ -297,56 +297,60 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
               </div>
               </div>
             </div>
-
-            <ScrollArea className="h-[400px]">
+            
+            <div className="flex flex-col rounded-md overflow-hidden">
               <Table className="table-fixed">
-                <TableHeader className="uppercase tracking-widest">
+                <TableHeader className="uppercase tracking-widest bg-accent">
                   <TableRow>
-                    <TableHead>Timestamp</TableHead>
-                    <TableHead>State</TableHead>
+                    <TableHead className="sticky top-0">Timestamp</TableHead>
+                    <TableHead className="sticky top-0">State</TableHead>
                     {CRITERION_COLUMNS.map((column) => (
-                      <TableHead key={column.key} className="w-12 text-center">
+                      <TableHead key={column.key} className="sticky top-0 w-12 text-center">
                         {column.label}
                       </TableHead>
                     ))}
                   </TableRow>
                 </TableHeader>
-                <TableBody>
-                  {reviewRows.map((row) => (
-                    <TableRow key={row.referenceIndex} className="even:bg-muted/50">
-                      <TableCell>
-                        {formatMs(row.startMs)}-{formatMs(row.endMs)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="default"
-                          className={`h-5 px-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-white ${
-                            row.status === 'ok'
-                              ? 'bg-note-ok-bg'
-                              : row.status === 'inaccurate'
-                                ? 'bg-note-inacc-bg'
-                                : 'bg-note-miss-bg'
-                          }`}
-                        >
-                          {row.status === 'ok' ? 'OK' : row.status === 'inaccurate' ? 'Inaccurate' : 'Miss'}
-                        </Badge>
-                      </TableCell>
-                      {CRITERION_COLUMNS.map((column) => (
-                        <TableCell key={column.key} className="w-12 text-center">
-                          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-background ring-1 ring-inset ring-black/5">
-                            {renderCriterionStatus(
-                              column.key,
-                              row.status,
-                              row.criteria[column.key].pass,
-                            )}
-                          </span>
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableBody>
               </Table>
-            </ScrollArea>
+              <ScrollArea className="h-[400px]">
+                <Table className="table-fixed">
+                  <TableBody>
+                    {reviewRows.map((row) => (
+                      <TableRow key={row.referenceIndex} className="even:bg-muted/50">
+                        <TableCell className="py-0.5">
+                          {formatMs(row.startMs)}-{formatMs(row.endMs)}
+                        </TableCell>
+                        <TableCell className="py-0.5">
+                          <Badge
+                            variant="default"
+                            className={
+                              row.status === 'ok'
+                                ? 'bg-note-ok-bg'
+                                : row.status === 'inaccurate'
+                                  ? 'bg-note-inacc-bg'
+                                  : 'bg-note-miss-bg'
+                            }
+                          >
+                            {row.status === 'ok' ? 'OK' : row.status === 'inaccurate' ? 'Inaccurate' : 'Miss'}
+                          </Badge>
+                        </TableCell>
+                        {CRITERION_COLUMNS.map((column) => (
+                          <TableCell key={column.key} className="w-12 text-center py-0.5">
+                            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-background ring-1 ring-inset ring-black/5">
+                              {renderCriterionStatus(
+                                column.key,
+                                row.status,
+                                row.criteria[column.key].pass,
+                              )}
+                            </span>
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
+            </div>
           </section>
         </div>
       </Panel>
