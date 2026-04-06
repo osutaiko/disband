@@ -34,7 +34,7 @@ function Shell() {
   const [isSessionReviewOpen, setIsSessionReviewOpen] = useState(false);
 
   return (
-    <div className="flex h-screen w-full overflow-hidden select-none">
+    <div className="relative flex h-screen w-full overflow-hidden select-none">
       <PlaybackHotkeys />
 
       {/* Left Panel Group (1-dimensional Song/Track Navigation) */}
