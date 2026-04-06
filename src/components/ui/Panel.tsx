@@ -13,6 +13,7 @@ const Panel = ({
   isScrollable = false,
   className,
   contentClassName,
+  headerClassName,
   children,
 }: {
   title?: string;
@@ -22,14 +23,15 @@ const Panel = ({
   isScrollable?: boolean;
   className?: string;
   contentClassName?: string;
+  headerClassName?: string;
   children: React.ReactNode;
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
   return (
-    <section className={cn('flex flex-col p-4 gap-4', className)}>
+    <section className={cn('flex flex-col', className)}>
       {title && (
-        <div className="flex items-center justify-between shrink-0">
+        <div className={cn('flex items-center justify-between shrink-0 px-4 pt-4', headerClassName)}>
           {isCollapsible ? (
             <Button
               variant="ghost"
@@ -50,13 +52,13 @@ const Panel = ({
 
       {!isCollapsed && (
         isScrollable ? (
-          <div className={cn('-mr-4 min-h-0', contentClassName)}>
+          <div className={cn('-mr-4 min-h-0 p-4', contentClassName)}>
             <ScrollArea className="h-full">
               {children}
             </ScrollArea>
           </div>
         ) : (
-          <div className={contentClassName}>
+          <div className={cn('p-4', contentClassName)}>
             {children}
           </div>
         )

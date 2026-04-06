@@ -197,7 +197,8 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
     >
       <Panel
         title="Review"
-        className="review-window-handle h-full w-full overflow-hidden rounded-xl border bg-background shadow-xl"
+        className="h-full w-full overflow-hidden rounded-xl border bg-background shadow-xl"
+        headerClassName="review-window-handle"
         contentClassName="flex-1 min-h-0 overflow-hidden"
         isScrollable
         buttonGroup={[
