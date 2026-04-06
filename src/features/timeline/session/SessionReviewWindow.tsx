@@ -1,20 +1,32 @@
 import { useMemo, useState } from 'react';
 import { Rnd } from 'react-rnd';
 
-import Panel from '@/components/ui/Panel';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import { getBadgeStatusClass, getCriterionStatus, type CriterionName } from '@/lib/sessionCriteria';
-import { handleSeekToMs } from '@/features/engine/playback';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import useEngineStore from '@/store/useEngineStore';
 import useLibraryStore from '@/store/useLibraryStore';
 import useSessionStore from '@/store/useSessionStore';
+
+import Panel from '@/components/ui/Panel';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger
+} from '@/components/ui/collapsible';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { handleSeekToMs } from '@/features/engine/playback';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@/components/ui/table';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { ChevronDown, Filter, X } from 'lucide-react';
 
 type ReviewRow = {
@@ -255,7 +267,9 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
           <section className="flex flex-col gap-2">
             <div className="flex flex-row items-end justify-between gap-3">
               <h3>Timeline</h3>
-              <div className="text-xs text-muted-foreground">{reviewRows.length} notes</div>
+              <div className="text-xs text-muted-foreground">
+                {reviewRows.length} / {sessionAnalysis?.referenceJudgments.length ?? '-'} notes
+              </div>
             </div>
 
             <div className="border py-2 rounded-md">
