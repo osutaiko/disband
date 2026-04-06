@@ -20,6 +20,7 @@ import Panel from '@/components/ui/Panel';
 import { Button } from '@/components/ui/button';
 import { Toggle } from '@/components/ui/toggle';
 import { Input } from '@/components/ui/input';
+import { parseMs } from '@/lib/utils';
 
 function PlaybackControlPanel() {
   const { selectedTrackId } = useLibraryStore();
@@ -27,12 +28,6 @@ function PlaybackControlPanel() {
     api, isPlaying, currentMs, endMs, currentBar, endBar, metronomeEnabled, setMetronomeEnabled, countInEnabled, setCountInEnabled, playbackSpeed,
   } = useEngineStore();
   const [draftSpeedPercent, setDraftSpeedPercent] = useState<string>(String(Math.round(playbackSpeed * 100)));
-
-  const parseMs = (ms: number) => ({
-    minutes: Math.floor(ms / 60000),
-    seconds: Math.floor((ms % 60000) / 1000),
-    milliseconds: Math.floor(ms % 1000),
-  });
 
   const current = parseMs(currentMs);
   const end = parseMs(endMs);

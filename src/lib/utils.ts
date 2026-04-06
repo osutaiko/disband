@@ -11,6 +11,14 @@ export function getCssColor(name: string, fallback: string) {
   return value || fallback;
 }
 
+export function parseMs(ms: number) {
+  return {
+    minutes: Math.floor(ms / 60000),
+    seconds: Math.floor((ms % 60000) / 1000),
+    milliseconds: Math.floor(ms % 1000),
+  };
+}
+
 export function midiToNoteName(midi: number | null | undefined) {
   if (midi == null || !Number.isFinite(midi) || midi < 0) return '-';
   const names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Rnd } from 'react-rnd';
 
 import { getBadgeStatusClass, getCriterionStatus, type CriterionName } from '@/lib/sessionCriteria';
+import { parseMs } from '@/lib/utils';
 import useEngineStore from '@/store/useEngineStore';
 import useLibraryStore from '@/store/useLibraryStore';
 import useSessionStore from '@/store/useSessionStore';
@@ -17,6 +18,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { handleSeekToMs } from '@/features/engine/playback';
+import useAudioAnalysisMarkers from '@/features/timeline/useAudioAnalysisMarkers';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Table,
@@ -31,6 +33,8 @@ import { ChevronDown, Filter, X } from 'lucide-react';
 
 type ReviewRow = {
   referenceIndex: number;
+  referenceMs: number | null;
+  referenceEndMs: number | null;
   status: 'ok' | 'inaccurate' | 'miss';
   startMs: number | null;
   endMs: number | null;
@@ -53,10 +57,15 @@ const CRITERION_COLUMNS = [
   { key: 'velocity', label: 'vel' },
 ] as const;
 
+const STATE_COLUMN_CLASS = 'sticky top-0 w-24 min-w-24 max-w-24 px-0 text-center';
+const CRITERION_COLUMN_CLASS = 'sticky top-0 w-9 min-w-9 max-w-9 px-0 text-center text-muted-foreground';
+const CRITERION_CELL_CLASS = 'w-9 min-w-9 max-w-9 px-0 text-center py-0.5';
+
 function SessionReviewWindow({ onClose }: { onClose: () => void }) {
   const { selectedSong, selectedTrackId } = useLibraryStore();
   const { api, endMs, currentMs } = useEngineStore();
   const { sessionAnalysisBySelection } = useSessionStore();
+  const { noteMarkers } = useAudioAnalysisMarkers(api, selectedTrackId);
   const [selectedJudgments, setSelectedJudgments] = useState<Array<'ok' | 'inaccurate' | 'miss'>>([
     'ok',
     'inaccurate',
@@ -109,11 +118,14 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
 
     return sessionAnalysis.referenceJudgments
       .map((judgment) => {
+        const referenceNote = noteMarkers[judgment.referenceIndex] ?? null;
         const playedNote = judgment.playedIndex !== null
           ? sessionAnalysis.playedNotes[judgment.playedIndex] ?? null
           : null;
         return {
           referenceIndex: judgment.referenceIndex,
+          referenceMs: referenceNote?.timestamp ?? null,
+          referenceEndMs: referenceNote === null ? null : referenceNote.timestamp + referenceNote.length,
           status: (judgment.kind ?? 'ok') as ReviewRow['status'],
           startMs: playedNote?.startMs ?? null,
           endMs: playedNote?.endMs ?? null,
@@ -123,7 +135,7 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
       .filter((row) => selectedJudgments.includes(row.status as ReviewRow['status']))
       .filter((row) => (['attack', 'pitch', 'release', 'velocity', 'muting', 'articulation'] as const)
         .every((criterion) => matchesCriterion(criterion, row)));
-  }, [selectedCriteria, selectedJudgments, sessionAnalysis]);
+  }, [noteMarkers, selectedCriteria, selectedJudgments, sessionAnalysis]);
 
   const reviewTimelineMarkers = useMemo(() => reviewRows
     .filter((row) => row.startMs !== null)
@@ -143,7 +155,11 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
 
   const songLengthMs = endMs;
 
-  const formatMs = (ms: number | null) => (ms === null ? '' : `${Math.round(ms)}`);
+  const formatMs = (ms: number | null) => {
+    if (ms === null) return '-';
+    const parsed = parseMs(ms);
+    return `${parsed.minutes}:${parsed.seconds.toString().padStart(2, '0')}.${parsed.milliseconds.toString().padStart(3, '0')}`;
+  };
 
   const renderCriterionStatus = (
     criterion: CriterionName,
@@ -160,10 +176,10 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
       default={{
         x: window.innerWidth - 720,
         y: 80,
-        width: 640,
+        width: 700,
         height: 520,
       }}
-      minWidth={520}
+      minWidth={700}
       minHeight={380}
       bounds="window"
       dragHandleClassName="review-window-handle"
@@ -317,10 +333,11 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
               <Table className="table-fixed">
                 <TableHeader className="uppercase tracking-widest bg-accent">
                   <TableRow>
-                    <TableHead className="sticky top-0">Timestamp</TableHead>
-                    <TableHead className="sticky top-0">State</TableHead>
+                    <TableHead className="sticky top-0">Reference</TableHead>
+                    <TableHead className="sticky top-0">Recorded</TableHead>
+                    <TableHead className={STATE_COLUMN_CLASS}>State</TableHead>
                     {CRITERION_COLUMNS.map((column) => (
-                      <TableHead key={column.key} className="sticky top-0 w-12 text-center">
+                      <TableHead key={column.key} className={CRITERION_COLUMN_CLASS}>
                         {column.label}
                       </TableHead>
                     ))}
@@ -332,18 +349,34 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
                 <Table className="table-fixed">
                   <TableBody>
                     {reviewRows.map((row) => (
-                      <TableRow
-                        key={row.referenceIndex}
-                        onClick={() => {
-                          if (row.startMs === null) return;
-                          handleSeekToMs(api, row.startMs);
-                        }}
-                        className="even:bg-muted/50 cursor-pointer"
-                      >
+                      <TableRow key={row.referenceIndex} className="even:bg-muted/50">
                         <TableCell className="py-0.5">
-                          {formatMs(row.startMs)}-{formatMs(row.endMs)}
+                          <Button
+                            variant="ghost"
+                            className="h-full justify-start px-2 py-0.5 font-mono"
+                            title={row.referenceMs === null ? '' : `${row.referenceMs} - ${row.referenceEndMs ?? row.referenceMs}`}
+                            onClick={() => {
+                              if (row.referenceMs === null) return;
+                              handleSeekToMs(api, row.referenceMs);
+                            }}
+                          >
+                            {formatMs(row.referenceMs)} - {formatMs(row.referenceEndMs)}
+                          </Button>
                         </TableCell>
                         <TableCell className="py-0.5">
+                          <Button
+                            variant="ghost"
+                            className="h-full justify-start px-2 py-0.5 font-mono"
+                            title={row.startMs === null ? '' : `${row.startMs} - ${row.endMs ?? row.startMs}`}
+                            onClick={() => {
+                              if (row.startMs === null) return;
+                              handleSeekToMs(api, row.startMs);
+                            }}
+                          >
+                            {formatMs(row.startMs)} - {formatMs(row.endMs)}
+                          </Button>
+                        </TableCell>
+                        <TableCell className={`${STATE_COLUMN_CLASS} py-0.5`}>
                           <Badge
                             variant="default"
                             className={
@@ -358,8 +391,8 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
                           </Badge>
                         </TableCell>
                         {CRITERION_COLUMNS.map((column) => (
-                          <TableCell key={column.key} className="w-12 text-center py-0.5">
-                            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-background ring-1 ring-inset ring-black/5">
+                          <TableCell key={column.key} className={CRITERION_CELL_CLASS}>
+                            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-background ring-1 ring-inset ring-black/5">
                               {renderCriterionStatus(
                                 column.key,
                                 row.status,
