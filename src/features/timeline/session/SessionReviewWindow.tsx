@@ -193,7 +193,7 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
         bottomLeft: true,
         topLeft: false,
       }}
-      style={{ zIndex: 100 }}
+      style={{ zIndex: 1000 }}
     >
       <Panel
         title="Review"
