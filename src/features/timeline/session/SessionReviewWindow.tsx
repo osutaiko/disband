@@ -169,7 +169,7 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
       <Panel
         title="Review"
         className="review-window-handle h-full w-full overflow-hidden rounded-xl border bg-background shadow-xl"
-        contentClassName="w-full px-2"
+        contentClassName="flex-1 min-h-0 overflow-hidden"
         isScrollable
         buttonGroup={[
           (
@@ -179,7 +179,7 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
           ),
         ]}
       >
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 pr-4">
           <Collapsible defaultOpen>
             <section className="flex flex-col gap-3">
               <CollapsibleTrigger asChild className="w-min">
