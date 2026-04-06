@@ -1,4 +1,5 @@
 import type { ReferenceJudgment } from '../../../shared/types';
+import { getNoteStatusClass } from '@/lib/sessionCriteria';
 import { midiToNoteName } from '@/lib/utils';
 import {
   Tooltip,
@@ -32,13 +33,7 @@ function NoteMarker({
 }) {
   const left = timestamp * pxPerMs + offsetBase;
   const width = Math.max(length * pxPerMs, 4);
-  const statusClass = status === 'ok'
-    ? 'border-note-ok bg-note-ok-bg'
-    : status === 'inaccurate'
-      ? 'border-note-inacc bg-note-inacc-bg'
-      : status === 'miss'
-        ? 'border-note-miss bg-note-miss-bg'
-        : 'border-note-unj bg-note-unj-bg';
+  const statusClass = getNoteStatusClass(status);
 
   function formatErrorValue(value: number | null | undefined) {
     if (value == null || !Number.isFinite(value)) return '-';

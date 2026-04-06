@@ -3,9 +3,13 @@ import { Rnd } from 'react-rnd';
 
 import Panel from '@/components/ui/Panel';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { getBadgeStatusClass, getCriterionStatus, type CriterionName } from '@/lib/sessionCriteria';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import useEngineStore from '@/store/useEngineStore';
 import useLibraryStore from '@/store/useLibraryStore';
@@ -26,6 +30,15 @@ type ReviewRow = {
     articulation: { error: number | null; pass: boolean | null };
   };
 };
+
+const CRITERION_COLUMNS = [
+  { key: 'attack', label: 'att' },
+  { key: 'pitch', label: 'pit' },
+  { key: 'release', label: 'rel' },
+  { key: 'muting', label: 'mut' },
+  { key: 'articulation', label: 'art' },
+  { key: 'velocity', label: 'vel' },
+] as const;
 
 function SessionReviewWindow({ onClose }: { onClose: () => void }) {
   const { selectedSong, selectedTrackId } = useLibraryStore();
@@ -116,6 +129,18 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
   }, [sessionAnalysis]);
 
   const songLengthMs = endMs;
+
+  const formatMs = (ms: number | null) => (ms === null ? '' : `${Math.round(ms)}`);
+
+  const renderCriterionStatus = (
+    criterion: CriterionName,
+    rowStatus: ReviewRow['status'],
+    pass: boolean | null,
+  ) => {
+    const status = getCriterionStatus({ criterion, rowStatus, pass });
+    const badgeClassName = 'inline-block h-3 w-3 rounded-full shrink-0';
+    return <span className={`${badgeClassName} ${getBadgeStatusClass(status)}`} />;
+  };
 
   return (
     <Rnd
@@ -272,6 +297,56 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
               </div>
               </div>
             </div>
+
+            <ScrollArea className="h-[400px]">
+              <Table className="table-fixed">
+                <TableHeader className="uppercase tracking-widest">
+                  <TableRow>
+                    <TableHead>Timestamp</TableHead>
+                    <TableHead>State</TableHead>
+                    {CRITERION_COLUMNS.map((column) => (
+                      <TableHead key={column.key} className="w-12 text-center">
+                        {column.label}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {reviewRows.map((row) => (
+                    <TableRow key={row.referenceIndex} className="even:bg-muted/50">
+                      <TableCell>
+                        {formatMs(row.startMs)}-{formatMs(row.endMs)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="default"
+                          className={`h-5 px-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-white ${
+                            row.status === 'ok'
+                              ? 'bg-note-ok-bg'
+                              : row.status === 'inaccurate'
+                                ? 'bg-note-inacc-bg'
+                                : 'bg-note-miss-bg'
+                          }`}
+                        >
+                          {row.status === 'ok' ? 'OK' : row.status === 'inaccurate' ? 'Inaccurate' : 'Miss'}
+                        </Badge>
+                      </TableCell>
+                      {CRITERION_COLUMNS.map((column) => (
+                        <TableCell key={column.key} className="w-12 text-center">
+                          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-background ring-1 ring-inset ring-black/5">
+                            {renderCriterionStatus(
+                              column.key,
+                              row.status,
+                              row.criteria[column.key].pass,
+                            )}
+                          </span>
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollArea>
           </section>
         </div>
       </Panel>
