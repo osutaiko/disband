@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -38,8 +38,11 @@ const Panel = ({
               className="p-2 text-left inline-flex items-center gap-3"
               onClick={() => setIsCollapsed((prev) => !prev)}
             >
-              {isCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
               <h2 className="underline">{title}</h2>
+              <ChevronDown
+                size={16}
+                className={`transition-transform duration-200 ${isCollapsed ? '' : 'rotate-180'}`}
+              />
             </Button>
           ) : (
             <h2 className="underline p-2">{title}</h2>

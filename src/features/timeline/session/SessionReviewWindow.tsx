@@ -210,13 +210,13 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
         ]}
       >
         <div className="flex flex-col gap-6 pr-4">
-          <Collapsible defaultOpen>
+          <Collapsible>
             <section className="flex flex-col gap-3">
               <CollapsibleTrigger asChild className="w-min">
                 <Button variant="secondary" className="group flex flex-row items-center gap-2">
                   <Filter size={16} />
                   <h3>Judgment Criteria</h3>
-                  <ChevronDown className="ml-2 group-data-[state=open]:rotate-180" />
+                  <ChevronDown className="ml-2 group-data-[state=open]:rotate-180 transition-transform duration-200" />
                 </Button>
               </CollapsibleTrigger>
               <section className="flex flex-row items-center gap-6">
