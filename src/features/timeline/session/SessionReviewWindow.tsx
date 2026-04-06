@@ -42,7 +42,7 @@ const CRITERION_COLUMNS = [
 
 function SessionReviewWindow({ onClose }: { onClose: () => void }) {
   const { selectedSong, selectedTrackId } = useLibraryStore();
-  const { endMs, currentMs } = useEngineStore();
+  const { endMs, currentMs, setCurrentMs } = useEngineStore();
   const { sessionAnalysisBySelection } = useSessionStore();
   const [selectedJudgments, setSelectedJudgments] = useState<Array<'ok' | 'inaccurate' | 'miss'>>([
     'ok',
@@ -313,10 +313,18 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
                 </TableHeader>
               </Table>
               <ScrollArea className="h-[400px]">
+                {reviewRows.length === 0 && <p className="p-2">Nothing to show here.</p>}
                 <Table className="table-fixed">
                   <TableBody>
                     {reviewRows.map((row) => (
-                      <TableRow key={row.referenceIndex} className="even:bg-muted/50">
+                      <TableRow
+                        key={row.referenceIndex}
+                        onClick={() => {
+                          if (row.startMs === null) return;
+                          setCurrentMs(row.startMs);
+                        }}
+                        className="even:bg-muted/50"
+                      >
                         <TableCell className="py-0.5">
                           {formatMs(row.startMs)}-{formatMs(row.endMs)}
                         </TableCell>
