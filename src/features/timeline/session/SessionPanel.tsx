@@ -155,6 +155,126 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
 
   const formatBreakdownPercent = (count: number) => `${(totalJudgedCount > 0 ? (count / totalJudgedCount) * 100 : 0).toFixed(1)}%`;
 
+  const statusCards = [
+    { key: 'ok', count: okCount, className: 'stroke-note-ok fill-note-ok' },
+    { key: 'inaccurate', count: inaccurateCount, className: 'stroke-note-inacc fill-note-inacc' },
+    { key: 'miss', count: missCount, className: 'stroke-note-miss fill-note-miss' },
+  ] as const;
+
+  const summaryRows = [
+    {
+      key: 'recording-length',
+      name: 'Recording Length',
+      description: 'Total recording duration',
+      content: formatDurationMs(recordingLengthMs),
+    },
+    {
+      key: 'accuracy',
+      name: 'Accuracy',
+      description: 'OK notes / total reference notes',
+      content: `${accuracyPercent.toFixed(1)}%`,
+    },
+    {
+      key: 'timing-bias',
+      name: 'Timing Bias',
+      description: 'Overall rushing/dragging tendency',
+      content: `${Math.abs(rhythmBiasMs).toFixed(2)} ms ${rhythmBiasMs > 0 ? 'dragging' : 'rushing'}`,
+    },
+    {
+      key: 'rhythm-instability',
+      name: 'Rhythm Instability (std. dev)',
+      description: 'Standard deviation of note attack error',
+      content: `${rhythmStdDevMs.toFixed(1)} ms`,
+    },
+  ] as const;
+
+  const breakdownTabs = [
+    {
+      value: 'primary',
+      title: 'Critical',
+      titleHint: 'Critical Errors: instant [Miss]',
+      items: [
+        {
+          value: 'attack-miss',
+          name: 'Bad Attack',
+          description: 'Attack outside the acceptable window',
+          count: breakdownStats.attackMiss.count,
+          percent: formatBreakdownPercent(breakdownStats.attackMiss.count),
+          average: formatMsValue(breakdownStats.attackMiss.average),
+          worst: formatMsValue(breakdownStats.attackMiss.worst),
+        },
+        {
+          value: 'pitch-miss',
+          name: 'Wrong Pitch',
+          description: 'Note played with the wrong pitch',
+          count: breakdownStats.pitchMiss.count,
+          percent: formatBreakdownPercent(breakdownStats.pitchMiss.count),
+          average: formatMsValue(breakdownStats.pitchMiss.average),
+          worst: formatMsValue(breakdownStats.pitchMiss.worst),
+        },
+      ],
+    },
+    {
+      value: 'secondary',
+      title: 'Secondary',
+      titleHint: 'Secondary Errors: may cause [Inaccurate]',
+      items: [
+        {
+          value: 'inaccurate-attack',
+          name: 'Inaccurate Attack',
+          description: 'Note attack timing that is off but still within a reasonable window',
+          count: breakdownStats.attackInaccurate.count,
+          percent: formatBreakdownPercent(breakdownStats.attackInaccurate.count),
+          average: formatMsValue(breakdownStats.attackInaccurate.average),
+          worst: formatMsValue(breakdownStats.attackInaccurate.worst),
+        },
+        {
+          value: 'release-fail',
+          name: 'Bad Release',
+          description: 'Inaccurate note release timing',
+          count: breakdownStats.release.count,
+          percent: formatBreakdownPercent(breakdownStats.release.count),
+          average: formatMsValue(breakdownStats.release.average),
+          worst: formatMsValue(breakdownStats.release.worst),
+        },
+        {
+          value: 'muting-fail',
+          name: 'Bad Muting',
+          description: 'Failure to mute properly with audible unintentionally ringing notes',
+          count: breakdownStats.muting.count,
+          percent: formatBreakdownPercent(breakdownStats.muting.count),
+          average: formatMsValue(breakdownStats.muting.average),
+          worst: formatMsValue(breakdownStats.muting.worst),
+        },
+        {
+          value: 'articulation-fail',
+          name: 'Bad Articulation',
+          description: 'Outlier waveform compared to the rest of the song',
+          count: breakdownStats.articulation.count,
+          percent: formatBreakdownPercent(breakdownStats.articulation.count),
+          average: formatMsValue(breakdownStats.articulation.average),
+          worst: formatMsValue(breakdownStats.articulation.worst),
+        },
+      ],
+    },
+    {
+      value: 'tertiary',
+      title: 'Minor',
+      titleHint: 'Tertiary Errors: potential improvements',
+      items: [
+        {
+          value: 'velocity-fail',
+          name: 'Inconsistent Velocity',
+          description: 'Outlier velocity (either too loud or too quiet) compared to the rest of the song',
+          count: breakdownStats.velocity.count,
+          percent: formatBreakdownPercent(breakdownStats.velocity.count),
+          average: formatMsValue(breakdownStats.velocity.average),
+          worst: formatMsValue(breakdownStats.velocity.worst),
+        },
+      ],
+    },
+  ] as const;
+
   return (
     <Panel
       title="This Session"
@@ -184,41 +304,23 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
           ) : (
             <>
               <div className="grid grid-cols-3 gap-2 select-none">
-                <Card className="flex flex-row gap-2 px-4 py-2 justify-between items-center">
-                  <Diamond size={14} className="stroke-note-ok fill-note-ok" />
-                  <span>{okCount}×</span>
-                </Card>
-                <Card className="flex flex-row gap-2 px-4 py-2 justify-between items-center">
-                  <Diamond size={14} className="stroke-note-inacc fill-note-inacc" />
-                  <span>{inaccurateCount}×</span>
-                </Card>
-                <Card className="flex flex-row gap-2 px-4 py-2 justify-between items-center">
-                  <Diamond size={14} className="stroke-note-miss fill-note-miss" />
-                  <span>{missCount}×</span>
-                </Card>
+                {statusCards.map((card) => (
+                  <Card key={card.key} className="flex flex-row gap-2 px-4 py-2 justify-between items-center">
+                    <Diamond size={14} className={card.className} />
+                    <span>{card.count}×</span>
+                  </Card>
+                ))}
               </div>
 
               <div className="w-full flex flex-col px-2 gap-2">
-                <DataCountRow
-                  name="Recording Length"
-                  description="Total recording duration"
-                  content={formatDurationMs(recordingLengthMs)}
-                />
-                <DataCountRow
-                  name="Accuracy"
-                  description="OK notes / total reference notes"
-                  content={`${accuracyPercent.toFixed(1)}%`}
-                />
-                <DataCountRow
-                  name="Timing Bias"
-                  description="Overall rushing/dragging tendency"
-                  content={`${Math.abs(rhythmBiasMs).toFixed(2)} ms ${rhythmBiasMs > 0 ? 'dragging' : 'rushing'}`}
-                />
-                <DataCountRow
-                  name="Rhythm Instability (std. dev)"
-                  description="Standard deviation of note attack error"
-                  content={`${rhythmStdDevMs.toFixed(1)} ms`}
-                />
+                {summaryRows.map((row) => (
+                  <DataCountRow
+                    key={row.key}
+                    name={row.name}
+                    description={row.description}
+                    content={row.content}
+                  />
+                ))}
               </div>
 
               <Card>
@@ -228,183 +330,34 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
                 <CardContent className="px-4 pb-4">
                   <Tabs defaultValue="primary" className="w-full">
                     <TabsList variant="line" className="w-full">
-                      <TabsTrigger value="primary" title="Critical Errors: instant [Miss]">Critical</TabsTrigger>
-                      <TabsTrigger value="secondary" title="Secondary Errors: may cause [Inaccurate]">Secondary</TabsTrigger>
-                      <TabsTrigger value="tertiary" title="Tertiary Errors: potential improvements">Minor</TabsTrigger>
+                      {breakdownTabs.map((tab) => (
+                        <TabsTrigger key={tab.value} value={tab.value} title={tab.titleHint}>
+                          {tab.title}
+                        </TabsTrigger>
+                      ))}
                     </TabsList>
-                    <TabsContent value="primary">
-                      <Accordion type="multiple" className="w-full">
-                        <AccordionItem value="attack-miss">
-                          <AccordionTrigger>
-                            <DataCountRow
-                              name="Bad Attack"
-                              description="Attack outside the acceptable window"
-                              content={`${breakdownStats.attackMiss.count}×`}
-                            />
-                          </AccordionTrigger>
-                          <AccordionContent className="space-y-1 pb-2">
-                            <DataCountRow
-                              name="Percent"
-                              content={formatBreakdownPercent(breakdownStats.attackMiss.count)}
-                            />
-                            <DataCountRow
-                              name="Average error"
-                              content={formatMsValue(breakdownStats.attackMiss.average)}
-                            />
-                            <DataCountRow
-                              name="Worst error"
-                              content={formatMsValue(breakdownStats.attackMiss.worst)}
-                            />
-                          </AccordionContent>
-                        </AccordionItem>
-                        <AccordionItem value="pitch-miss">
-                          <AccordionTrigger>
-                            <DataCountRow
-                              name="Wrong Pitch"
-                              description="Note played with the wrong pitch"
-                              content={`${breakdownStats.pitchMiss.count}×`}
-                            />
-                          </AccordionTrigger>
-                          <AccordionContent className="space-y-1 pb-2">
-                            <DataCountRow
-                              name="Percent"
-                              content={formatBreakdownPercent(breakdownStats.pitchMiss.count)}
-                            />
-                            <DataCountRow
-                              name="Average error"
-                              content={formatMsValue(breakdownStats.pitchMiss.average)}
-                            />
-                            <DataCountRow
-                              name="Worst error"
-                              content={formatMsValue(breakdownStats.pitchMiss.worst)}
-                            />
-                          </AccordionContent>
-                        </AccordionItem>
-                      </Accordion>
-                    </TabsContent>
-                    <TabsContent value="secondary">
-                      <Accordion type="multiple" className="w-full">
-                        <AccordionItem value="inaccurate-attack">
-                          <AccordionTrigger>
-                            <DataCountRow
-                              name="Inaccurate Attack"
-                              description="Note attack timing that is off but still within a reasonable window"
-                              content={`${breakdownStats.attackInaccurate.count}×`}
-                            />
-                          </AccordionTrigger>
-                          <AccordionContent className="space-y-1 pb-2">
-                            <DataCountRow
-                              name="Percent"
-                              content={formatBreakdownPercent(breakdownStats.attackInaccurate.count)}
-                            />
-                            <DataCountRow
-                              name="Average error"
-                              content={formatMsValue(breakdownStats.attackInaccurate.average)}
-                            />
-                            <DataCountRow
-                              name="Worst error"
-                              content={formatMsValue(breakdownStats.attackInaccurate.worst)}
-                            />
-                          </AccordionContent>
-                        </AccordionItem>
-                        <AccordionItem value="release-fail">
-                          <AccordionTrigger>
-                            <DataCountRow
-                              name="Bad Release"
-                              description="Inaccurate note release timing"
-                              content={`${breakdownStats.release.count}×`}
-                            />
-                          </AccordionTrigger>
-                          <AccordionContent className="space-y-1 pb-2">
-                            <DataCountRow
-                              name="Percent"
-                              content={formatBreakdownPercent(breakdownStats.release.count)}
-                            />
-                            <DataCountRow
-                              name="Average error"
-                              content={formatMsValue(breakdownStats.release.average)}
-                            />
-                            <DataCountRow
-                              name="Worst error"
-                              content={formatMsValue(breakdownStats.release.worst)}
-                            />
-                          </AccordionContent>
-                        </AccordionItem>
-                        <AccordionItem value="muting-fail">
-                          <AccordionTrigger>
-                            <DataCountRow
-                              name="Bad Muting"
-                              description="Failure to mute properly with audible unintentionally ringing notes"
-                              content={`${breakdownStats.muting.count}×`}
-                            />
-                          </AccordionTrigger>
-                          <AccordionContent className="space-y-1 pb-2">
-                            <DataCountRow
-                              name="Percent"
-                              content={formatBreakdownPercent(breakdownStats.muting.count)}
-                            />
-                            <DataCountRow
-                              name="Average error"
-                              content={formatMsValue(breakdownStats.muting.average)}
-                            />
-                            <DataCountRow
-                              name="Worst error"
-                              content={formatMsValue(breakdownStats.muting.worst)}
-                            />
-                          </AccordionContent>
-                        </AccordionItem>
-                        <AccordionItem value="articulation-fail">
-                          <AccordionTrigger>
-                            <DataCountRow
-                              name="Bad Articulation"
-                              description="Outlier waveform compared to the rest of the song"
-                              content={`${breakdownStats.articulation.count}×`}
-                            />
-                          </AccordionTrigger>
-                          <AccordionContent className="space-y-1 pb-2">
-                            <DataCountRow
-                              name="Percent"
-                              content={formatBreakdownPercent(breakdownStats.articulation.count)}
-                            />
-                            <DataCountRow
-                              name="Average error"
-                              content={formatMsValue(breakdownStats.articulation.average)}
-                            />
-                            <DataCountRow
-                              name="Worst error"
-                              content={formatMsValue(breakdownStats.articulation.worst)}
-                            />
-                          </AccordionContent>
-                        </AccordionItem>
-                      </Accordion>
-                    </TabsContent>
-                    <TabsContent value="tertiary">
-                      <Accordion type="multiple" className="w-full">
-                        <AccordionItem value="velocity-fail">
-                          <AccordionTrigger>
-                            <DataCountRow
-                              name="Inconsistent Velocity"
-                              description="Outlier velocity (either too loud or too quiet) compared to the rest of the song"
-                              content={`${breakdownStats.velocity.count}×`}
-                            />
-                          </AccordionTrigger>
-                          <AccordionContent className="space-y-1 pb-2">
-                            <DataCountRow
-                              name="Percent"
-                              content={formatBreakdownPercent(breakdownStats.velocity.count)}
-                            />
-                            <DataCountRow
-                              name="Average error"
-                              content={formatMsValue(breakdownStats.velocity.average)}
-                            />
-                            <DataCountRow
-                              name="Worst error"
-                              content={formatMsValue(breakdownStats.velocity.worst)}
-                            />
-                          </AccordionContent>
-                        </AccordionItem>
-                      </Accordion>
-                    </TabsContent>
+                    {breakdownTabs.map((tab) => (
+                      <TabsContent key={tab.value} value={tab.value}>
+                        <Accordion type="multiple" className="w-full">
+                          {tab.items.map((item) => (
+                            <AccordionItem key={item.value} value={item.value}>
+                              <AccordionTrigger>
+                                <DataCountRow
+                                  name={item.name}
+                                  description={item.description}
+                                  content={`${item.count}×`}
+                                />
+                              </AccordionTrigger>
+                              <AccordionContent className="space-y-1 pb-2">
+                                <DataCountRow name="Percent" content={item.percent} />
+                                <DataCountRow name="Average error" content={item.average} />
+                                <DataCountRow name="Worst error" content={item.worst} />
+                              </AccordionContent>
+                            </AccordionItem>
+                          ))}
+                        </Accordion>
+                      </TabsContent>
+                    ))}
                   </Tabs>
                 </CardContent>
               </Card>
