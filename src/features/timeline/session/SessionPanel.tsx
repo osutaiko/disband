@@ -159,6 +159,7 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
     <Panel
       title="This Session"
       className="flex flex-col overflow-hidden pr-4"
+      headerClassName="pr-0"
       contentClassName="flex-1 overflow-hidden"
       isScrollable
       buttonGroup={[
@@ -177,7 +178,7 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
           " button to see analysis results.
         </p>
       ) : (
-        <div className="flex flex-col gap-4 pr-4 select-text">
+        <div className="flex flex-col gap-4 select-text">
           {isAnalysisRunning ? (
             <h2 className="text-base font-medium animate-pulse">Analysis in Progress...</h2>
           ) : (
