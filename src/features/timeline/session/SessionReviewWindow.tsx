@@ -156,7 +156,7 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
   const songLengthMs = endMs;
 
   const formatMs = (ms: number | null) => {
-    if (ms === null) return '-';
+    if (ms === null) return '';
     const parsed = parseMs(ms);
     return `${parsed.minutes}:${parsed.seconds.toString().padStart(2, '0')}.${parsed.milliseconds.toString().padStart(3, '0')}`;
   };
