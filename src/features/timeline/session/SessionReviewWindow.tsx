@@ -8,6 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { getBadgeStatusClass, getCriterionStatus, type CriterionName } from '@/lib/sessionCriteria';
+import { handleSeekToMs } from '@/features/engine/playback';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -42,7 +43,7 @@ const CRITERION_COLUMNS = [
 
 function SessionReviewWindow({ onClose }: { onClose: () => void }) {
   const { selectedSong, selectedTrackId } = useLibraryStore();
-  const { endMs, currentMs, setCurrentMs } = useEngineStore();
+  const { api, endMs, currentMs } = useEngineStore();
   const { sessionAnalysisBySelection } = useSessionStore();
   const [selectedJudgments, setSelectedJudgments] = useState<Array<'ok' | 'inaccurate' | 'miss'>>([
     'ok',
@@ -312,7 +313,7 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
                   </TableRow>
                 </TableHeader>
               </Table>
-              <ScrollArea className="h-[400px]">
+              <ScrollArea className="h-[250px]">
                 {reviewRows.length === 0 && <p className="p-2">Nothing to show here.</p>}
                 <Table className="table-fixed">
                   <TableBody>
@@ -321,9 +322,9 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
                         key={row.referenceIndex}
                         onClick={() => {
                           if (row.startMs === null) return;
-                          setCurrentMs(row.startMs);
+                          handleSeekToMs(api, row.startMs);
                         }}
-                        className="even:bg-muted/50"
+                        className="even:bg-muted/50 cursor-pointer"
                       >
                         <TableCell className="py-0.5">
                           {formatMs(row.startMs)}-{formatMs(row.endMs)}

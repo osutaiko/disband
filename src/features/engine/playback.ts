@@ -27,9 +27,7 @@ export const handleGotoStart = (api: AlphaTabApi | null) => {
   if (api.playerState === 1) {
     api.pause();
   }
-  api.timePosition = 0;
-  seekRecordedWaveform(0);
-  api.scrollToCursor();
+  handleSeekToMs(api, 0);
 };
 
 export const handleGotoEnd = (api: AlphaTabApi | null, endMs: number) => {
@@ -40,8 +38,17 @@ export const handleGotoEnd = (api: AlphaTabApi | null, endMs: number) => {
   }
 
   // TODO: jump to start of final bar instead
-  api.timePosition = Math.max(0, endMs - 1);
-  seekRecordedWaveform(Math.max(0, endMs - 1));
+  handleSeekToMs(api, Math.max(0, endMs - 1));
+};
+
+export const handleSeekToMs = (api: AlphaTabApi | null, currentMs: number) => {
+  const nextMs = Math.max(0, currentMs);
+  useEngineStore.getState().setCurrentMs(nextMs);
+
+  if (!api || !api.isReadyForPlayback) return;
+
+  api.timePosition = nextMs;
+  seekRecordedWaveform(nextMs);
   api.scrollToCursor();
 };
 
