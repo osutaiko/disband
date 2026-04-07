@@ -300,7 +300,7 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
       ) : (
         <div className="flex flex-col gap-4 select-text">
           {isAnalysisRunning ? (
-            <h2 className="text-base font-medium animate-pulse">Analysis in Progress...</h2>
+            <p className="px-2 animate-pulse">Analysis in Progress...</p>
           ) : (
             <>
               <div className="grid grid-cols-3 gap-2 select-none">

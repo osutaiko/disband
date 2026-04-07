@@ -101,6 +101,7 @@ function useSessionWaveSurfer({
     }
 
     let cancelled = false;
+    onAnalysisRunningChange?.(true);
 
     window.audio
       .readRecording(audioPath)
