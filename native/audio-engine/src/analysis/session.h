@@ -41,6 +41,7 @@ struct DetectionSettings
     double onsetCompensationMs = 10.0;   // subtract from onset timestamp to offset detector latency
     double silenceDb = -40.0;            // below treated as silence
     double minNoteMs = 50.0;             // shortest length of note to detect
+    double velocityAnalysisWindowMs = 20.0;
     int minMidi = 24; // C1              // min MIDI value to detect
     int maxMidi = 96; // C7              // max MIDI value to detect
     double minPitchConfidence = 0.15;    // min confidence from aubio pitch detection to trust
@@ -58,7 +59,7 @@ enum class NoteJudgmentKind
 // Evaluation of each note judging criterion
 struct CriterionJudgment
 {
-    std::optional<double> error;         // value of error (ms, mult, semitones, ...)
+    std::optional<double> error;         // value of error (ms, dB, semitones, ...)
     std::optional<bool> pass;
 };
 
@@ -100,9 +101,8 @@ struct JudgmentSettings
     double attackInaccurateWindowMs = 190.0;
     double releaseToleranceMs = 70.0;
     double pitchToleranceSemitones = 0.3;
-    double velocityAnalysisWindowMs = 20.0;
-    double velocityToleranceMultLower = 0.6;
-    double velocityToleranceMultUpper = 2.0;
+    double velocityToleranceDbLower = -4.4;
+    double velocityToleranceDbUpper = 6.0;
     double articulationToleranceMult = 0.5;
 };
 

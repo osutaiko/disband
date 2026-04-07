@@ -1,14 +1,17 @@
 // Judgment error calculation for note velocity.
-//
-// We get averageVelocity from session_scan.cpp.
 
 #include "errors.h"
 
+#include <algorithm>
+#include <cmath>
+
 namespace disband::session
 {
-double getVelocityMultiplier(const PlayedNote& playedNote, double averageVelocity)
+double getVelocityDbDifference(const PlayedNote& playedNote, double averageVelocity)
 {
-    if (averageVelocity <= 0.0) return 1.0;
-    return playedNote.velocity / averageVelocity;
+    if (averageVelocity <= 0.0) return 0.0;
+    const double ratio = playedNote.velocity / averageVelocity;
+    constexpr double kMinRatio = 1e-12;
+    return 20.0 * std::log10(std::max(ratio, kMinRatio));
 }
 } // namespace disband::session

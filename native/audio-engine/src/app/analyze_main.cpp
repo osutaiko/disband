@@ -103,6 +103,7 @@ private:
         noteDetectionObj->setProperty("onsetCompensationMs", detectionDefaults.onsetCompensationMs);
         noteDetectionObj->setProperty("silenceDb", detectionDefaults.silenceDb);
         noteDetectionObj->setProperty("minNoteMs", detectionDefaults.minNoteMs);
+        noteDetectionObj->setProperty("velocityAnalysisWindowMs", detectionDefaults.velocityAnalysisWindowMs);
         noteDetectionObj->setProperty("minPitchConfidence", detectionDefaults.minPitchConfidence);
         noteDetectionObj->setProperty("minMidi", detectionDefaults.minMidi);
         noteDetectionObj->setProperty("maxMidi", detectionDefaults.maxMidi);
@@ -114,9 +115,8 @@ private:
         judgmentObj->setProperty("attackInaccurateWindowMs", judgmentDefaults.attackInaccurateWindowMs);
         judgmentObj->setProperty("releaseToleranceMs", judgmentDefaults.releaseToleranceMs);
         judgmentObj->setProperty("pitchToleranceSemitones", judgmentDefaults.pitchToleranceSemitones);
-        judgmentObj->setProperty("velocityAnalysisWindowMs", judgmentDefaults.velocityAnalysisWindowMs);
-        judgmentObj->setProperty("velocityToleranceMultLower", judgmentDefaults.velocityToleranceMultLower);
-        judgmentObj->setProperty("velocityToleranceMultUpper", judgmentDefaults.velocityToleranceMultUpper);
+        judgmentObj->setProperty("velocityToleranceDbLower", judgmentDefaults.velocityToleranceDbLower);
+        judgmentObj->setProperty("velocityToleranceDbUpper", judgmentDefaults.velocityToleranceDbUpper);
         judgmentObj->setProperty("articulationToleranceMult", judgmentDefaults.articulationToleranceMult);
         rootObj->setProperty("judgment", juce::var(judgmentObj));
 

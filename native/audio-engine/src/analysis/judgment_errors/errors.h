@@ -8,5 +8,5 @@ namespace disband::session
 double getAttackErrorMs(const ReferenceNote& referenceNote, const PlayedNote& playedNote);
 double getReleaseErrorMs(const ReferenceNote& referenceNote, const PlayedNote& playedNote);
 double getPitchErrorSemitones(const ReferenceNote& referenceNote, const PlayedNote& playedNote);
-double getVelocityMultiplier(const PlayedNote& playedNote, double averageVelocity);
+double getVelocityDbDifference(const PlayedNote& playedNote, double averageVelocity);
 } // namespace disband::session

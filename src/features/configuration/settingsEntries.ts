@@ -123,6 +123,15 @@ export const noteDetectionEntries: SettingsRowConfig<NoteDetectionSettings>[] = 
   {
     type: 'field',
     config: {
+      key: 'velocityAnalysisWindowMs',
+      id: 'velocity-analysis-window-ms',
+      label: 'Velocity Analysis Window (ms)',
+      description: 'Window length from attack to measure note velocity',
+    },
+  },
+  {
+    type: 'field',
+    config: {
       key: 'minPitchConfidence',
       id: 'min-pitch-confidence',
       label: 'Min Pitch Confidence',
@@ -186,24 +195,15 @@ export const judgmentEntries: SettingsRowConfig<JudgmentSettings>[] = [
     },
   },
   {
-    type: 'field',
-    config: {
-      key: 'velocityAnalysisWindowMs',
-      id: 'velocity-analysis-window-ms',
-      label: 'Velocity Analysis Window (ms)',
-      description: 'Window length from attack to measure note velocity',
-    },
-  },
-  {
     type: 'range',
     config: {
-      id: 'velocity-tolerance-mult',
-      label: 'Velocity Tolerance',
-      description: 'Multiplier tolerance for note velocity',
-      minKey: 'velocityToleranceMultLower',
-      minId: 'velocity-tolerance-mult-lower',
-      maxKey: 'velocityToleranceMultUpper',
-      maxId: 'velocity-tolerance-mult-upper',
+      id: 'velocity-tolerance-db',
+      label: 'Velocity Tolerance (dB)',
+      description: 'Tolerance for note velocity deviation in dB',
+      minKey: 'velocityToleranceDbLower',
+      minId: 'velocity-tolerance-db-lower',
+      maxKey: 'velocityToleranceDbUpper',
+      maxId: 'velocity-tolerance-db-upper',
     },
   },
   {

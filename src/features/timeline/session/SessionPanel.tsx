@@ -36,6 +36,10 @@ function formatDurationMs(durationMs: number): string {
   return `${minutes}:${String(seconds).padStart(2, '0')}.${String(millis).padStart(3, '0')}`;
 }
 
+function formatDbValue(db: number | null): string {
+  return db === null ? '-' : `${Math.abs(db).toFixed(1)} dB`;
+}
+
 function formatMsValue(ms: number | null): string {
   return ms === null ? '-' : `${Math.abs(ms).toFixed(1)} ms`;
 }
@@ -268,8 +272,8 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
           description: 'Outlier velocity (either too loud or too quiet) compared to the rest of the song',
           count: breakdownStats.velocity.count,
           percent: formatBreakdownPercent(breakdownStats.velocity.count),
-          average: breakdownStats.velocity.average?.toFixed(1),
-          worst: breakdownStats.velocity.worst?.toFixed(1),
+          average: formatDbValue(breakdownStats.velocity.average),
+          worst: formatDbValue(breakdownStats.velocity.worst),
         },
       ],
     },

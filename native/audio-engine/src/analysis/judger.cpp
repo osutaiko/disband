@@ -113,12 +113,12 @@ SessionNoteJudgmentResult judgeSession(
             evaluateCriterionAbs(getReleaseErrorMs(referenceNote, playedNote), settings.releaseToleranceMs);
         noteJudgment.pitch =
             evaluateCriterionAbs(getPitchErrorSemitones(referenceNote, playedNote), settings.pitchToleranceSemitones);
-        const double velocityMultiplier = getVelocityMultiplier(playedNote, averageVelocity);
+        const double velocityDbDifference = getVelocityDbDifference(playedNote, averageVelocity);
         noteJudgment.velocity = evaluateCriterionRange(
-            velocityMultiplier,
-            settings.velocityToleranceMultLower,
-            settings.velocityToleranceMultUpper);
-        noteJudgment.velocity.error = velocityMultiplier;
+            velocityDbDifference,
+            settings.velocityToleranceDbLower,
+            settings.velocityToleranceDbUpper);
+        noteJudgment.velocity.error = velocityDbDifference;
 
         const bool pitchWrong = !isPass(noteJudgment.pitch);
         const bool attackOutsideInaccurateWindow = std::abs(*noteJudgment.attack.error) > settings.attackInaccurateWindowMs;

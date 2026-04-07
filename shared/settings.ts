@@ -21,6 +21,7 @@ export type NoteDetectionSettings = {
   onsetCompensationMs: number;
   silenceDb: number;
   minNoteMs: number;
+  velocityAnalysisWindowMs: number;
   minPitchConfidence: number;
   minMidi: number;
   maxMidi: number;
@@ -32,9 +33,8 @@ export type JudgmentSettings = {
   attackInaccurateWindowMs: number;
   releaseToleranceMs: number;
   pitchToleranceSemitones: number;
-  velocityAnalysisWindowMs: number;
-  velocityToleranceMultLower: number;
-  velocityToleranceMultUpper: number;
+  velocityToleranceDbLower: number;
+  velocityToleranceDbUpper: number;
   articulationToleranceMult: number;
 };
 
