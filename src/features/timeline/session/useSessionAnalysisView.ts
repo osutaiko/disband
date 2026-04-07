@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import useSessionStore from '@/store/useSessionStore';
-import type { NoteStatus, SessionAnalysisResult } from '../../../../shared/types';
+import type { NoteJudgmentKind, SessionAnalysisResult } from '../../../../shared/types';
 
 type NoteMarker = {
   timestamp: number;
@@ -28,25 +28,25 @@ function useSessionAnalysisView({
 
   const sessionAnalysis = selectionId ? (sessionAnalysisBySelection[selectionId] ?? null) : null;
 
-  const noteMarkerStatuses = useMemo(() => {
-    const statuses: NoteStatus[] = new Array(noteMarkers.length).fill('unjudged');
-    if (!sessionAnalysis) return statuses;
+  const noteJudgmentKinds = useMemo(() => {
+    const kinds: NoteJudgmentKind[] = new Array(noteMarkers.length).fill('unjudged');
+    if (!sessionAnalysis) return kinds;
 
-    sessionAnalysis.referenceJudgments.forEach((judgment) => {
+    sessionAnalysis.noteJudgments.forEach((judgment) => {
       if (
         judgment.referenceIndex >= 0
-        && judgment.referenceIndex < statuses.length
+        && judgment.referenceIndex < kinds.length
       ) {
-        statuses[judgment.referenceIndex] = judgment.kind;
+        kinds[judgment.referenceIndex] = judgment.kind;
       }
     });
-    return statuses;
+    return kinds;
   }, [noteMarkers.length, sessionAnalysis]);
 
-  const referenceJudgmentByIndex = useMemo(() => {
-    const byIndex = new Map<number, SessionAnalysisResult['referenceJudgments'][number]>();
+  const noteJudgmentByIndex = useMemo(() => {
+    const byIndex = new Map<number, SessionAnalysisResult['noteJudgments'][number]>();
     if (!sessionAnalysis) return byIndex;
-    sessionAnalysis.referenceJudgments.forEach((judgment) => {
+    sessionAnalysis.noteJudgments.forEach((judgment) => {
       byIndex.set(judgment.referenceIndex, judgment);
     });
     return byIndex;
@@ -82,8 +82,8 @@ function useSessionAnalysisView({
   return {
     hoveredReferenceIndex,
     setHoveredReferenceIndex,
-    noteMarkerStatuses,
-    referenceJudgmentByIndex,
+    noteJudgmentKinds,
+    noteJudgmentByIndex,
     noteMarkersToRender,
     referenceNotesForAnalysis,
     handleAnalysisResultChange,

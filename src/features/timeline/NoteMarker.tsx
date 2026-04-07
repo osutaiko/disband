@@ -1,5 +1,5 @@
-import type { ReferenceJudgment } from '../../../shared/types';
-import { getNoteStatusClass } from '@/lib/sessionCriteria';
+import type { NoteJudgment, NoteJudgmentKind } from '../../../shared/types';
+import { getNoteJudgmentClass } from '@/lib/noteJudgmentClasses';
 import { midiToNoteName } from '@/lib/utils';
 import {
   Tooltip,
@@ -16,7 +16,7 @@ function NoteMarker({
   isCurrentlyPlaying,
   isHovered = false,
   onHoverChange,
-  status = 'unjudged',
+  noteJudgmentKind = 'unjudged',
   midi,
   judgment,
 }: {
@@ -27,13 +27,13 @@ function NoteMarker({
   isCurrentlyPlaying: boolean;
   isHovered?: boolean;
   onHoverChange?: (hovered: boolean) => void;
-  status?: 'ok' | 'inaccurate' | 'miss' | 'unjudged';
+  noteJudgmentKind?: NoteJudgmentKind;
   midi?: number;
-  judgment?: ReferenceJudgment | null;
+  judgment?: NoteJudgment | null;
 }) {
   const left = timestamp * pxPerMs + offsetBase;
   const width = Math.max(length * pxPerMs, 4);
-  const statusClass = getNoteStatusClass(status);
+  const noteJudgmentClass = getNoteJudgmentClass(noteJudgmentKind);
 
   function formatErrorValue(value: number | null | undefined) {
     if (value == null || !Number.isFinite(value)) return '-';
@@ -64,7 +64,7 @@ function NoteMarker({
           <div
             className={`
               absolute h-[calc(100%-16px)] border-l-4 rounded-r-full
-              ${statusClass}
+              ${noteJudgmentClass}
               ${isHovered ? 'ring-2 ring-offset-1 ring-ring' : ''}
               ${isCurrentlyPlaying ? 'brightness-125' : ''}
             `}

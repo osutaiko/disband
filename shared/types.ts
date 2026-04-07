@@ -6,31 +6,31 @@ export type AnalyzedNote = {
   confidence: number;
 };
 
-export type NoteStatus = 'ok' | 'inaccurate' | 'miss' | 'unjudged';
+export type NoteJudgmentKind = 'ok' | 'inaccurate' | 'miss' | 'unjudged';
 
-export type CriterionResult = {
+export type CriterionJudgment = {
   error: number | null;
   pass: boolean | null;
 };
 
-export type ReferenceJudgment = {
+export type NoteJudgment = {
   referenceIndex: number;
   playedIndex: number | null;
   inRecordedTimeframe: boolean;
-  kind: NoteStatus;
+  kind: NoteJudgmentKind;
   criteria: {
-    attack: CriterionResult;
-    release: CriterionResult;
-    pitch: CriterionResult;
-    velocity: CriterionResult;
-    muting: CriterionResult;
-    articulation: CriterionResult;
+    attack: CriterionJudgment;
+    release: CriterionJudgment;
+    pitch: CriterionJudgment;
+    velocity: CriterionJudgment;
+    muting: CriterionJudgment;
+    articulation: CriterionJudgment;
   };
 };
 
 export type SessionAnalysisResult = {
   playedNotes: AnalyzedNote[];
-  referenceJudgments: ReferenceJudgment[];
+  noteJudgments: NoteJudgment[];
   referenceToPlayed: (number | null)[];
   playedToReference: (number | null)[];
 };

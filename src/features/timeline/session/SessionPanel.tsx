@@ -74,50 +74,50 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
     recordingLengthMs,
   } = useMemo(() => {
     const recordingLength = playedNotes.reduce((max, note) => Math.max(max, note.endMs), 0);
-    const judgmentsWithKind = (sessionAnalysis?.referenceJudgments ?? []).map((judgment) => ({
-      judgment,
-      kind: judgment.kind ?? 'unjudged',
+    const noteJudgmentsWithKind = (sessionAnalysis?.noteJudgments ?? []).map((noteJudgment) => ({
+      noteJudgment,
+      kind: noteJudgment.kind ?? 'unjudged',
     }));
-    const judged = judgmentsWithKind.filter((entry) => entry.kind !== 'unjudged');
+    const judged = noteJudgmentsWithKind.filter((entry) => entry.kind !== 'unjudged');
 
     const ok = judged.filter((entry) => entry.kind === 'ok').length;
     const inaccurate = judged.filter((entry) => entry.kind === 'inaccurate').length;
     const miss = judged.filter((entry) => entry.kind === 'miss').length;
-    const attackInaccurate = judged.filter((entry) => entry.kind === 'inaccurate' && entry.judgment.criteria.attack.pass === false).length;
-    const attackMiss = judged.filter((entry) => entry.kind === 'miss' && entry.judgment.criteria.attack.pass === false).length;
-    const pitchMiss = judged.filter((entry) => entry.kind === 'miss' && entry.judgment.criteria.pitch.pass === false).length;
-    const releaseFail = judged.filter((entry) => entry.judgment.criteria.release.pass === false).length;
-    const mutingFail = judged.filter((entry) => entry.judgment.criteria.muting.pass === false).length;
-    const articulationFail = judged.filter((entry) => entry.judgment.criteria.articulation.pass === false).length;
-    const velocityFail = judged.filter((entry) => entry.judgment.criteria.velocity.pass === false).length;
-    const matchedAttackErrors = judgmentsWithKind
-      .map((entry) => entry.judgment)
-      .filter((judgment) => judgment.playedIndex !== null)
-      .map((judgment) => judgment.criteria.attack.error)
+    const attackInaccurate = judged.filter((entry) => entry.kind === 'inaccurate' && entry.noteJudgment.criteria.attack.pass === false).length;
+    const attackMiss = judged.filter((entry) => entry.kind === 'miss' && entry.noteJudgment.criteria.attack.pass === false).length;
+    const pitchMiss = judged.filter((entry) => entry.kind === 'miss' && entry.noteJudgment.criteria.pitch.pass === false).length;
+    const releaseFail = judged.filter((entry) => entry.noteJudgment.criteria.release.pass === false).length;
+    const mutingFail = judged.filter((entry) => entry.noteJudgment.criteria.muting.pass === false).length;
+    const articulationFail = judged.filter((entry) => entry.noteJudgment.criteria.articulation.pass === false).length;
+    const velocityFail = judged.filter((entry) => entry.noteJudgment.criteria.velocity.pass === false).length;
+    const matchedAttackErrors = noteJudgmentsWithKind
+      .map((entry) => entry.noteJudgment)
+      .filter((noteJudgment) => noteJudgment.playedIndex !== null)
+      .map((noteJudgment) => noteJudgment.criteria.attack.error)
       .filter((error): error is number => error !== null);
     const totalReference = judged.length;
     const accuracy = totalReference > 0 ? (ok / totalReference) * 100 : 0;
     const badAttackErrors = judged
-      .filter((entry) => entry.judgment.criteria.attack.pass === false)
-      .map((entry) => entry.judgment.criteria.attack.error);
+      .filter((entry) => entry.noteJudgment.criteria.attack.pass === false)
+      .map((entry) => entry.noteJudgment.criteria.attack.error);
     const wrongPitchErrors = judged
-      .filter((entry) => entry.judgment.criteria.pitch.pass === false)
-      .map((entry) => entry.judgment.criteria.pitch.error);
+      .filter((entry) => entry.noteJudgment.criteria.pitch.pass === false)
+      .map((entry) => entry.noteJudgment.criteria.pitch.error);
     const inaccurateAttackErrors = judged
-      .filter((entry) => entry.kind === 'inaccurate' && entry.judgment.criteria.attack.pass === false)
-      .map((entry) => entry.judgment.criteria.attack.error);
+      .filter((entry) => entry.kind === 'inaccurate' && entry.noteJudgment.criteria.attack.pass === false)
+      .map((entry) => entry.noteJudgment.criteria.attack.error);
     const releaseErrors = judged
-      .filter((entry) => entry.judgment.criteria.release.pass === false)
-      .map((entry) => entry.judgment.criteria.release.error);
+      .filter((entry) => entry.noteJudgment.criteria.release.pass === false)
+      .map((entry) => entry.noteJudgment.criteria.release.error);
     const mutingErrors = judged
-      .filter((entry) => entry.judgment.criteria.muting.pass === false)
-      .map((entry) => entry.judgment.criteria.muting.error);
+      .filter((entry) => entry.noteJudgment.criteria.muting.pass === false)
+      .map((entry) => entry.noteJudgment.criteria.muting.error);
     const articulationErrors = judged
-      .filter((entry) => entry.judgment.criteria.articulation.pass === false)
-      .map((entry) => entry.judgment.criteria.articulation.error);
+      .filter((entry) => entry.noteJudgment.criteria.articulation.pass === false)
+      .map((entry) => entry.noteJudgment.criteria.articulation.error);
     const velocityErrors = judged
-      .filter((entry) => entry.judgment.criteria.velocity.pass === false)
-      .map((entry) => entry.judgment.criteria.velocity.error);
+      .filter((entry) => entry.noteJudgment.criteria.velocity.pass === false)
+      .map((entry) => entry.noteJudgment.criteria.velocity.error);
 
     return {
       okCount: ok,
@@ -155,7 +155,7 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
 
   const formatBreakdownPercent = (count: number) => `${(totalJudgedCount > 0 ? (count / totalJudgedCount) * 100 : 0).toFixed(1)}%`;
 
-  const statusCards = [
+  const kindCards = [
     { key: 'ok', count: okCount, className: 'stroke-note-ok fill-note-ok' },
     { key: 'inaccurate', count: inaccurateCount, className: 'stroke-note-inacc fill-note-inacc' },
     { key: 'miss', count: missCount, className: 'stroke-note-miss fill-note-miss' },
@@ -304,7 +304,7 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
           ) : (
             <>
               <div className="grid grid-cols-3 gap-2 select-none">
-                {statusCards.map((card) => (
+                {kindCards.map((card) => (
                   <Card key={card.key} className="flex flex-row gap-2 px-4 py-2 justify-between items-center">
                     <Diamond size={14} className={card.className} />
                     <span>{card.count}×</span>

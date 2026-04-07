@@ -54,27 +54,27 @@ enum class NoteJudgmentKind
     Miss
 };
 
-// Evaluation of each note judging criteria
-struct CriterionEvaluation
+// Evaluation of each note judging criterion
+struct CriterionJudgment
 {
     std::optional<double> error;         // value of error (ms, mult, semitones, ...)
     std::optional<bool> pass;
 };
 
 // Detailed judgment result for a single reference note
-struct ReferenceJudgmentResult
+struct NoteJudgment
 {
     int referenceIndex = -1;
     std::optional<int> playedIndex;
     bool inRecordedTimeframe = false;    // whether the note is inside (time-wise) the range of detected notes
                                          // note irrelevant for judging if false
     NoteJudgmentKind kind = NoteJudgmentKind::Unjudged; // Overall judgment
-    CriterionEvaluation attack;
-    CriterionEvaluation release;
-    CriterionEvaluation pitch;
-    CriterionEvaluation velocity;
-    CriterionEvaluation muting;
-    CriterionEvaluation articulation;
+    CriterionJudgment attack;
+    CriterionJudgment release;
+    CriterionJudgment pitch;
+    CriterionJudgment velocity;
+    CriterionJudgment muting;
+    CriterionJudgment articulation;
 };
 
 struct SessionMatchingResult
@@ -84,9 +84,9 @@ struct SessionMatchingResult
     std::vector<std::optional<int>> playedToReference; // vector of matchings from played to reference notes
 };
 
-struct SessionJudgmentResult
+struct SessionNoteJudgmentResult
 {
-    std::vector<ReferenceJudgmentResult> referenceResults;
+    std::vector<NoteJudgment> noteJudgments;
     std::vector<std::optional<int>> referenceToPlayed;
     std::vector<std::optional<int>> playedToReference;
 };
@@ -109,7 +109,7 @@ SessionMatchingResult sessionMatching(
     const std::vector<PlayedNote>& playedNotes,
     const JudgmentSettings& settings = {});
 
-SessionJudgmentResult judgeSession(
+SessionNoteJudgmentResult judgeSession(
     const std::vector<ReferenceNote>& referenceNotes,
     const std::vector<PlayedNote>& playedNotes,
     const JudgmentSettings& settings = {});
@@ -125,7 +125,7 @@ std::vector<PlayedNote> extractMonophonicNotes(
     double sampleRate,
     const DetectionSettings& settings = {});
 
-std::vector<ReferenceJudgmentResult> judgeReferenceNotes(
+std::vector<NoteJudgment> judgeNoteJudgments(
     const std::vector<ReferenceNote>& referenceNotes,
     const std::vector<PlayedNote>& playedNotes,
     const JudgmentSettings& settings = {});

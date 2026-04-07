@@ -167,10 +167,10 @@ private:
             }
         }
 
-        disband::session::SessionJudgmentResult judgment;
+        disband::session::SessionNoteJudgmentResult sessionNoteJudgment;
 
         if (!referenceNotes.empty())
-            judgment = disband::session::judgeSession(referenceNotes, played);
+            sessionNoteJudgment = disband::session::judgeSession(referenceNotes, played);
 
         auto* rootObj = new juce::DynamicObject();
         juce::var root(rootObj);
@@ -188,15 +188,15 @@ private:
         }
         rootObj->setProperty("playedNotes", juce::var(jsonPlayed));
 
-        juce::Array<juce::var> jsonRefs;
-        juce::Array<juce::var> jsonMap;
+        juce::Array<juce::var> jsonNoteJudgments;
+        juce::Array<juce::var> jsonPlayedToReference;
 
         if (!referenceNotes.empty())
         {
-            for (const auto& r : judgment.referenceResults)
+            for (const auto& noteJudgment : sessionNoteJudgment.noteJudgments)
             {
                 auto* obj = new juce::DynamicObject();
-                auto toCriterionVar = [](const disband::session::CriterionEvaluation& criterion) -> juce::var
+                auto toCriterionVar = [](const disband::session::CriterionJudgment& criterion) -> juce::var
                 {
                     auto* cobj = new juce::DynamicObject();
                     cobj->setProperty(
@@ -223,38 +223,38 @@ private:
                     }
                 };
 
-                obj->setProperty("referenceIndex", r.referenceIndex);
+                obj->setProperty("referenceIndex", noteJudgment.referenceIndex);
                 obj->setProperty("playedIndex",
-                    r.playedIndex.has_value() ? juce::var(*r.playedIndex)
+                    noteJudgment.playedIndex.has_value() ? juce::var(*noteJudgment.playedIndex)
                                             : juce::var());
-                obj->setProperty("inRecordedTimeframe", r.inRecordedTimeframe);
-                obj->setProperty("kind", toKindString(r.kind));
+                obj->setProperty("inRecordedTimeframe", noteJudgment.inRecordedTimeframe);
+                obj->setProperty("kind", toKindString(noteJudgment.kind));
 
                 auto* criteria = new juce::DynamicObject();
-                criteria->setProperty("attack", toCriterionVar(r.attack));
-                criteria->setProperty("release", toCriterionVar(r.release));
-                criteria->setProperty("pitch", toCriterionVar(r.pitch));
-                criteria->setProperty("velocity", toCriterionVar(r.velocity));
-                criteria->setProperty("muting", toCriterionVar(r.muting));
-                criteria->setProperty("articulation", toCriterionVar(r.articulation));
+                criteria->setProperty("attack", toCriterionVar(noteJudgment.attack));
+                criteria->setProperty("release", toCriterionVar(noteJudgment.release));
+                criteria->setProperty("pitch", toCriterionVar(noteJudgment.pitch));
+                criteria->setProperty("velocity", toCriterionVar(noteJudgment.velocity));
+                criteria->setProperty("muting", toCriterionVar(noteJudgment.muting));
+                criteria->setProperty("articulation", toCriterionVar(noteJudgment.articulation));
                 obj->setProperty("criteria", juce::var(criteria));
-                jsonRefs.add(juce::var(obj));
+                jsonNoteJudgments.add(juce::var(obj));
             }
 
-            for (const auto& p : judgment.playedToReference)
-                jsonMap.add(p.has_value() ? juce::var(*p) : juce::var());
+            for (const auto& p : sessionNoteJudgment.playedToReference)
+                jsonPlayedToReference.add(p.has_value() ? juce::var(*p) : juce::var());
         }
 
         juce::Array<juce::var> jsonReferenceToPlayed;
         if (!referenceNotes.empty())
         {
-            for (const auto& r : judgment.referenceToPlayed)
+            for (const auto& r : sessionNoteJudgment.referenceToPlayed)
                 jsonReferenceToPlayed.add(r.has_value() ? juce::var(*r) : juce::var());
         }
 
-        rootObj->setProperty("referenceJudgments", juce::var(jsonRefs));
+        rootObj->setProperty("noteJudgments", juce::var(jsonNoteJudgments));
         rootObj->setProperty("referenceToPlayed", juce::var(jsonReferenceToPlayed));
-        rootObj->setProperty("playedToReference", juce::var(jsonMap));
+        rootObj->setProperty("playedToReference", juce::var(jsonPlayedToReference));
 
         std::fprintf(stdout, "%s\n", juce::JSON::toString(root).toRawUTF8());
         std::fflush(stdout);

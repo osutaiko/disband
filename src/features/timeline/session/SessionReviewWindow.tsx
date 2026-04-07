@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Rnd } from 'react-rnd';
 
-import { getBadgeStatusClass } from '@/lib/sessionCriteria';
+import type { NoteJudgmentKind } from '../../../../shared/types';
+import { getCriterionJudgmentClass, getNoteJudgmentClass } from '@/lib/noteJudgmentClasses';
 import {
-  getCriterionStatus,
+  getCriterionJudgmentStatus,
   parseMs,
   type CriterionName,
 } from '@/lib/utils';
@@ -39,7 +40,7 @@ type ReviewRow = {
   referenceIndex: number;
   referenceMs: number | null;
   referenceEndMs: number | null;
-  kind: 'ok' | 'inaccurate' | 'miss';
+  noteJudgmentKind: NoteJudgmentKind;
   startMs: number | null;
   endMs: number | null;
   criteria: {
@@ -70,7 +71,7 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
   const { api, endMs, currentMs } = useEngineStore();
   const { sessionAnalysisBySelection } = useSessionStore();
   const { noteMarkers } = useAudioAnalysisMarkers(api, selectedTrackId);
-  const [selectedKinds, setSelectedKinds] = useState<Array<'ok' | 'inaccurate' | 'miss'>>([
+  const [selectedNoteJudgmentKinds, setSelectedNoteJudgmentKinds] = useState<Array<Exclude<NoteJudgmentKind, 'unjudged'>>>([
     'ok',
     'inaccurate',
     'miss',
@@ -91,8 +92,8 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
 
   const reviewRows = useMemo<ReviewRow[]>(() => {
     if (!sessionAnalysis) return [];
-    const hasKindSelection = selectedKinds.length > 0;
-    if (!hasKindSelection) return [];
+    const hasNoteJudgmentSelection = selectedNoteJudgmentKinds.length > 0;
+    if (!hasNoteJudgmentSelection) return [];
 
     const matchesCriterion = (
       criterion: 'attack' | 'pitch' | 'release' | 'velocity' | 'muting' | 'articulation',
@@ -100,9 +101,9 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
     ) => {
       const selection = selectedCriteria[criterion];
       const judgment = row.criteria[criterion];
-      const status = getCriterionStatus({
+      const criterionJudgmentStatus = getCriterionJudgmentStatus({
         criterion,
-        kind: row.kind,
+        noteJudgmentKind: row.noteJudgmentKind,
         pass: judgment.pass,
       });
 
@@ -110,46 +111,47 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
 
       switch (criterion) {
         case 'attack':
-          if (selection === 'ok') return status === 'ok';
-          if (selection === 'inaccurate') return status === 'inaccurate';
-          if (selection === 'miss') return status === 'miss';
+          if (selection === 'ok') return criterionJudgmentStatus === 'ok';
+          if (selection === 'inaccurate') return criterionJudgmentStatus === 'inaccurate';
+          if (selection === 'miss') return criterionJudgmentStatus === 'miss';
           return true;
         case 'pitch':
-          if (selection === 'ok') return status === 'ok';
-          if (selection === 'miss') return status === 'miss';
+          if (selection === 'ok') return criterionJudgmentStatus === 'ok';
+          if (selection === 'miss') return criterionJudgmentStatus === 'miss';
           return true;
         default:
-          if (selection === 'ok') return status === 'ok';
-          if (selection === 'bad') return status === 'miss';
+          if (selection === 'ok') return criterionJudgmentStatus === 'ok';
+          if (selection === 'bad') return criterionJudgmentStatus === 'miss';
           return true;
       }
     };
 
-    return sessionAnalysis.referenceJudgments
-      .map((judgment) => {
-        const referenceNote = noteMarkers[judgment.referenceIndex] ?? null;
-        const playedNote = judgment.playedIndex !== null
-          ? sessionAnalysis.playedNotes[judgment.playedIndex] ?? null
+    return sessionAnalysis.noteJudgments
+      .map((noteJudgment) => {
+        const referenceNote = noteMarkers[noteJudgment.referenceIndex] ?? null;
+        const playedNote = noteJudgment.playedIndex !== null
+          ? sessionAnalysis.playedNotes[noteJudgment.playedIndex] ?? null
           : null;
         return {
-          referenceIndex: judgment.referenceIndex,
+          referenceIndex: noteJudgment.referenceIndex,
           referenceMs: referenceNote?.timestamp ?? null,
           referenceEndMs: referenceNote === null ? null : referenceNote.timestamp + referenceNote.length,
-          kind: judgment.kind,
+          noteJudgmentKind: noteJudgment.kind,
           startMs: playedNote?.startMs ?? null,
           endMs: playedNote?.endMs ?? null,
-          criteria: judgment.criteria,
+          criteria: noteJudgment.criteria,
         };
       })
-      .filter((row) => selectedKinds.includes(row.kind))
+      .filter((row) => row.noteJudgmentKind !== 'unjudged')
+      .filter((row) => selectedNoteJudgmentKinds.includes(row.noteJudgmentKind as Exclude<NoteJudgmentKind, 'unjudged'>))
       .filter((row) => (['attack', 'pitch', 'release', 'velocity', 'muting', 'articulation'] as const)
         .every((criterion) => matchesCriterion(criterion, row)));
-  }, [noteMarkers, selectedCriteria, selectedKinds, sessionAnalysis]);
+  }, [noteMarkers, selectedCriteria, selectedNoteJudgmentKinds, sessionAnalysis]);
 
   const reviewTimelineMarkers = useMemo(() => reviewRows
     .filter((row) => row.startMs !== null)
     .map((row) => ({
-      kind: row.kind,
+      noteJudgmentKind: row.noteJudgmentKind,
       startMs: row.startMs as number,
       endMs: row.endMs ?? row.startMs as number,
     })), [reviewRows]);
@@ -172,12 +174,12 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
 
   const renderCriterionStatus = (
     criterion: CriterionName,
-    kind: ReviewRow['kind'],
+    noteJudgmentKind: ReviewRow['noteJudgmentKind'],
     pass: boolean | null,
   ) => {
-    const status = getCriterionStatus({ criterion, kind, pass });
+    const criterionJudgmentStatus = getCriterionJudgmentStatus({ criterion, noteJudgmentKind, pass });
     const badgeClassName = 'inline-block h-3 w-3 rounded-full shrink-0';
-    return <span className={`${badgeClassName} ${getBadgeStatusClass(status)}`} />;
+    return <span className={`${badgeClassName} ${getCriterionJudgmentClass(criterionJudgmentStatus)}`} />;
   };
 
   return (
@@ -229,21 +231,21 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
                 </Button>
               </CollapsibleTrigger>
               <section className="flex flex-row items-center gap-6">
-                {(['ok', 'inaccurate', 'miss'] as const).map((kind) => (
-                  <div key={kind} className="inline-flex items-center gap-2">
+                {(['ok', 'inaccurate', 'miss'] as const).map((noteJudgmentKind) => (
+                  <div key={noteJudgmentKind} className="inline-flex items-center gap-2">
                     <Checkbox
-                      id={`review-status-${kind}`}
-                      checked={selectedKinds.includes(kind)}
+                      id={`review-status-${noteJudgmentKind}`}
+                      checked={selectedNoteJudgmentKinds.includes(noteJudgmentKind)}
                       onCheckedChange={(checked) => {
-                        setSelectedKinds((prev) => (
+                        setSelectedNoteJudgmentKinds((prev) => (
                           checked
-                            ? [...prev, kind]
-                            : prev.filter((value) => value !== kind)
+                            ? [...prev, noteJudgmentKind]
+                            : prev.filter((value) => value !== noteJudgmentKind)
                         ));
                       }}
                     />
-                    <Label htmlFor={`review-status-${kind}`}>
-                      {kind === 'ok' ? 'OK' : kind === 'inaccurate' ? 'Inaccurate' : 'Miss'} notes
+                    <Label htmlFor={`review-status-${noteJudgmentKind}`}>
+                      {noteJudgmentKind === 'ok' ? 'OK' : noteJudgmentKind === 'inaccurate' ? 'Inaccurate' : 'Miss'} notes
                     </Label>
                   </div>
                 ))}
@@ -294,48 +296,44 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
             <div className="flex flex-row items-end justify-between gap-3">
               <h3>Timeline</h3>
               <div className="text-xs text-muted-foreground">
-                {reviewRows.length} / {sessionAnalysis?.referenceJudgments.length ?? '-'} notes
+                {reviewRows.length} / {sessionAnalysis?.noteJudgments.length ?? '-'} notes
               </div>
             </div>
 
             <div className="border py-2 rounded-md">
-            <div className="relative w-full h-10 overflow-visible">
-              {recordedRange && (
+              <div className="relative w-full h-10 overflow-visible">
+                {recordedRange && (
+                  <div
+                    className="absolute -top-2 -bottom-2 bg-rec-track-bg pointer-events-none z-0"
+                    style={{
+                      left: `${(recordedRange.startMs / Math.max(songLengthMs, 1)) * 100}%`,
+                      width: `${((recordedRange.endMs - recordedRange.startMs) / Math.max(songLengthMs, 1)) * 100}%`,
+                    }}
+                  />
+                )}
                 <div
-                  className="absolute -top-2 -bottom-2 bg-rec-track-bg pointer-events-none z-0"
+                  className="absolute -top-2 -bottom-2 w-px bg-playhead pointer-events-none z-0"
                   style={{
-                    left: `${(recordedRange.startMs / Math.max(songLengthMs, 1)) * 100}%`,
-                    width: `${((recordedRange.endMs - recordedRange.startMs) / Math.max(songLengthMs, 1)) * 100}%`,
+                    left: `${Math.max(0, Math.min(1, currentMs / Math.max(songLengthMs, 1))) * 100}%`,
                   }}
                 />
-              )}
-              <div
-                className="absolute -top-2 -bottom-2 w-px bg-playhead pointer-events-none z-0"
-                style={{
-                  left: `${Math.max(0, Math.min(1, currentMs / Math.max(songLengthMs, 1))) * 100}%`,
-                }}
-              />
-              <div className="absolute inset-y-2 left-0 right-0 z-10 bg-muted">
-                {reviewTimelineMarkers.map((marker, index) => {
-                  const startRatio = Math.max(0, Math.min(1, marker.startMs / Math.max(songLengthMs, 1)));
-                  const endRatio = Math.max(startRatio, Math.min(1, marker.endMs / Math.max(songLengthMs, 1)));
-                  const markerClassName = marker.kind === 'ok'
-                    ? 'bg-note-ok'
-                    : marker.kind === 'inaccurate'
-                      ? 'bg-note-inacc'
-                      : 'bg-note-miss';
-                  return (
-                    <button
-                      key={`${index}@${marker.startMs}`}
-                      className={`absolute top-0 h-full ${markerClassName}`}
-                      style={{
-                        left: `${startRatio * 100}%`,
-                        width: `${Math.max((endRatio - startRatio) * 100, (1 / Math.max(songLengthMs, 1)) * 100)}%`,
-                      }}
-                    />
-                  );
-                })}
-              </div>
+                <div className="absolute inset-y-2 left-0 right-0 z-10 bg-muted">
+                  {reviewTimelineMarkers.map((marker, index) => {
+                    const startRatio = Math.max(0, Math.min(1, marker.startMs / Math.max(songLengthMs, 1)));
+                    const endRatio = Math.max(startRatio, Math.min(1, marker.endMs / Math.max(songLengthMs, 1)));
+                    const markerClassName = getNoteJudgmentClass(marker.noteJudgmentKind);
+                    return (
+                      <button
+                        key={`${index}@${marker.startMs}`}
+                        className={`absolute top-0 h-full ${markerClassName}`}
+                        style={{
+                          left: `${startRatio * 100}%`,
+                          width: `${Math.max((endRatio - startRatio) * 100, (1 / Math.max(songLengthMs, 1)) * 100)}%`,
+                        }}
+                      />
+                    );
+                  })}
+                </div>
               </div>
             </div>
             
@@ -389,15 +387,9 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
                         <TableCell className={`${STATE_COLUMN_CLASS} py-0.5`}>
                           <Badge
                             variant="default"
-                            className={
-                              row.kind === 'ok'
-                                ? 'bg-note-ok-bg'
-                                : row.kind === 'inaccurate'
-                                  ? 'bg-note-inacc-bg'
-                                  : 'bg-note-miss-bg'
-                            }
+                            className={getNoteJudgmentClass(row.noteJudgmentKind)}
                           >
-                            {row.kind === 'ok' ? 'OK' : row.kind === 'inaccurate' ? 'Inaccurate' : 'Miss'}
+                            {row.noteJudgmentKind === 'ok' ? 'OK' : row.noteJudgmentKind === 'inaccurate' ? 'Inaccurate' : 'Miss'}
                           </Badge>
                         </TableCell>
                         {CRITERION_COLUMNS.map((column) => (
@@ -405,7 +397,7 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
                             <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-background ring-1 ring-inset ring-black/5">
                               {renderCriterionStatus(
                                 column.key,
-                                row.kind,
+                                row.noteJudgmentKind,
                                 row.criteria[column.key].pass,
                               )}
                             </span>

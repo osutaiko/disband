@@ -30,34 +30,34 @@ namespace disband::session
 {
 namespace
 {
-// Convert error values into CriterionEvaluation object
-CriterionEvaluation evaluateCriterion(double errorValue, double tolerance)
+// Convert error values into CriterionJudgment object
+CriterionJudgment evaluateCriterion(double errorValue, double tolerance)
 {
-    CriterionEvaluation evaluation;
+    CriterionJudgment evaluation;
     evaluation.error = errorValue;
     evaluation.pass = std::abs(errorValue) <= tolerance;
     return evaluation;
 }
 
-bool isPass(const CriterionEvaluation& criterion)
+bool isPass(const CriterionJudgment& criterion)
 {
     return criterion.pass.has_value() && *criterion.pass;
 }
 
-bool isExplicitFail(const CriterionEvaluation& criterion)
+bool isExplicitFail(const CriterionJudgment& criterion)
 {
     return criterion.pass.has_value() && !*criterion.pass;
 }
 } // namespace
 
 // Judge the entire session (list of notes)
-SessionJudgmentResult judgeSession(
+SessionNoteJudgmentResult judgeSession(
     const std::vector<ReferenceNote>& referenceNotes,
     const std::vector<PlayedNote>& playedNotes,
     const JudgmentSettings& settings)
 {
-    SessionJudgmentResult result;
-    result.referenceResults.resize(referenceNotes.size());
+    SessionNoteJudgmentResult result;
+    result.noteJudgments.resize(referenceNotes.size());
 
     // Get note correspondence mappings
     const SessionMatchingResult matching = sessionMatching(referenceNotes, playedNotes, settings);
@@ -84,22 +84,22 @@ SessionJudgmentResult judgeSession(
     // Iterate through reference notes
     for (size_t refIndex = 0; refIndex < referenceNotes.size(); ++refIndex)
     {
-        ReferenceJudgmentResult refResult;
-        refResult.referenceIndex = static_cast<int>(refIndex);
-        refResult.attack = {};
-        refResult.release = {};
-        refResult.pitch = {};
-        refResult.velocity = {};
-        refResult.muting = {};
-        refResult.articulation = {};
+        NoteJudgment noteJudgment;
+        noteJudgment.referenceIndex = static_cast<int>(refIndex);
+        noteJudgment.attack = {};
+        noteJudgment.release = {};
+        noteJudgment.pitch = {};
+        noteJudgment.velocity = {};
+        noteJudgment.muting = {};
+        noteJudgment.articulation = {};
 
         const auto playedIndex = result.referenceToPlayed[refIndex]; // might not exist
-        refResult.playedIndex = playedIndex;
+        noteJudgment.playedIndex = playedIndex;
 
         const auto& referenceNote = referenceNotes[refIndex];
         const double referenceStartMs = referenceNote.timestampMs;
         const double referenceEndMs = referenceNote.timestampMs + referenceNote.durationMs;
-        refResult.inRecordedTimeframe =
+        noteJudgment.inRecordedTimeframe =
             hasPlayedNotes
             && referenceStartMs >= minRecordedStartMs
             && referenceEndMs <= maxRecordedEndMs;
@@ -107,61 +107,61 @@ SessionJudgmentResult judgeSession(
         // Don't judge if the reference note is outside of recorded boundary
         if (!playedIndex.has_value())
         {
-            refResult.kind = refResult.inRecordedTimeframe
+            noteJudgment.kind = noteJudgment.inRecordedTimeframe
                 ? NoteJudgmentKind::Miss
                 : NoteJudgmentKind::Unjudged;
-            result.referenceResults[refIndex] = std::move(refResult);
+            result.noteJudgments[refIndex] = std::move(noteJudgment);
             continue;
         }
 
         const auto& playedNote = playedNotes[static_cast<size_t>(*playedIndex)];
-        refResult.attack =
+        noteJudgment.attack =
             evaluateCriterion(getAttackErrorMs(referenceNote, playedNote), settings.attackOkWindowMs);
-        refResult.release =
+        noteJudgment.release =
             evaluateCriterion(getReleaseErrorMs(referenceNote, playedNote), settings.releaseToleranceMs);
-        refResult.pitch =
+        noteJudgment.pitch =
             evaluateCriterion(getPitchErrorSemitones(referenceNote, playedNote), settings.pitchToleranceSemitones);
 
-        const bool pitchWrong = !isPass(refResult.pitch);
-        const bool attackOutsideInaccurateWindow = std::abs(*refResult.attack.error) > settings.attackInaccurateWindowMs;
+        const bool pitchWrong = !isPass(noteJudgment.pitch);
+        const bool attackOutsideInaccurateWindow = std::abs(*noteJudgment.attack.error) > settings.attackInaccurateWindowMs;
 
         // Miss immediately if pitch or attack fails check
         if (pitchWrong || attackOutsideInaccurateWindow)
         {
-            refResult.kind = NoteJudgmentKind::Miss;
-            result.referenceResults[refIndex] = std::move(refResult);
+            noteJudgment.kind = NoteJudgmentKind::Miss;
+            result.noteJudgments[refIndex] = std::move(noteJudgment);
             continue;
         }
 
         // Inaccurate if attack is inaccurate (inside inaccurate window)
-        if (isExplicitFail(refResult.attack) && !attackOutsideInaccurateWindow)
+        if (isExplicitFail(noteJudgment.attack) && !attackOutsideInaccurateWindow)
         {
-            refResult.kind = NoteJudgmentKind::Inaccurate;
-            result.referenceResults[refIndex] = std::move(refResult);
+            noteJudgment.kind = NoteJudgmentKind::Inaccurate;
+            result.noteJudgments[refIndex] = std::move(noteJudgment);
             continue;
         }
 
         // Count secondary criteria failures
         int secondaryFails = 0;
-        secondaryFails += isExplicitFail(refResult.release) ? 1 : 0;
-        secondaryFails += isExplicitFail(refResult.muting) ? 1 : 0;
-        secondaryFails += isExplicitFail(refResult.articulation) ? 1 : 0;
+        secondaryFails += isExplicitFail(noteJudgment.release) ? 1 : 0;
+        secondaryFails += isExplicitFail(noteJudgment.muting) ? 1 : 0;
+        secondaryFails += isExplicitFail(noteJudgment.articulation) ? 1 : 0;
 
-        refResult.kind = secondaryFails >= 2
+        noteJudgment.kind = secondaryFails >= 2
             ? NoteJudgmentKind::Inaccurate
             : NoteJudgmentKind::Ok;
 
-        result.referenceResults[refIndex] = std::move(refResult);
+        result.noteJudgments[refIndex] = std::move(noteJudgment);
     }
 
     return result;
 }
 
-std::vector<ReferenceJudgmentResult> judgeReferenceNotes(
+std::vector<NoteJudgment> judgeNoteJudgments(
     const std::vector<ReferenceNote>& referenceNotes,
     const std::vector<PlayedNote>& playedNotes,
     const JudgmentSettings& settings)
 {
-    return judgeSession(referenceNotes, playedNotes, settings).referenceResults;
+    return judgeSession(referenceNotes, playedNotes, settings).noteJudgments;
 }
 } // namespace disband::session

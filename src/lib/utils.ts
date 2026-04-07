@@ -1,9 +1,9 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import type { NoteStatus, ReferenceJudgment } from '../../shared/types';
+import type { NoteJudgment, NoteJudgmentKind } from '../../shared/types';
 
-export type CriterionName = keyof ReferenceJudgment['criteria'];
-export type NoteCriterionStatus = 'ok' | 'inaccurate' | 'miss' | 'unjudged';
+export type CriterionName = keyof NoteJudgment['criteria'];
+export type CriterionJudgmentStatus = 'ok' | 'inaccurate' | 'miss' | 'unjudged';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -33,16 +33,16 @@ export function midiToNoteName(midi: number | null | undefined) {
 }
 
 // Consult judger.cpp in native/audio-engine/src for overall note judgment logic
-export function getCriterionStatus({
+export function getCriterionJudgmentStatus({
   criterion,
-  kind,
+  noteJudgmentKind,
   pass,
 }: {
   criterion: CriterionName;
-  kind: NoteStatus;
+  noteJudgmentKind: NoteJudgmentKind;
   pass: boolean | null;
-}): NoteCriterionStatus {
-  if (criterion === 'attack') return kind;
+}): CriterionJudgmentStatus {
+  if (criterion === 'attack') return noteJudgmentKind;
   if (pass === true) return 'ok';
   if (pass === false) return 'miss';
   return 'unjudged';

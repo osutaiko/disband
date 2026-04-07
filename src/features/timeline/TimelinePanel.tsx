@@ -90,8 +90,8 @@ function TimelinePanel({
   const {
     hoveredReferenceIndex,
     setHoveredReferenceIndex,
-    noteMarkerStatuses,
-    referenceJudgmentByIndex,
+    noteJudgmentKinds,
+    noteJudgmentByIndex,
     noteMarkersToRender,
     referenceNotesForAnalysis,
     handleAnalysisResultChange,
@@ -201,9 +201,9 @@ function TimelinePanel({
                 length={marker.length}
                 offsetBase={trackStartPadding}
                 pxPerMs={pxPerMsForCalc}
-                status={noteMarkerStatuses[marker.referenceIndex]}
+                noteJudgmentKind={noteJudgmentKinds[marker.referenceIndex]}
                 midi={marker.midi}
-                judgment={referenceJudgmentByIndex.get(marker.referenceIndex) ?? null}
+                judgment={noteJudgmentByIndex.get(marker.referenceIndex) ?? null}
                 isHovered={hoveredReferenceIndex === marker.referenceIndex}
                 onHoverChange={(hovered) => {
                   setHoveredReferenceIndex(hovered ? marker.referenceIndex : null);
