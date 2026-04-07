@@ -37,7 +37,7 @@ function useSessionAnalysisView({
         judgment.referenceIndex >= 0
         && judgment.referenceIndex < statuses.length
       ) {
-        statuses[judgment.referenceIndex] = judgment.kind ?? 'unjudged';
+        statuses[judgment.referenceIndex] = judgment.kind;
       }
     });
     return statuses;

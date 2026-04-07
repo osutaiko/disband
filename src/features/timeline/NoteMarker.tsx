@@ -41,8 +41,7 @@ function NoteMarker({
     return `${rounded >= 0 ? '+' : ''}${rounded}`;
   }
 
-  const hasJudgment = Boolean(judgment && judgment.kind && judgment.kind !== 'unjudged');
-  const tooltipText = hasJudgment ? (
+  const tooltipText = judgment?.kind !== 'unjudged' ? (
     <>
       <p className="text-background">{midi !== undefined ? midiToNoteName(midi) : '-'}</p>
       <p className="text-background">

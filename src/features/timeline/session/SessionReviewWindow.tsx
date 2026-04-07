@@ -1,8 +1,12 @@
 import { useMemo, useState } from 'react';
 import { Rnd } from 'react-rnd';
 
-import { getBadgeStatusClass, getCriterionStatus, type CriterionName } from '@/lib/sessionCriteria';
-import { parseMs } from '@/lib/utils';
+import { getBadgeStatusClass } from '@/lib/sessionCriteria';
+import {
+  getCriterionStatus,
+  parseMs,
+  type CriterionName,
+} from '@/lib/utils';
 import useEngineStore from '@/store/useEngineStore';
 import useLibraryStore from '@/store/useLibraryStore';
 import useSessionStore from '@/store/useSessionStore';
@@ -35,7 +39,7 @@ type ReviewRow = {
   referenceIndex: number;
   referenceMs: number | null;
   referenceEndMs: number | null;
-  status: 'ok' | 'inaccurate' | 'miss';
+  kind: 'ok' | 'inaccurate' | 'miss';
   startMs: number | null;
   endMs: number | null;
   criteria: {
@@ -66,7 +70,7 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
   const { api, endMs, currentMs } = useEngineStore();
   const { sessionAnalysisBySelection } = useSessionStore();
   const { noteMarkers } = useAudioAnalysisMarkers(api, selectedTrackId);
-  const [selectedJudgments, setSelectedJudgments] = useState<Array<'ok' | 'inaccurate' | 'miss'>>([
+  const [selectedKinds, setSelectedKinds] = useState<Array<'ok' | 'inaccurate' | 'miss'>>([
     'ok',
     'inaccurate',
     'miss',
@@ -87,8 +91,8 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
 
   const reviewRows = useMemo<ReviewRow[]>(() => {
     if (!sessionAnalysis) return [];
-    const hasJudgmentSelection = selectedJudgments.length > 0;
-    if (!hasJudgmentSelection) return [];
+    const hasKindSelection = selectedKinds.length > 0;
+    if (!hasKindSelection) return [];
 
     const matchesCriterion = (
       criterion: 'attack' | 'pitch' | 'release' | 'velocity' | 'muting' | 'articulation',
@@ -96,22 +100,27 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
     ) => {
       const selection = selectedCriteria[criterion];
       const judgment = row.criteria[criterion];
+      const status = getCriterionStatus({
+        criterion,
+        kind: row.kind,
+        pass: judgment.pass,
+      });
 
       if (selection === 'any') return true;
 
       switch (criterion) {
         case 'attack':
-          if (selection === 'ok') return row.status === 'ok' && judgment.pass === true;
-          if (selection === 'inaccurate') return row.status === 'inaccurate' && judgment.pass === false;
-          if (selection === 'miss') return row.status === 'miss' && judgment.pass === false;
+          if (selection === 'ok') return status === 'ok';
+          if (selection === 'inaccurate') return status === 'inaccurate';
+          if (selection === 'miss') return status === 'miss';
           return true;
         case 'pitch':
-          if (selection === 'ok') return judgment.pass === true;
-          if (selection === 'miss') return judgment.pass === false;
+          if (selection === 'ok') return status === 'ok';
+          if (selection === 'miss') return status === 'miss';
           return true;
         default:
-          if (selection === 'ok') return judgment.pass === true;
-          if (selection === 'bad') return judgment.pass === false;
+          if (selection === 'ok') return status === 'ok';
+          if (selection === 'bad') return status === 'miss';
           return true;
       }
     };
@@ -126,21 +135,21 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
           referenceIndex: judgment.referenceIndex,
           referenceMs: referenceNote?.timestamp ?? null,
           referenceEndMs: referenceNote === null ? null : referenceNote.timestamp + referenceNote.length,
-          status: (judgment.kind ?? 'ok') as ReviewRow['status'],
+          kind: judgment.kind,
           startMs: playedNote?.startMs ?? null,
           endMs: playedNote?.endMs ?? null,
           criteria: judgment.criteria,
         };
       })
-      .filter((row) => selectedJudgments.includes(row.status as ReviewRow['status']))
+      .filter((row) => selectedKinds.includes(row.kind))
       .filter((row) => (['attack', 'pitch', 'release', 'velocity', 'muting', 'articulation'] as const)
         .every((criterion) => matchesCriterion(criterion, row)));
-  }, [noteMarkers, selectedCriteria, selectedJudgments, sessionAnalysis]);
+  }, [noteMarkers, selectedCriteria, selectedKinds, sessionAnalysis]);
 
   const reviewTimelineMarkers = useMemo(() => reviewRows
     .filter((row) => row.startMs !== null)
     .map((row) => ({
-      status: row.status,
+      kind: row.kind,
       startMs: row.startMs as number,
       endMs: row.endMs ?? row.startMs as number,
     })), [reviewRows]);
@@ -163,10 +172,10 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
 
   const renderCriterionStatus = (
     criterion: CriterionName,
-    rowStatus: ReviewRow['status'],
+    kind: ReviewRow['kind'],
     pass: boolean | null,
   ) => {
-    const status = getCriterionStatus({ criterion, rowStatus, pass });
+    const status = getCriterionStatus({ criterion, kind, pass });
     const badgeClassName = 'inline-block h-3 w-3 rounded-full shrink-0';
     return <span className={`${badgeClassName} ${getBadgeStatusClass(status)}`} />;
   };
@@ -220,21 +229,21 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
                 </Button>
               </CollapsibleTrigger>
               <section className="flex flex-row items-center gap-6">
-                {(['ok', 'inaccurate', 'miss'] as const).map((status) => (
-                  <div key={status} className="inline-flex items-center gap-2">
+                {(['ok', 'inaccurate', 'miss'] as const).map((kind) => (
+                  <div key={kind} className="inline-flex items-center gap-2">
                     <Checkbox
-                      id={`review-status-${status}`}
-                      checked={selectedJudgments.includes(status)}
+                      id={`review-status-${kind}`}
+                      checked={selectedKinds.includes(kind)}
                       onCheckedChange={(checked) => {
-                        setSelectedJudgments((prev) => (
+                        setSelectedKinds((prev) => (
                           checked
-                            ? [...prev, status]
-                            : prev.filter((value) => value !== status)
+                            ? [...prev, kind]
+                            : prev.filter((value) => value !== kind)
                         ));
                       }}
                     />
-                    <Label htmlFor={`review-status-${status}`}>
-                      {status === 'ok' ? 'OK' : status === 'inaccurate' ? 'Inaccurate' : 'Miss'} notes
+                    <Label htmlFor={`review-status-${kind}`}>
+                      {kind === 'ok' ? 'OK' : kind === 'inaccurate' ? 'Inaccurate' : 'Miss'} notes
                     </Label>
                   </div>
                 ))}
@@ -310,9 +319,9 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
                 {reviewTimelineMarkers.map((marker, index) => {
                   const startRatio = Math.max(0, Math.min(1, marker.startMs / Math.max(songLengthMs, 1)));
                   const endRatio = Math.max(startRatio, Math.min(1, marker.endMs / Math.max(songLengthMs, 1)));
-                  const markerClassName = marker.status === 'ok'
+                  const markerClassName = marker.kind === 'ok'
                     ? 'bg-note-ok'
-                    : marker.status === 'inaccurate'
+                    : marker.kind === 'inaccurate'
                       ? 'bg-note-inacc'
                       : 'bg-note-miss';
                   return (
@@ -348,8 +357,8 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
               <ScrollArea className="h-[250px]">
                 {reviewRows.length === 0 && <p className="p-2">Nothing to show here.</p>}
                 <Table className="table-fixed">
-                  <TableBody>
-                    {reviewRows.map((row) => (
+                      <TableBody>
+                        {reviewRows.map((row) => (
                       <TableRow key={row.referenceIndex} className="even:bg-muted/50">
                         <TableCell className="py-0.5">
                           <Button
@@ -381,14 +390,14 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
                           <Badge
                             variant="default"
                             className={
-                              row.status === 'ok'
+                              row.kind === 'ok'
                                 ? 'bg-note-ok-bg'
-                                : row.status === 'inaccurate'
+                                : row.kind === 'inaccurate'
                                   ? 'bg-note-inacc-bg'
                                   : 'bg-note-miss-bg'
                             }
                           >
-                            {row.status === 'ok' ? 'OK' : row.status === 'inaccurate' ? 'Inaccurate' : 'Miss'}
+                            {row.kind === 'ok' ? 'OK' : row.kind === 'inaccurate' ? 'Inaccurate' : 'Miss'}
                           </Badge>
                         </TableCell>
                         {CRITERION_COLUMNS.map((column) => (
@@ -396,7 +405,7 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
                             <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-background ring-1 ring-inset ring-black/5">
                               {renderCriterionStatus(
                                 column.key,
-                                row.status,
+                                row.kind,
                                 row.criteria[column.key].pass,
                               )}
                             </span>

@@ -74,23 +74,23 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
     recordingLengthMs,
   } = useMemo(() => {
     const recordingLength = playedNotes.reduce((max, note) => Math.max(max, note.endMs), 0);
-    const judgmentsWithStatus = (sessionAnalysis?.referenceJudgments ?? []).map((judgment) => ({
+    const judgmentsWithKind = (sessionAnalysis?.referenceJudgments ?? []).map((judgment) => ({
       judgment,
-      status: judgment.kind ?? 'unjudged',
+      kind: judgment.kind ?? 'unjudged',
     }));
-    const judged = judgmentsWithStatus.filter((entry) => entry.status !== 'unjudged');
+    const judged = judgmentsWithKind.filter((entry) => entry.kind !== 'unjudged');
 
-    const ok = judged.filter((entry) => entry.status === 'ok').length;
-    const inaccurate = judged.filter((entry) => entry.status === 'inaccurate').length;
-    const miss = judged.filter((entry) => entry.status === 'miss').length;
-    const attackInaccurate = judged.filter((entry) => entry.status === 'inaccurate' && entry.judgment.criteria.attack.pass === false).length;
-    const attackMiss = judged.filter((entry) => entry.status === 'miss' && entry.judgment.criteria.attack.pass === false).length;
-    const pitchMiss = judged.filter((entry) => entry.status === 'miss' && entry.judgment.criteria.pitch.pass === false).length;
+    const ok = judged.filter((entry) => entry.kind === 'ok').length;
+    const inaccurate = judged.filter((entry) => entry.kind === 'inaccurate').length;
+    const miss = judged.filter((entry) => entry.kind === 'miss').length;
+    const attackInaccurate = judged.filter((entry) => entry.kind === 'inaccurate' && entry.judgment.criteria.attack.pass === false).length;
+    const attackMiss = judged.filter((entry) => entry.kind === 'miss' && entry.judgment.criteria.attack.pass === false).length;
+    const pitchMiss = judged.filter((entry) => entry.kind === 'miss' && entry.judgment.criteria.pitch.pass === false).length;
     const releaseFail = judged.filter((entry) => entry.judgment.criteria.release.pass === false).length;
     const mutingFail = judged.filter((entry) => entry.judgment.criteria.muting.pass === false).length;
     const articulationFail = judged.filter((entry) => entry.judgment.criteria.articulation.pass === false).length;
     const velocityFail = judged.filter((entry) => entry.judgment.criteria.velocity.pass === false).length;
-    const matchedAttackErrors = judgmentsWithStatus
+    const matchedAttackErrors = judgmentsWithKind
       .map((entry) => entry.judgment)
       .filter((judgment) => judgment.playedIndex !== null)
       .map((judgment) => judgment.criteria.attack.error)
@@ -104,7 +104,7 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
       .filter((entry) => entry.judgment.criteria.pitch.pass === false)
       .map((entry) => entry.judgment.criteria.pitch.error);
     const inaccurateAttackErrors = judged
-      .filter((entry) => entry.status === 'inaccurate' && entry.judgment.criteria.attack.pass === false)
+      .filter((entry) => entry.kind === 'inaccurate' && entry.judgment.criteria.attack.pass === false)
       .map((entry) => entry.judgment.criteria.attack.error);
     const releaseErrors = judged
       .filter((entry) => entry.judgment.criteria.release.pass === false)
