@@ -2,9 +2,10 @@ import { useMemo, useState } from 'react';
 import { Rnd } from 'react-rnd';
 
 import type { NoteJudgmentKind } from '../../../../shared/types';
-import { getCriterionJudgmentClass, getNoteJudgmentClass } from '@/lib/noteJudgmentClasses';
+import { getNoteJudgmentClass } from '@/lib/noteJudgmentClasses';
 import {
   getCriterionJudgmentStatus,
+  formatNumber,
   parseMs,
   type CriterionName,
 } from '@/lib/utils';
@@ -62,9 +63,27 @@ const CRITERION_COLUMNS = [
   { key: 'velocity', label: 'vel' },
 ] as const;
 
-const STATE_COLUMN_CLASS = 'sticky top-0 w-24 min-w-24 max-w-24 px-0 text-center';
-const CRITERION_COLUMN_CLASS = 'sticky top-0 w-9 min-w-9 max-w-9 px-0 text-center text-muted-foreground';
-const CRITERION_CELL_CLASS = 'w-9 min-w-9 max-w-9 px-0 text-center py-0.5';
+const REFERENCE_COLUMN_WIDTH = '13rem';
+const RECORDED_COLUMN_WIDTH = '13rem';
+const STATE_COLUMN_WIDTH = '6rem';
+const CRITERION_COLUMN_WIDTH = 'calc((100% - 32rem) / 6)';
+const STATE_COLUMN_CLASS = 'sticky top-0 px-0 text-center';
+const CRITERION_COLUMN_CLASS = 'sticky top-0 px-0 text-center text-muted-foreground';
+const CRITERION_CELL_CLASS = 'px-0 pr-1 text-right';
+
+function formatCriterionError(error: number | null, digits = 1) {
+  if (error === null) return '-';
+  const value = Number.isFinite(error) ? error : 0;
+  const signed = value > 0 ? `+${value.toFixed(digits)}` : value.toFixed(digits);
+  return signed;
+}
+
+function getCriterionUnderlineClass(status: ReturnType<typeof getCriterionJudgmentStatus>) {
+  if (status === 'ok') return 'border-note-ok text-foreground';
+  if (status === 'inaccurate') return 'border-note-inacc text-foreground';
+  if (status === 'miss') return 'border-note-miss text-foreground';
+  return 'border-note-unj text-muted-foreground';
+}
 
 function SessionReviewWindow({ onClose }: { onClose: () => void }) {
   const { selectedSong, selectedTrackId } = useLibraryStore();
@@ -172,25 +191,35 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
     return `${parsed.minutes}:${parsed.seconds.toString().padStart(2, '0')}.${parsed.milliseconds.toString().padStart(3, '0')}`;
   };
 
-  const renderCriterionStatus = (
+  const renderCriterionError = (
     criterion: CriterionName,
     noteJudgmentKind: ReviewRow['noteJudgmentKind'],
+    error: number | null,
     pass: boolean | null,
+    unit: string,
   ) => {
     const criterionJudgmentStatus = getCriterionJudgmentStatus({ criterion, noteJudgmentKind, pass });
-    const badgeClassName = 'inline-block h-3 w-3 rounded-full shrink-0';
-    return <span className={`${badgeClassName} ${getCriterionJudgmentClass(criterionJudgmentStatus)}`} />;
+    const underlineClassName = getCriterionUnderlineClass(criterionJudgmentStatus);
+    const digits = criterion === 'pitch' ? 0 : 1;
+    return (
+      <span
+        title={formatNumber(error, true, unit, digits)}
+        className={`inline-flex w-full items-center justify-end border-b-2 pb-0.5 pr-1 text-right text-[10px] leading-none ${underlineClassName}`}
+      >
+        {formatCriterionError(error, digits)}
+      </span>
+    );
   };
 
   return (
     <Rnd
       default={{
-        x: window.innerWidth - 720,
+        x: window.innerWidth - 880,
         y: 80,
-        width: 700,
+        width: 800,
         height: 520,
       }}
-      minWidth={700}
+      minWidth={800}
       minHeight={380}
       bounds="window"
       dragHandleClassName="review-window-handle"
@@ -337,32 +366,54 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
               </div>
             </div>
             
-            <div className="flex flex-col rounded-md overflow-hidden">
-              <Table className="table-fixed">
+            <div className="flex flex-col rounded-md overflow-hidden overflow-x-auto">
+              <Table className="table-fixed min-w-[760px]">
+                <colgroup>
+                  <col style={{ width: REFERENCE_COLUMN_WIDTH }} />
+                  <col style={{ width: RECORDED_COLUMN_WIDTH }} />
+                  <col style={{ width: STATE_COLUMN_WIDTH }} />
+                  {CRITERION_COLUMNS.map((column) => (
+                    <col key={column.key} style={{ width: CRITERION_COLUMN_WIDTH }} />
+                  ))}
+                </colgroup>
                 <TableHeader className="uppercase tracking-widest bg-accent">
                   <TableRow>
                     <TableHead className="sticky top-0">Reference</TableHead>
                     <TableHead className="sticky top-0">Recorded</TableHead>
-                    <TableHead className={STATE_COLUMN_CLASS}>State</TableHead>
+                    <TableHead className={`${STATE_COLUMN_CLASS}`} style={{ width: STATE_COLUMN_WIDTH, minWidth: STATE_COLUMN_WIDTH }}>
+                      State
+                    </TableHead>
                     {CRITERION_COLUMNS.map((column) => (
-                      <TableHead key={column.key} className={CRITERION_COLUMN_CLASS}>
+                      <TableHead
+                        key={column.key}
+                        className={CRITERION_COLUMN_CLASS}
+                        style={{ width: CRITERION_COLUMN_WIDTH, minWidth: 0 }}
+                      >
                         {column.label}
                       </TableHead>
                     ))}
                   </TableRow>
                 </TableHeader>
               </Table>
-              <ScrollArea className="h-[250px]">
+              <ScrollArea className="h-[250px] min-w-[760px]">
                 {reviewRows.length === 0 && <p className="p-2">Nothing to show here.</p>}
-                <Table className="table-fixed">
-                      <TableBody>
-                        {reviewRows.map((row) => (
-                      <TableRow key={row.referenceIndex} className="even:bg-muted/50">
-                        <TableCell className="py-0.5">
+                <Table className="table-fixed min-w-[760px]">
+                  <colgroup>
+                    <col style={{ width: REFERENCE_COLUMN_WIDTH }} />
+                    <col style={{ width: RECORDED_COLUMN_WIDTH }} />
+                    <col style={{ width: STATE_COLUMN_WIDTH }} />
+                    {CRITERION_COLUMNS.map((column) => (
+                      <col key={column.key} style={{ width: CRITERION_COLUMN_WIDTH }} />
+                    ))}
+                  </colgroup>
+                  <TableBody>
+                    {reviewRows.map((row) => (
+                      <TableRow key={row.referenceIndex} className="even:bg-muted/50 [&>td]:!py-0.5">
+                        <TableCell className="min-w-0 overflow-hidden text-left">
                           <Button
                             variant="ghost"
-                            className="h-full justify-start px-2 py-0.5 font-mono"
-                            title={row.referenceMs === null ? '' : `${row.referenceMs} - ${row.referenceEndMs ?? row.referenceMs}`}
+                            className="h-full w-full justify-start px-2 font-mono text-left whitespace-nowrap overflow-hidden text-ellipsis"
+                            title={row.referenceMs === null ? '' : `${formatMs(row.referenceMs)} - ${formatMs(row.referenceEndMs)}`}
                             onClick={() => {
                               if (row.referenceMs === null) return;
                               handleSeekToMs(api, row.referenceMs);
@@ -371,11 +422,11 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
                             {formatMs(row.referenceMs)} - {formatMs(row.referenceEndMs)}
                           </Button>
                         </TableCell>
-                        <TableCell className="py-0.5">
+                        <TableCell className="min-w-0 overflow-hidden text-left">
                           <Button
                             variant="ghost"
-                            className="h-full justify-start px-2 py-0.5 font-mono"
-                            title={row.startMs === null ? '' : `${row.startMs} - ${row.endMs ?? row.startMs}`}
+                            className="h-full w-full justify-start px-2 font-mono text-left whitespace-nowrap overflow-hidden text-ellipsis"
+                            title={row.startMs === null ? '' : `${formatMs(row.startMs)} - ${formatMs(row.endMs)}`}
                             onClick={() => {
                               if (row.startMs === null) return;
                               handleSeekToMs(api, row.startMs);
@@ -384,23 +435,27 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
                             {formatMs(row.startMs)} - {formatMs(row.endMs)}
                           </Button>
                         </TableCell>
-                        <TableCell className={`${STATE_COLUMN_CLASS} py-0.5`}>
+                        <TableCell className={`${STATE_COLUMN_CLASS}`} style={{ width: STATE_COLUMN_WIDTH, minWidth: STATE_COLUMN_WIDTH }}>
                           <Badge
                             variant="default"
-                            className={getNoteJudgmentClass(row.noteJudgmentKind)}
+                            className={`ml-auto ${getNoteJudgmentClass(row.noteJudgmentKind)}`}
                           >
                             {row.noteJudgmentKind === 'ok' ? 'OK' : row.noteJudgmentKind === 'inaccurate' ? 'Inaccurate' : 'Miss'}
                           </Badge>
                         </TableCell>
                         {CRITERION_COLUMNS.map((column) => (
-                          <TableCell key={column.key} className={CRITERION_CELL_CLASS}>
-                            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-background ring-1 ring-inset ring-black/5">
-                              {renderCriterionStatus(
-                                column.key,
-                                row.noteJudgmentKind,
-                                row.criteria[column.key].pass,
-                              )}
-                            </span>
+                          <TableCell
+                            key={column.key}
+                            className={CRITERION_CELL_CLASS}
+                            style={{ width: CRITERION_COLUMN_WIDTH, minWidth: 0 }}
+                          >
+                            {renderCriterionError(
+                              column.key,
+                              row.noteJudgmentKind,
+                              row.criteria[column.key].error,
+                              row.criteria[column.key].pass,
+                              column.key === 'pitch' ? 'semitones' : column.key === 'velocity' ? 'dB' : 'ms',
+                            )}
                           </TableCell>
                         ))}
                       </TableRow>

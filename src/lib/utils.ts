@@ -23,6 +23,19 @@ export function parseMs(ms: number) {
   };
 }
 
+export function formatNumber(
+  value: number | null,
+  sign = false,
+  unit = '',
+  digits = 1,
+) {
+  if (value === null) return '-';
+  const safeValue = Number.isFinite(value) ? value : 0;
+  const formatted = safeValue.toFixed(digits);
+  const signed = sign && safeValue > 0 ? `+${formatted}` : formatted;
+  return `${signed}${unit ? ` ${unit}` : ''}`;
+}
+
 export function midiToNoteName(midi: number | null | undefined) {
   if (midi == null || !Number.isFinite(midi) || midi < 0) return '-';
   const names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
