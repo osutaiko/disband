@@ -28,9 +28,12 @@ endif()
 set(DISBAND_ANALYSIS_SOURCES
     src/analysis/audio_loader.cpp
     src/analysis/judger.cpp
+    src/analysis/criterion_judgment.cpp
     src/analysis/session_matching.cpp
     src/analysis/judgment_errors/timing.cpp
     src/analysis/judgment_errors/pitch.cpp
+    src/analysis/judgment_errors/session_scan.cpp
+    src/analysis/judgment_errors/velocity.cpp
     src/analysis/note_extraction/aubio_extractor.cpp
     src/analysis/note_extraction/preprocess.cpp
     src/analysis/note_extraction/pitch_utils.cpp

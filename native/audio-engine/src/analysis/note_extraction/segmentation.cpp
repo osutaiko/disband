@@ -1,6 +1,7 @@
 // Core note segmentation logic.
 
 #include "internal.h"
+#include "../judgment_errors/errors.h"
 
 #include <algorithm>
 #include <cmath>
@@ -84,6 +85,13 @@ std::vector<PlayedNote> detectNotes(
 
         if (durationMs >= settings.minNoteMs)
         {
+            const int noteSamples = std::max(1, noteEndSample - noteStartSample);
+            const int velocityWindowSamples = std::max(
+                1,
+                static_cast<int>(std::lround(settings.velocityAnalysisWindowMs * sampleRate / 1000.0)));
+            const int velocitySampleCount = std::min(noteSamples, velocityWindowSamples);
+            const auto windowAnalysis =
+                computeNoteWindowFeatures(workingBuffer, noteStartSample, velocitySampleCount);
             const auto hz = totalWeight > 0.0 ? (weightedHz / totalWeight) : 0.0;
             const int midiRounded = hz > 0.0
                 ? static_cast<int>(std::lround(frequencyToMidi(hz)))
@@ -94,7 +102,8 @@ std::vector<PlayedNote> detectNotes(
                 endMs,
                 hz,
                 midiRounded,
-                confidenceSum / static_cast<double>(std::max(1, confidentFrames))
+                confidenceSum / static_cast<double>(std::max(1, confidentFrames)),
+                windowAnalysis.velocityRms
             });
         }
 

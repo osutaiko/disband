@@ -4,6 +4,7 @@ export type AnalyzedNote = {
   midi: number;
   hz: number;
   confidence: number;
+  velocity: number;
 };
 
 export type NoteJudgmentKind = 'ok' | 'inaccurate' | 'miss' | 'unjudged';

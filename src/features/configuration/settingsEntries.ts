@@ -186,6 +186,15 @@ export const judgmentEntries: SettingsRowConfig<JudgmentSettings>[] = [
     },
   },
   {
+    type: 'field',
+    config: {
+      key: 'velocityAnalysisWindowMs',
+      id: 'velocity-analysis-window-ms',
+      label: 'Velocity Analysis Window (ms)',
+      description: 'Window length from attack to measure note velocity',
+    },
+  },
+  {
     type: 'range',
     config: {
       id: 'velocity-tolerance-mult',

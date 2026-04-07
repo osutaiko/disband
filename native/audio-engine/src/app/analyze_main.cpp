@@ -114,6 +114,7 @@ private:
         judgmentObj->setProperty("attackInaccurateWindowMs", judgmentDefaults.attackInaccurateWindowMs);
         judgmentObj->setProperty("releaseToleranceMs", judgmentDefaults.releaseToleranceMs);
         judgmentObj->setProperty("pitchToleranceSemitones", judgmentDefaults.pitchToleranceSemitones);
+        judgmentObj->setProperty("velocityAnalysisWindowMs", judgmentDefaults.velocityAnalysisWindowMs);
         judgmentObj->setProperty("velocityToleranceMultLower", judgmentDefaults.velocityToleranceMultLower);
         judgmentObj->setProperty("velocityToleranceMultUpper", judgmentDefaults.velocityToleranceMultUpper);
         judgmentObj->setProperty("articulationToleranceMult", judgmentDefaults.articulationToleranceMult);
@@ -184,6 +185,7 @@ private:
             obj->setProperty("midi", p.midi);
             obj->setProperty("hz", p.frequencyHz);
             obj->setProperty("confidence", p.confidence);
+            obj->setProperty("velocity", p.velocity);
             jsonPlayed.add(juce::var(obj));
         }
         rootObj->setProperty("playedNotes", juce::var(jsonPlayed));

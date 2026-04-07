@@ -32,6 +32,7 @@ export type JudgmentSettings = {
   attackInaccurateWindowMs: number;
   releaseToleranceMs: number;
   pitchToleranceSemitones: number;
+  velocityAnalysisWindowMs: number;
   velocityToleranceMultLower: number;
   velocityToleranceMultUpper: number;
   articulationToleranceMult: number;

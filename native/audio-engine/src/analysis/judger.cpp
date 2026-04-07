@@ -30,15 +30,6 @@ namespace disband::session
 {
 namespace
 {
-// Convert error values into CriterionJudgment object
-CriterionJudgment evaluateCriterion(double errorValue, double tolerance)
-{
-    CriterionJudgment evaluation;
-    evaluation.error = errorValue;
-    evaluation.pass = std::abs(errorValue) <= tolerance;
-    return evaluation;
-}
-
 bool isPass(const CriterionJudgment& criterion)
 {
     return criterion.pass.has_value() && *criterion.pass;
@@ -58,6 +49,7 @@ SessionNoteJudgmentResult judgeSession(
 {
     SessionNoteJudgmentResult result;
     result.noteJudgments.resize(referenceNotes.size());
+    const double averageVelocity = getAverageVelocity(playedNotes);
 
     // Get note correspondence mappings
     const SessionMatchingResult matching = sessionMatching(referenceNotes, playedNotes, settings);
@@ -116,11 +108,17 @@ SessionNoteJudgmentResult judgeSession(
 
         const auto& playedNote = playedNotes[static_cast<size_t>(*playedIndex)];
         noteJudgment.attack =
-            evaluateCriterion(getAttackErrorMs(referenceNote, playedNote), settings.attackOkWindowMs);
+            evaluateCriterionAbs(getAttackErrorMs(referenceNote, playedNote), settings.attackOkWindowMs);
         noteJudgment.release =
-            evaluateCriterion(getReleaseErrorMs(referenceNote, playedNote), settings.releaseToleranceMs);
+            evaluateCriterionAbs(getReleaseErrorMs(referenceNote, playedNote), settings.releaseToleranceMs);
         noteJudgment.pitch =
-            evaluateCriterion(getPitchErrorSemitones(referenceNote, playedNote), settings.pitchToleranceSemitones);
+            evaluateCriterionAbs(getPitchErrorSemitones(referenceNote, playedNote), settings.pitchToleranceSemitones);
+        const double velocityMultiplier = getVelocityMultiplier(playedNote, averageVelocity);
+        noteJudgment.velocity = evaluateCriterionRange(
+            velocityMultiplier,
+            settings.velocityToleranceMultLower,
+            settings.velocityToleranceMultUpper);
+        noteJudgment.velocity.error = velocityMultiplier;
 
         const bool pitchWrong = !isPass(noteJudgment.pitch);
         const bool attackOutsideInaccurateWindow = std::abs(*noteJudgment.attack.error) > settings.attackInaccurateWindowMs;

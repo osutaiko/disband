@@ -27,6 +27,7 @@ struct PlayedNote
     double frequencyHz = 0.0;
     int midi = -1;
     double confidence = 0.0;
+    double velocity = 0.0;
 };
 
 // Config used in segmentation
@@ -99,10 +100,14 @@ struct JudgmentSettings
     double attackInaccurateWindowMs = 190.0;
     double releaseToleranceMs = 70.0;
     double pitchToleranceSemitones = 0.3;
+    double velocityAnalysisWindowMs = 20.0;
     double velocityToleranceMultLower = 0.6;
     double velocityToleranceMultUpper = 2.0;
     double articulationToleranceMult = 0.5;
 };
+
+CriterionJudgment evaluateCriterionAbs(double errorValue, double tolerance);
+CriterionJudgment evaluateCriterionRange(double value, double toleranceLower, double toleranceUpper);
 
 SessionMatchingResult sessionMatching(
     const std::vector<ReferenceNote>& referenceNotes,
