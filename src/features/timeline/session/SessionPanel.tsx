@@ -292,7 +292,7 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
       ]}
     >
       {!hasRecording ? (
-        <p className="p-2 pr-4 text-sm text-muted-foreground">
+        <p className="px-2 text-sm text-muted-foreground">
           No recording for this track yet. Record audio with the "
           <Circle className="inline-flex" stroke="red" size={12} />
           " button to see analysis results.

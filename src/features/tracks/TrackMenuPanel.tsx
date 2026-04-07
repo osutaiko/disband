@@ -263,7 +263,7 @@ function TrackMenuPanel() {
       ]}
     >
       {!tracks || tracks.length === 0
-        ? <p className="p-2 text-muted-foreground">No tracks found.</p>
+        ? <p className="px-2 text-muted-foreground">No tracks found.</p>
         : (
           <div className="grid w-72 min-h-full gap-4">
             {selectedTrack && (
