@@ -92,33 +92,7 @@ function AttackScatterDot({
   const regionStyle = REGION_STYLE[payload.region];
 
   return (
-    <g
-      role="button"
-      tabIndex={0}
-      aria-label={`Seek to ${formatSignedMsValue(payload.attackErrorMs)} at ${formatSignedMsValue(payload.timelineMs)}`}
-      style={{ cursor: 'pointer', pointerEvents: 'all' }}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          onSeek();
-        }
-      }}
-    >
-      <circle
-        cx={cx}
-        cy={cy}
-        r={11}
-        fill="rgba(0,0,0,0.001)"
-        stroke="transparent"
-        style={{ pointerEvents: 'all' }}
-        onPointerDown={(event) => {
-          event.preventDefault();
-        }}
-        onClick={(event) => {
-          event.stopPropagation();
-          onSeek();
-        }}
-      />
+    <g className="cursor-pointer" style={{ pointerEvents: 'all' }}>
       <circle
         cx={cx}
         cy={cy}
@@ -126,7 +100,10 @@ function AttackScatterDot({
         fill={regionStyle.fill}
         stroke={regionStyle.stroke}
         strokeWidth={1}
-        pointerEvents="none"
+        style={{ pointerEvents: 'all' }}
+        onPointerDown={() => {
+          onSeek();
+        }}
       />
     </g>
   );
