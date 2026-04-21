@@ -212,7 +212,7 @@ function SettingsWindow() {
               disabled={audioDevices.inputs.length === 0}
             >
               <SelectTrigger className="w-[400px]">
-                <SelectValue placeholder="No device found" />
+                  <SelectValue placeholder="Default Device" />
               </SelectTrigger>
               <SelectContent>
                 {audioDevices.inputs.map((deviceName) => (
@@ -233,7 +233,7 @@ function SettingsWindow() {
               disabled={audioDevices.outputs.length === 0}
             >
               <SelectTrigger className="w-[400px]">
-                <SelectValue placeholder="No device found" />
+                  <SelectValue placeholder="Default Device" />
               </SelectTrigger>
               <SelectContent>
                 {audioDevices.outputs.map((deviceName) => (
