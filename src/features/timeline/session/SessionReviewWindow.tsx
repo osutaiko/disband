@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+﻿import { useMemo, useState } from 'react';
 import { Rnd } from 'react-rnd';
 
 import type { NoteJudgmentKind } from '../../../../shared/types';
@@ -9,6 +9,7 @@ import {
   parseMs,
   type CriterionName,
 } from '@/lib/utils';
+import useConfigStore from '@/store/useConfigStore';
 import useEngineStore from '@/store/useEngineStore';
 import useLibraryStore from '@/store/useLibraryStore';
 import useSessionStore from '@/store/useSessionStore';
@@ -32,9 +33,12 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
+  TableRow,
 } from '@/components/ui/table';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import SessionAttackReviewCharts, {
+  type SessionAttackHistogramViewModel,
+} from '@/features/timeline/session/SessionAttackReviewCharts';
 import { ChevronDown, Filter, X } from 'lucide-react';
 
 type ReviewRow = {
@@ -71,6 +75,59 @@ const STATE_COLUMN_CLASS = 'sticky top-0 px-0 text-center';
 const CRITERION_COLUMN_CLASS = 'sticky top-0 px-0 text-center text-muted-foreground';
 const CRITERION_CELL_CLASS = 'px-0 pr-1 text-right';
 
+type HistogramBin = {
+  centerMs: number;
+  start: number;
+  end: number;
+  count: number;
+};
+
+function buildSignedHistogram(values: number[], binCount = 12) {
+  const validValues = values.filter((value) => Number.isFinite(value));
+
+  if (validValues.length === 0) {
+    return {
+      bins: [] as HistogramBin[],
+      maxCount: 0,
+      min: 0,
+      max: 0,
+    };
+  }
+
+  const effectiveBinCount = binCount % 2 === 0 ? binCount + 1 : binCount;
+  const maxAbs = Math.max(...validValues.map((value) => Math.abs(value)), 1);
+  const range = Math.max(20, maxAbs);
+  const width = (range * 2) / effectiveBinCount;
+  const bins = Array.from({ length: effectiveBinCount }, (_, index) => {
+    const start = -range + (index * width);
+    const end = start + width;
+    return { centerMs: start + (width / 2), start, end, count: 0 };
+  });
+
+  validValues.forEach((value) => {
+    const clampedValue = Math.max(-range, Math.min(range, value));
+    const index = Math.min(
+      effectiveBinCount - 1,
+      Math.max(0, Math.floor((clampedValue + range) / width)),
+    );
+    bins[index].count += 1;
+  });
+
+  return {
+    bins,
+    maxCount: Math.max(...bins.map((bin) => bin.count), 0),
+    min: -range,
+    max: range,
+  };
+}
+
+function getAttackRegion(value: number, okWindowMs: number, inaccurateWindowMs: number): 'ok' | 'inaccurate' | 'miss' {
+  const absValue = Math.abs(value);
+  if (absValue <= okWindowMs) return 'ok';
+  if (absValue <= inaccurateWindowMs) return 'inaccurate';
+  return 'miss';
+}
+
 function formatCriterionError(error: number | null, digits = 1) {
   if (error === null) return '-';
   const value = Number.isFinite(error) ? error : 0;
@@ -88,6 +145,7 @@ function getCriterionUnderlineClass(status: ReturnType<typeof getCriterionJudgme
 function SessionReviewWindow({ onClose }: { onClose: () => void }) {
   const { selectedSong, selectedTrackId } = useLibraryStore();
   const { api, endMs, currentMs } = useEngineStore();
+  const { settings } = useConfigStore();
   const { sessionAnalysisBySelection } = useSessionStore();
   const { noteMarkers } = useAudioAnalysisMarkers(api, selectedTrackId);
   const [selectedNoteJudgmentKinds, setSelectedNoteJudgmentKinds] = useState<Array<Exclude<NoteJudgmentKind, 'unjudged'>>>([
@@ -103,7 +161,6 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
     muting: 'any',
     articulation: 'any',
   });
-
   const selectionId = selectedTrackId === null
     ? null
     : `${selectedSong ?? 'no-song'}::${selectedTrackId}`;
@@ -167,20 +224,70 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
         .every((criterion) => matchesCriterion(criterion, row)));
   }, [noteMarkers, selectedCriteria, selectedNoteJudgmentKinds, sessionAnalysis]);
 
-  const reviewTimelineMarkers = useMemo(() => reviewRows
-    .filter((row) => row.startMs !== null)
-    .map((row) => ({
-      noteJudgmentKind: row.noteJudgmentKind,
-      startMs: row.startMs as number,
-      endMs: row.endMs ?? row.startMs as number,
-    })), [reviewRows]);
+  const attackHistogram = useMemo<SessionAttackHistogramViewModel | null>(() => {
+    const judgmentSettings = settings?.judgment;
+    if (!judgmentSettings) return null;
+
+    const okWindowMs = Math.min(judgmentSettings.attackOkWindowMs, judgmentSettings.attackInaccurateWindowMs);
+    const inaccurateWindowMs = Math.max(judgmentSettings.attackOkWindowMs, judgmentSettings.attackInaccurateWindowMs);
+
+    const attackRows = reviewRows
+      .map((row) => ({
+        ...row,
+        attackErrorMs: row.criteria.attack.error,
+      }))
+      .filter((row): row is ReviewRow & { attackErrorMs: number } => row.attackErrorMs !== null);
+
+    const attackErrors = attackRows.map((row) => row.attackErrorMs);
+    const attackScatterPoints: SessionAttackHistogramViewModel['scatterPoints'] = attackRows
+      .filter((row) => row.referenceMs !== null)
+      .map((row) => ({
+        timelineMs: row.referenceMs as number,
+        attackErrorMs: row.attackErrorMs,
+        judgmentKind: row.noteJudgmentKind as Exclude<NoteJudgmentKind, 'unjudged'>,
+        referenceMs: row.referenceMs as number,
+        region: getAttackRegion(
+          row.attackErrorMs,
+          okWindowMs,
+          inaccurateWindowMs,
+        ),
+      }));
+
+    const histogram = buildSignedHistogram(attackErrors, 49);
+    const bars: SessionAttackHistogramViewModel['bars'] = histogram.bins.map((bin) => ({
+      ...bin,
+      region: getAttackRegion(
+        bin.centerMs,
+        okWindowMs,
+        inaccurateWindowMs,
+      ),
+    }));
+
+    return {
+      ...histogram,
+      bars,
+      scatterPoints: attackScatterPoints,
+      ticks: [
+        -inaccurateWindowMs,
+        -okWindowMs,
+        0,
+        okWindowMs,
+        inaccurateWindowMs,
+      ],
+      okWindowMs,
+      inaccurateWindowMs,
+      totalCount: attackErrors.length,
+    };
+  }, [reviewRows, settings?.judgment]);
 
   const recordedRange = useMemo(() => {
     if (!sessionAnalysis || sessionAnalysis.playedNotes.length === 0) return null;
-    const startMs = sessionAnalysis.playedNotes.reduce((min, note) => Math.min(min, note.startMs), Number.POSITIVE_INFINITY);
-    const endMsValue = sessionAnalysis.playedNotes.reduce((max, note) => Math.max(max, note.endMs), 0);
-    if (!Number.isFinite(startMs) || endMsValue <= startMs) return null;
-    return { startMs, endMs: endMsValue };
+
+    const startMs = Math.min(...sessionAnalysis.playedNotes.map((note) => note.startMs));
+    const endMs = Math.max(...sessionAnalysis.playedNotes.map((note) => note.endMs));
+    if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) return null;
+
+    return { startMs, endMs };
   }, [sessionAnalysis]);
 
   const songLengthMs = endMs;
@@ -322,51 +429,27 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
           </Collapsible>
 
           <section className="flex flex-col gap-2">
+            <h3>Attack Error Histogram</h3>
+            {attackHistogram && (
+              <SessionAttackReviewCharts
+                api={api}
+                currentMs={currentMs}
+                songLengthMs={songLengthMs}
+                recordedRange={recordedRange}
+                attackHistogram={attackHistogram}
+              />
+            )}
+          </section>
+
+          <section className="flex flex-col gap-2">
             <div className="flex flex-row items-end justify-between gap-3">
-              <h3>Timeline</h3>
+              <h3>Notes</h3>
               <div className="text-xs text-muted-foreground">
                 {reviewRows.length} / {sessionAnalysis?.noteJudgments.length ?? '-'} notes
               </div>
             </div>
 
-            <div className="border py-2 rounded-md">
-              <div className="relative w-full h-10 overflow-visible">
-                {recordedRange && (
-                  <div
-                    className="absolute -top-2 -bottom-2 bg-rec-track-bg pointer-events-none z-0"
-                    style={{
-                      left: `${(recordedRange.startMs / Math.max(songLengthMs, 1)) * 100}%`,
-                      width: `${((recordedRange.endMs - recordedRange.startMs) / Math.max(songLengthMs, 1)) * 100}%`,
-                    }}
-                  />
-                )}
-                <div
-                  className="absolute -top-2 -bottom-2 w-px bg-playhead pointer-events-none z-0"
-                  style={{
-                    left: `${Math.max(0, Math.min(1, currentMs / Math.max(songLengthMs, 1))) * 100}%`,
-                  }}
-                />
-                <div className="absolute inset-y-2 left-0 right-0 z-10 bg-muted">
-                  {reviewTimelineMarkers.map((marker, index) => {
-                    const startRatio = Math.max(0, Math.min(1, marker.startMs / Math.max(songLengthMs, 1)));
-                    const endRatio = Math.max(startRatio, Math.min(1, marker.endMs / Math.max(songLengthMs, 1)));
-                    const markerClassName = getNoteJudgmentClass(marker.noteJudgmentKind);
-                    return (
-                      <button
-                        key={`${index}@${marker.startMs}`}
-                        className={`absolute top-0 h-full ${markerClassName}`}
-                        style={{
-                          left: `${startRatio * 100}%`,
-                          width: `${Math.max((endRatio - startRatio) * 100, (1 / Math.max(songLengthMs, 1)) * 100)}%`,
-                        }}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex flex-col rounded-md overflow-hidden overflow-x-auto">
+            <div className="flex flex-col overflow-hidden rounded-md">
               <Table className="table-fixed min-w-[760px]">
                 <colgroup>
                   <col style={{ width: REFERENCE_COLUMN_WIDTH }} />
@@ -376,11 +459,14 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
                     <col key={column.key} style={{ width: CRITERION_COLUMN_WIDTH }} />
                   ))}
                 </colgroup>
-                <TableHeader className="uppercase tracking-widest bg-accent">
+                <TableHeader className="bg-accent uppercase tracking-widest">
                   <TableRow>
                     <TableHead className="sticky top-0">Reference</TableHead>
                     <TableHead className="sticky top-0">Recorded</TableHead>
-                    <TableHead className={`${STATE_COLUMN_CLASS}`} style={{ width: STATE_COLUMN_WIDTH, minWidth: STATE_COLUMN_WIDTH }}>
+                    <TableHead
+                      className={STATE_COLUMN_CLASS}
+                      style={{ width: STATE_COLUMN_WIDTH, minWidth: STATE_COLUMN_WIDTH }}
+                    >
                       State
                     </TableHead>
                     {CRITERION_COLUMNS.map((column) => (
