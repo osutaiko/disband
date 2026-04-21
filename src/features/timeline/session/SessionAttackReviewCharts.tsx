@@ -151,7 +151,10 @@ export default function SessionAttackReviewCharts({
         <div className="relative grid h-[300px] grid-cols-[minmax(0,1fr)_3rem] gap-1">
           <div className="min-w-0">
             <ResponsiveContainer width="100%" height="100%">
-              <ScatterChart margin={{ top: 20, right: 8, bottom: 10, left: -8 }}>
+              <ScatterChart
+                margin={{ top: 20, right: 8, bottom: 10, left: -8 }}
+                accessibilityLayer={false}
+              >
                 <XAxis
                   dataKey="timelineMs"
                   type="number"
@@ -229,6 +232,7 @@ export default function SessionAttackReviewCharts({
                 data={attackHistogram.bars}
                 layout="vertical"
                 margin={{ top: 20, right: 0, bottom: 10, left: 0 }}
+                accessibilityLayer={false}
               >
                 <XAxis
                   type="number"
