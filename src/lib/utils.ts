@@ -23,6 +23,12 @@ export function parseMs(ms: number) {
   };
 }
 
+export function formatMs(ms: number | null) {
+  if (ms === null) return '';
+  const parsed = parseMs(ms);
+  return `${parsed.minutes}:${parsed.seconds.toString().padStart(2, '0')}.${parsed.milliseconds.toString().padStart(3, '0')}`;
+}
+
 export function formatNumber(
   value: number | null,
   sign = false,

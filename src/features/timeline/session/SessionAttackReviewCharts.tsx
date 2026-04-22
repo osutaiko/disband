@@ -1,4 +1,4 @@
-import { getCssColor, parseMs } from '@/lib/utils';
+import { formatMs, formatNumber, getCssColor } from '@/lib/utils';
 import { handleSeekToMs } from '@/features/engine/playback';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -46,17 +46,6 @@ export type SessionAttackHistogramViewModel = {
   max: number;
   maxCount: number;
 };
-
-function formatSignedMsValue(ms: number) {
-  const sign = ms > 0 ? '+' : '';
-  return `${sign}${ms.toFixed(0)} ms`;
-}
-
-function formatMs(ms: number | null) {
-  if (ms === null) return '';
-  const parsed = parseMs(ms);
-  return `${parsed.minutes}:${parsed.seconds.toString().padStart(2, '0')}.${parsed.milliseconds.toString().padStart(3, '0')}`;
-}
 
 const REGION_STYLE = {
   ok: {
@@ -147,7 +136,7 @@ export default function SessionAttackReviewCharts({
                   domain={[attackHistogram.min, attackHistogram.max]}
                   ticks={attackHistogram.ticks}
                   interval={0}
-                  tickFormatter={(value) => (value === 0 ? '0' : `${value > 0 ? '+' : ''}${Math.round(value)}`)}
+                  tickFormatter={(value) => formatNumber(value, true)}
                   stroke={getCssColor('--muted-foreground')}
                   tick={{ fontSize: 11 }}
                   tickMargin={6}

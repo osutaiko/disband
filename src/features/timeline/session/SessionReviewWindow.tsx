@@ -5,8 +5,8 @@ import type { NoteJudgmentKind } from '../../../../shared/types';
 import { getNoteJudgmentClass } from '@/lib/noteJudgmentClasses';
 import {
   getCriterionJudgmentStatus,
+  formatMs,
   formatNumber,
-  parseMs,
   type CriterionName,
 } from '@/lib/utils';
 import useConfigStore from '@/store/useConfigStore';
@@ -291,12 +291,6 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
   }, [sessionAnalysis]);
 
   const songLengthMs = endMs;
-
-  const formatMs = (ms: number | null) => {
-    if (ms === null) return '';
-    const parsed = parseMs(ms);
-    return `${parsed.minutes}:${parsed.seconds.toString().padStart(2, '0')}.${parsed.milliseconds.toString().padStart(3, '0')}`;
-  };
 
   const renderCriterionError = (
     criterion: CriterionName,
