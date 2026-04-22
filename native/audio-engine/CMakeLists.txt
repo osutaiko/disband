@@ -57,7 +57,7 @@ juce_add_console_app(disband-audio-capture
 
 target_sources(disband-audio-capture PRIVATE
     src/app/capture_main.cpp
-    src/app/log.cpp
+    src/common/log.cpp
 )
 
 target_link_libraries(disband-audio-capture PRIVATE
@@ -76,7 +76,8 @@ juce_add_console_app(disband-audio-analyze
 
 target_sources(disband-audio-analyze PRIVATE
     src/app/analyze_main.cpp
-    src/app/log.cpp
+    src/json/json.cpp
+    src/common/log.cpp
     ${DISBAND_ANALYSIS_SOURCES}
 )
 

@@ -10,7 +10,7 @@
 #include <string>
 #include <thread>
 
-#include "log.h"
+#include "common/log.h"
 
 namespace disband::audio_capture
 {
