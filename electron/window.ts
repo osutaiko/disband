@@ -1,6 +1,12 @@
 import { BrowserWindow } from 'electron';
 import path from 'node:path';
 
+function getWindowIconPath(viteDevServerUrl: string | undefined, appRoot: string) {
+  return viteDevServerUrl
+    ? path.join(appRoot, 'public', 'disband.png')
+    : path.join(appRoot, 'dist', 'disband.png');
+}
+
 function loadRendererWindow(win: BrowserWindow, viteDevServerUrl: string | undefined, appRoot: string, query?: string) {
   if (viteDevServerUrl) {
     const url = new URL(viteDevServerUrl);
@@ -27,6 +33,7 @@ export function createWindow({
     minWidth: 1280,
     minHeight: 720,
     show: false,
+    icon: getWindowIconPath(viteDevServerUrl, appRoot),
     webPreferences: {
       preload: path.join(dirName, 'preload.mjs'),
       contextIsolation: true,
@@ -62,6 +69,7 @@ export function createSettingsWindow({
     show: false,
     autoHideMenuBar: true,
     title: process.platform === 'darwin' ? 'Preferences' : 'Settings',
+    icon: getWindowIconPath(viteDevServerUrl, appRoot),
     webPreferences: {
       preload: path.join(dirName, 'preload.mjs'),
     },

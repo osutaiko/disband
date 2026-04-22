@@ -7,6 +7,7 @@
   "directories": {
     "output": "release/${version}"
   },
+  "icon": "public/disband.png",
   "files": [
     "dist",
     "dist-electron"
