@@ -6,10 +6,11 @@
 #include <juce_core/juce_core.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include <cstdarg>
 #include <cstdio>
 #include <string>
 #include <thread>
+
+#include "log.h"
 
 namespace disband::audio_capture
 {
@@ -34,16 +35,6 @@ juce::String decodeBase64Arg(const juce::String& encoded)
 constexpr double kSampleRate = 48000.0;
 constexpr unsigned int kChannels = 1;
 constexpr int kBitsPerSample = 16;
-
-void log(const char* format, ...)
-{
-    std::fprintf(stderr, "[audio-capture] ");
-    va_list args;
-    va_start(args, format);
-    std::vfprintf(stderr, format, args);
-    va_end(args);
-    std::fflush(stderr);
-}
 
 CommandLineOptions parseCommandLineOptions()
 {
@@ -190,7 +181,7 @@ public:
 
         deviceManager.addAudioCallback(&recorder);
         controlThread = std::thread([this] { controlLoopServer(); });
-        log("recording server ready\n");
+        disband::app::log("audio-capture", "recording server ready\n");
     }
 
     void shutdown() override
@@ -253,14 +244,14 @@ private:
         const auto initResult = deviceManager.initialise(1, 0, nullptr, true);
         if (initResult.isNotEmpty())
         {
-            log("device init failed: %s\n", initResult.toRawUTF8());
+            disband::app::log("audio-capture", "device init failed: %s\n", initResult.toRawUTF8());
             return false;
         }
 
         configureDevice(options);
         if (deviceManager.getCurrentAudioDevice() == nullptr)
         {
-            log("no audio device available\n");
+            disband::app::log("audio-capture", "no audio device available\n");
             return false;
         }
 
@@ -279,7 +270,7 @@ private:
         setup.bufferSize = 128;
         const auto result = deviceManager.setAudioDeviceSetup(setup, true);
         if (result.isNotEmpty())
-            log("device setup failed: %s\n", result.toRawUTF8());
+            disband::app::log("audio-capture", "device setup failed: %s\n", result.toRawUTF8());
     }
 
     void controlLoopServer()
@@ -290,7 +281,7 @@ private:
             if (line == "stop")
             {
                 recorder.stopRecording();
-                log("recording stopped\n");
+                disband::app::log("audio-capture", "recording stopped\n");
                 continue;
             }
 
@@ -302,15 +293,15 @@ private:
                 const auto output = juce::String(line.substr(6));
                 if (output.isEmpty())
                 {
-                    log("start failed: missing output path\n");
+                    disband::app::log("audio-capture", "start failed: missing output path\n");
                     continue;
                 }
 
                 const auto ok = recorder.startRecording(juce::File(output));
                 if (ok)
-                    log("recording output=\"%s\"\n", output.toRawUTF8());
+                    disband::app::log("audio-capture", "recording output=\"%s\"\n", output.toRawUTF8());
                 else
-                    log("start failed: could not open output file\n");
+                    disband::app::log("audio-capture", "start failed: could not open output file\n");
             }
         }
 

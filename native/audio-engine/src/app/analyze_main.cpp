@@ -4,9 +4,9 @@
 #include <juce_core/juce_core.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "log.h"
 #include "analysis/session.h"
 
-#include <cstdarg>
 #include <cstdio>
 #include <iostream>
 #include <iterator>
@@ -21,16 +21,6 @@ struct CommandLineOptions
     juce::String analysisPath;
     bool printDefaultSettings = false;
 };
-
-void log(const char* format, ...)
-{
-    std::fprintf(stderr, "[audio-analyze] ");
-    va_list args;
-    va_start(args, format);
-    std::vfprintf(stderr, format, args);
-    va_end(args);
-    std::fflush(stderr);
-}
 
 CommandLineOptions parseCommandLineOptions()
 {
@@ -66,7 +56,7 @@ public:
         }
         if (options.analysisPath.isEmpty())
         {
-            log("missing --analyze-wav path\n");
+            disband::app::log("audio-analyze", "missing --analyze-wav path\n");
             setApplicationReturnValue(1);
             quit();
             return;
@@ -133,7 +123,7 @@ private:
         if (!disband::session::loadMonoWavFile(
                 juce::File(wavPath), monoBuffer, sampleRate, error))
         {
-            log("analysis failed: %s\n", error.toRawUTF8());
+            disband::app::log("audio-analyze", "analysis failed: %s\n", error.toRawUTF8());
             setApplicationReturnValue(1);
             return;
         }
