@@ -6,6 +6,37 @@
 
 namespace disband::app
 {
+namespace
+{
+juce::var toCriterionVar(const disband::session::CriterionJudgment& criterion)
+{
+    auto* cobj = new juce::DynamicObject();
+    cobj->setProperty(
+        "error",
+        criterion.error.has_value() ? juce::var(*criterion.error) : juce::var());
+    cobj->setProperty(
+        "pass",
+        criterion.pass.has_value() ? juce::var(*criterion.pass) : juce::var());
+    return juce::var(cobj);
+}
+
+juce::String toKindString(disband::session::NoteJudgmentKind kind)
+{
+    switch (kind)
+    {
+    case disband::session::NoteJudgmentKind::Ok:
+        return "ok";
+    case disband::session::NoteJudgmentKind::Inaccurate:
+        return "inaccurate";
+    case disband::session::NoteJudgmentKind::Miss:
+        return "miss";
+    case disband::session::NoteJudgmentKind::Unjudged:
+    default:
+        return "unjudged";
+    }
+}
+} // namespace
+
 juce::String buildDefaultSettingsJson()
 {
     const disband::session::DetectionSettings detectionDefaults;
@@ -75,33 +106,6 @@ juce::String buildAnalysisResultJson(
     for (const auto& noteJudgment : sessionNoteJudgment.noteJudgments)
     {
         auto* obj = new juce::DynamicObject();
-        auto toCriterionVar = [](const disband::session::CriterionJudgment& criterion) -> juce::var
-        {
-            auto* cobj = new juce::DynamicObject();
-            cobj->setProperty(
-                "error",
-                criterion.error.has_value() ? juce::var(*criterion.error) : juce::var());
-            cobj->setProperty(
-                "pass",
-                criterion.pass.has_value() ? juce::var(*criterion.pass) : juce::var());
-            return juce::var(cobj);
-        };
-        auto toKindString = [](disband::session::NoteJudgmentKind kind) -> juce::String
-        {
-            switch (kind)
-            {
-            case disband::session::NoteJudgmentKind::Ok:
-                return "ok";
-            case disband::session::NoteJudgmentKind::Inaccurate:
-                return "inaccurate";
-            case disband::session::NoteJudgmentKind::Miss:
-                return "miss";
-            case disband::session::NoteJudgmentKind::Unjudged:
-            default:
-                return "unjudged";
-            }
-        };
-
         obj->setProperty("referenceIndex", noteJudgment.referenceIndex);
         obj->setProperty(
             "playedIndex",
