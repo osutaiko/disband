@@ -1,4 +1,4 @@
-import { formatMs, formatNumber, getCssColor } from '@/lib/utils';
+import { formatMs, formatNumber } from '@/lib/utils';
 import { handleSeekToMs } from '@/features/engine/playback';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -49,19 +49,19 @@ export type SessionAttackHistogramViewModel = {
 
 const REGION_STYLE = {
   ok: {
-    fill: getCssColor('--note-ok-bg'),
-    stroke: getCssColor('--note-ok'),
-    barFill: getCssColor('--note-ok-bg'),
+    fill: 'var(--note-ok-bg)',
+    stroke: 'var(--note-ok)',
+    barFill: 'var(--note-ok-bg)',
   },
   inaccurate: {
-    fill: getCssColor('--note-inacc-bg'),
-    stroke: getCssColor('--note-inacc'),
-    barFill: getCssColor('--note-inacc-bg'),
+    fill: 'var(--note-inacc-bg)',
+    stroke: 'var(--note-inacc)',
+    barFill: 'var(--note-inacc-bg)',
   },
   miss: {
-    fill: getCssColor('--note-miss-bg'),
-    stroke: getCssColor('--note-miss'),
-    barFill: getCssColor('--note-miss-bg'),
+    fill: 'var(--note-miss-bg)',
+    stroke: 'var(--note-miss)',
+    barFill: 'var(--note-miss-bg)',
   },
 } as const;
 
@@ -126,7 +126,7 @@ export default function SessionAttackReviewCharts({
                   type="number"
                   domain={[0, songLengthMs]}
                   tickFormatter={formatMs}
-                  stroke={getCssColor('--muted-foreground')}
+                  stroke="var(--muted-foreground)"
                   tick={{ fontSize: 11 }}
                   tickMargin={6}
                 />
@@ -137,26 +137,26 @@ export default function SessionAttackReviewCharts({
                   ticks={attackHistogram.ticks}
                   interval={0}
                   tickFormatter={(value) => formatNumber(value, true)}
-                  stroke={getCssColor('--muted-foreground')}
+                  stroke="var(--muted-foreground)"
                   tick={{ fontSize: 11 }}
                   tickMargin={6}
                 />
                 <ReferenceArea
                   y1={-attackHistogram.okWindowMs}
                   y2={attackHistogram.okWindowMs}
-                  fill={getCssColor('--note-ok-bg')}
+                  fill="var(--note-ok-bg)"
                   fillOpacity={0.26}
                 />
                 <ReferenceArea
                   y1={-attackHistogram.inaccurateWindowMs}
                   y2={-attackHistogram.okWindowMs}
-                  fill={getCssColor('--note-inacc-bg')}
+                  fill="var(--note-inacc-bg)"
                   fillOpacity={0.22}
                 />
                 <ReferenceArea
                   y1={attackHistogram.okWindowMs}
                   y2={attackHistogram.inaccurateWindowMs}
-                  fill={getCssColor('--note-inacc-bg')}
+                  fill="var(--note-inacc-bg)"
                   fillOpacity={0.22}
                 />
                 {recordedRange ? (
@@ -165,16 +165,16 @@ export default function SessionAttackReviewCharts({
                     x2={recordedRange.endMs}
                     y1={attackHistogram.min}
                     y2={attackHistogram.max}
-                    fill={getCssColor('--rec-track-bg')}
+                    fill="var(--rec-track-bg)"
                     fillOpacity={0.6}
                   />
                 ) : null}
-                <ReferenceLine y={0} stroke={getCssColor('--note-ok')} strokeDasharray="3 3" />
-                <ReferenceLine y={attackHistogram.okWindowMs} stroke={getCssColor('--note-ok')} />
-                <ReferenceLine y={-attackHistogram.okWindowMs} stroke={getCssColor('--note-ok')} />
-                <ReferenceLine y={attackHistogram.inaccurateWindowMs} stroke={getCssColor('--note-inacc')} />
-                <ReferenceLine y={-attackHistogram.inaccurateWindowMs} stroke={getCssColor('--note-inacc')} />
-                <ReferenceLine x={currentMs} stroke={getCssColor('--playhead')} strokeWidth={1} />
+                <ReferenceLine y={0} stroke="var(--note-ok)" strokeDasharray="3 3" />
+                <ReferenceLine y={attackHistogram.okWindowMs} stroke="var(--note-ok)" />
+                <ReferenceLine y={-attackHistogram.okWindowMs} stroke="var(--note-ok)" />
+                <ReferenceLine y={attackHistogram.inaccurateWindowMs} stroke="var(--note-inacc)" />
+                <ReferenceLine y={-attackHistogram.inaccurateWindowMs} stroke="var(--note-inacc)" />
+                <ReferenceLine x={currentMs} stroke="var(--playhead)" strokeWidth={1} />
                 <Scatter
                   data={attackHistogram.scatterPoints}
                   isAnimationActive={false}
