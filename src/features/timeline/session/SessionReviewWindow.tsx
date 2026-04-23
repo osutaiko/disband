@@ -301,13 +301,19 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
   ) => {
     const criterionJudgmentStatus = getCriterionJudgmentStatus({ criterion, noteJudgmentKind, pass });
     const underlineClassName = getCriterionUnderlineClass(criterionJudgmentStatus);
-    const digits = criterion === 'pitch' ? 0 : 1;
+    const digits = criterion === 'articulation' ? 3 : (criterion === 'pitch' ? 0 : 1);
+    const showSign = criterion !== 'articulation';
+    const tooltip = criterion === 'articulation'
+      ? formatNumber(error, false, '', 3)
+      : formatNumber(error, showSign, unit, digits);
     return (
       <span
-        title={formatNumber(error, true, unit, digits)}
+        title={tooltip}
         className={`inline-flex w-full items-center justify-end border-b-2 pb-0.5 pr-1 text-right text-[10px] leading-none ${underlineClassName}`}
       >
-        {formatCriterionError(error, digits)}
+        {criterion === 'articulation'
+          ? formatNumber(error, false, '', 3)
+          : formatCriterionError(error, digits)}
       </span>
     );
   };
