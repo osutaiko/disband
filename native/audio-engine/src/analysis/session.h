@@ -105,7 +105,7 @@ struct JudgmentSettings
     double pitchToleranceSemitones = 0.3;
     double velocityToleranceDbLower = -4.4;
     double velocityToleranceDbUpper = 6.0;
-    double articulationToleranceMult = 0.5;
+    double articulationToleranceScore = 0.5;
 };
 
 CriterionJudgment evaluateCriterionAbs(double errorValue, double tolerance);

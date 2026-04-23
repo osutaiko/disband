@@ -30,6 +30,40 @@ namespace disband::session
 {
 namespace
 {
+std::vector<double> getArticulationReferenceProfile(const std::vector<PlayedNote>& playedNotes)
+{
+    std::vector<const std::vector<double>*> profiles;
+    profiles.reserve(playedNotes.size());
+    for (const auto& played : playedNotes)
+    {
+        if (!played.waveformProfile.empty())
+            profiles.push_back(&played.waveformProfile);
+    }
+
+    if (profiles.empty())
+        return {};
+
+    size_t profileLength = profiles.front()->size();
+    for (const auto* profile : profiles)
+        profileLength = std::min(profileLength, profile->size());
+
+    if (profileLength == 0)
+        return {};
+
+    std::vector<double> referenceProfile(profileLength, 0.0);
+    for (const auto* profile : profiles)
+    {
+        for (size_t i = 0; i < profileLength; ++i)
+            referenceProfile[i] += (*profile)[i];
+    }
+
+    const double profileCount = static_cast<double>(profiles.size());
+    for (double& value : referenceProfile)
+        value /= profileCount;
+
+    return referenceProfile;
+}
+
 bool isPass(const CriterionJudgment& criterion)
 {
     return criterion.pass.has_value() && *criterion.pass;
@@ -50,6 +84,7 @@ SessionNoteJudgmentResult judgeSession(
     SessionNoteJudgmentResult result;
     result.noteJudgments.resize(referenceNotes.size());
     const double averageVelocity = getAverageVelocity(playedNotes);
+    const std::vector<double> articulationReferenceProfile = getArticulationReferenceProfile(playedNotes);
 
     // Get note correspondence mappings
     const SessionMatchingResult matching = sessionMatching(referenceNotes, playedNotes, settings);
@@ -119,6 +154,11 @@ SessionNoteJudgmentResult judgeSession(
             settings.velocityToleranceDbLower,
             settings.velocityToleranceDbUpper);
         noteJudgment.velocity.error = velocityDbDifference;
+        const double articulationScore = getArticulationErrorScore(playedNote, articulationReferenceProfile);
+        noteJudgment.articulation = evaluateCriterionAbs(
+            articulationScore,
+            settings.articulationToleranceError);
+        noteJudgment.articulation.error = articulationScore;
 
         const bool pitchWrong = !isPass(noteJudgment.pitch);
         const bool attackOutsideInaccurateWindow = std::abs(*noteJudgment.attack.error) > settings.attackInaccurateWindowMs;
