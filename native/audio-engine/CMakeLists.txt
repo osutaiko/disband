@@ -32,6 +32,7 @@ set(DISBAND_ANALYSIS_SOURCES
     src/analysis/session_matching.cpp
     src/analysis/judgment_errors/timing.cpp
     src/analysis/judgment_errors/pitch.cpp
+    src/analysis/judgment_errors/articulation.cpp
     src/analysis/judgment_errors/session_scan.cpp
     src/analysis/judgment_errors/velocity.cpp
     src/analysis/note_extraction/aubio_extractor.cpp
