@@ -16,6 +16,77 @@ constexpr double kPitchSplitMidiDelta = 1.2;
 constexpr int kPitchSplitFrames = 2;
 constexpr double kMinSplitIntervalMs = 25.0;
 constexpr int kLowEnergyEndFrames = 2;
+
+std::vector<double> normalizeCycle(std::vector<double> cycle)
+{
+    if (cycle.empty())
+        return cycle;
+
+    double mean = 0.0;
+    for (double value : cycle)
+        mean += value;
+    mean /= static_cast<double>(cycle.size());
+
+    double sumSquares = 0.0;
+    for (double value : cycle)
+    {
+        const double centered = value - mean;
+        sumSquares += centered * centered;
+    }
+
+    const double rms = std::sqrt(sumSquares / static_cast<double>(std::max<size_t>(1, cycle.size())));
+    if (rms <= std::numeric_limits<double>::epsilon())
+    {
+        std::fill(cycle.begin(), cycle.end(), 0.0);
+        return cycle;
+    }
+
+    for (double& value : cycle)
+        value = (value - mean) / rms;
+
+    return cycle;
+}
+
+std::vector<double> computeWaveformProfile(
+    const juce::AudioBuffer<float>& workingBuffer,
+    int startSample,
+    int sampleCount,
+    double sampleRate,
+    double frequencyHz,
+    int cycleCount)
+{
+    if (workingBuffer.getNumChannels() <= 0 || workingBuffer.getNumSamples() <= 0)
+        return {};
+    if (startSample < 0 || sampleCount <= 0 || sampleRate <= 0.0 || frequencyHz <= 0.0 || cycleCount <= 0)
+        return {};
+
+    const int periodSamples = std::max(1, static_cast<int>(std::lround(sampleRate / frequencyHz)));
+    const int endSample = std::min(startSample + sampleCount, workingBuffer.getNumSamples());
+    const int availableSamples = endSample - startSample;
+    const int availableCycles = availableSamples / periodSamples;
+    const int cyclesToUse = std::min(cycleCount, availableCycles);
+    if (cyclesToUse <= 0)
+        return {};
+
+    const float* samples = workingBuffer.getReadPointer(0);
+    std::vector<double> profile(static_cast<size_t>(periodSamples), 0.0);
+    for (int cycle = 0; cycle < cyclesToUse; ++cycle)
+    {
+        const int cycleStart = startSample + (cycle * periodSamples);
+        std::vector<double> cycleProfile(static_cast<size_t>(periodSamples), 0.0);
+        for (int i = 0; i < periodSamples; ++i)
+            cycleProfile[static_cast<size_t>(i)] = static_cast<double>(samples[cycleStart + i]);
+
+        cycleProfile = normalizeCycle(std::move(cycleProfile));
+        for (int i = 0; i < periodSamples; ++i)
+            profile[static_cast<size_t>(i)] += cycleProfile[static_cast<size_t>(i)];
+    }
+
+    for (double& value : profile)
+        value /= static_cast<double>(cyclesToUse);
+
+    return profile;
+}
 } // namespace
 
 std::vector<PlayedNote> detectNotes(
@@ -96,6 +167,13 @@ std::vector<PlayedNote> detectNotes(
             const int midiRounded = hz > 0.0
                 ? static_cast<int>(std::lround(frequencyToMidi(hz)))
                 : -1;
+            const auto waveformProfile = computeWaveformProfile(
+                workingBuffer,
+                noteStartSample,
+                velocitySampleCount,
+                sampleRate,
+                hz,
+                settings.waveformProfileCycleCount);
 
             notes.push_back({
                 startMs,
@@ -103,7 +181,8 @@ std::vector<PlayedNote> detectNotes(
                 hz,
                 midiRounded,
                 confidenceSum / static_cast<double>(std::max(1, confidentFrames)),
-                windowAnalysis.velocityRms
+                windowAnalysis.velocityRms,
+                std::move(waveformProfile)
             });
         }
 
