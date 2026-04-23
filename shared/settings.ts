@@ -35,7 +35,7 @@ export type JudgmentSettings = {
   pitchToleranceSemitones: number;
   velocityToleranceDbLower: number;
   velocityToleranceDbUpper: number;
-  articulationToleranceMult: number;
+  articulationToleranceScore: number;
 };
 
 export type AppSettings = {

@@ -157,7 +157,7 @@ SessionNoteJudgmentResult judgeSession(
         const double articulationScore = getArticulationErrorScore(playedNote, articulationReferenceProfile);
         noteJudgment.articulation = evaluateCriterionAbs(
             articulationScore,
-            settings.articulationToleranceError);
+            settings.articulationToleranceScore);
         noteJudgment.articulation.error = articulationScore;
 
         const bool pitchWrong = !isPass(noteJudgment.pitch);

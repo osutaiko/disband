@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { Circle, Diamond, Search } from 'lucide-react';
 import useLibraryStore from '@/store/useLibraryStore';
 import useSessionStore from '@/store/useSessionStore';
-import { valsStdDev, valsTruncatedMean } from '@/lib/utils';
+import { formatMs, formatNumber, valsStdDev, valsTruncatedMean } from '@/lib/utils';
 
 import Panel from '@/components/ui/Panel';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -26,22 +26,6 @@ function DataCountRow({
       <span className="text-sm">{content}</span>
     </div>
   );
-}
-
-function formatDurationMs(durationMs: number): string {
-  const safeMs = Math.max(0, Math.round(durationMs));
-  const minutes = Math.floor(safeMs / 60000);
-  const seconds = Math.floor((safeMs % 60000) / 1000);
-  const millis = safeMs % 1000;
-  return `${minutes}:${String(seconds).padStart(2, '0')}.${String(millis).padStart(3, '0')}`;
-}
-
-function formatDbValue(db: number | null): string {
-  return db === null ? '-' : `${Math.abs(db).toFixed(1)} dB`;
-}
-
-function formatMsValue(ms: number | null): string {
-  return ms === null ? '-' : `${Math.abs(ms).toFixed(1)} ms`;
 }
 
 function getErrorStats(errors: Array<number | null>) {
@@ -170,7 +154,7 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
       key: 'recording-length',
       name: 'Recording Length',
       description: 'Total recording duration',
-      content: formatDurationMs(recordingLengthMs),
+      content: formatMs(recordingLengthMs),
     },
     {
       key: 'accuracy',
@@ -204,8 +188,8 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
           description: 'Attack outside the acceptable window',
           count: breakdownStats.attackMiss.count,
           percent: formatBreakdownPercent(breakdownStats.attackMiss.count),
-          average: formatMsValue(breakdownStats.attackMiss.average),
-          worst: formatMsValue(breakdownStats.attackMiss.worst),
+          average: formatMs(breakdownStats.attackMiss.average),
+          worst: formatMs(breakdownStats.attackMiss.worst),
         },
         {
           value: 'pitch-miss',
@@ -213,8 +197,8 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
           description: 'Note played with the wrong pitch',
           count: breakdownStats.pitchMiss.count,
           percent: formatBreakdownPercent(breakdownStats.pitchMiss.count),
-          average: formatMsValue(breakdownStats.pitchMiss.average),
-          worst: formatMsValue(breakdownStats.pitchMiss.worst),
+          average: formatMs(breakdownStats.pitchMiss.average),
+          worst: formatMs(breakdownStats.pitchMiss.worst),
         },
       ],
     },
@@ -229,8 +213,8 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
           description: 'Note attack timing that is off but still within a reasonable window',
           count: breakdownStats.attackInaccurate.count,
           percent: formatBreakdownPercent(breakdownStats.attackInaccurate.count),
-          average: formatMsValue(breakdownStats.attackInaccurate.average),
-          worst: formatMsValue(breakdownStats.attackInaccurate.worst),
+          average: formatMs(breakdownStats.attackInaccurate.average),
+          worst: formatMs(breakdownStats.attackInaccurate.worst),
         },
         {
           value: 'release-fail',
@@ -238,8 +222,8 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
           description: 'Inaccurate note release timing',
           count: breakdownStats.release.count,
           percent: formatBreakdownPercent(breakdownStats.release.count),
-          average: formatMsValue(breakdownStats.release.average),
-          worst: formatMsValue(breakdownStats.release.worst),
+          average: formatMs(breakdownStats.release.average),
+          worst: formatMs(breakdownStats.release.worst),
         },
         {
           value: 'muting-fail',
@@ -247,8 +231,8 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
           description: 'Failure to mute properly with audible unintentionally ringing notes',
           count: breakdownStats.muting.count,
           percent: formatBreakdownPercent(breakdownStats.muting.count),
-          average: formatMsValue(breakdownStats.muting.average),
-          worst: formatMsValue(breakdownStats.muting.worst),
+          average: formatMs(breakdownStats.muting.average),
+          worst: formatMs(breakdownStats.muting.worst),
         },
         {
           value: 'articulation-fail',
@@ -256,8 +240,8 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
           description: 'Outlier waveform compared to the rest of the song',
           count: breakdownStats.articulation.count,
           percent: formatBreakdownPercent(breakdownStats.articulation.count),
-          average: formatMsValue(breakdownStats.articulation.average),
-          worst: formatMsValue(breakdownStats.articulation.worst),
+          average: formatNumber(breakdownStats.articulation.average, false, '', 1),
+          worst: formatNumber(breakdownStats.articulation.worst, false, '', 1),
         },
       ],
     },
@@ -272,8 +256,8 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
           description: 'Outlier velocity (either too loud or too quiet) compared to the rest of the song',
           count: breakdownStats.velocity.count,
           percent: formatBreakdownPercent(breakdownStats.velocity.count),
-          average: formatDbValue(breakdownStats.velocity.average),
-          worst: formatDbValue(breakdownStats.velocity.worst),
+          average: formatNumber(breakdownStats.velocity.average, false, 'dB', 1),
+          worst: formatNumber(breakdownStats.velocity.worst, false, 'dB', 1),
         },
       ],
     },
