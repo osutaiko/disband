@@ -5,9 +5,9 @@
 
 namespace disband::session
 {
-double getAttackErrorMs(const ReferenceNote& referenceNote, const PlayedNote& playedNote);
-double getReleaseErrorMs(const ReferenceNote& referenceNote, const PlayedNote& playedNote);
-double getPitchErrorSemitones(const ReferenceNote& referenceNote, const PlayedNote& playedNote);
+double getAttackErrorMs(const PlayedNote& playedNote, const ReferenceNote& referenceNote);
+double getReleaseErrorMs(const PlayedNote& playedNote, const ReferenceNote& referenceNote);
+double getPitchErrorSemitones(const PlayedNote& playedNote, const ReferenceNote& referenceNote);
 double getVelocityDbDifference(const PlayedNote& playedNote, double averageVelocity);
 double getArticulationErrorScore(const PlayedNote& playedNote, const std::vector<double>& referenceProfile);
 } // namespace disband::session

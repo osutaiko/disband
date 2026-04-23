@@ -108,11 +108,11 @@ SessionNoteJudgmentResult judgeSession(
 
         const auto& playedNote = playedNotes[static_cast<size_t>(*playedIndex)];
         noteJudgment.attack =
-            evaluateCriterionAbs(getAttackErrorMs(referenceNote, playedNote), settings.attackOkWindowMs);
+            evaluateCriterionAbs(getAttackErrorMs(playedNote, referenceNote), settings.attackOkWindowMs);
         noteJudgment.release =
-            evaluateCriterionAbs(getReleaseErrorMs(referenceNote, playedNote), settings.releaseToleranceMs);
+            evaluateCriterionAbs(getReleaseErrorMs(playedNote, referenceNote), settings.releaseToleranceMs);
         noteJudgment.pitch =
-            evaluateCriterionAbs(getPitchErrorSemitones(referenceNote, playedNote), settings.pitchToleranceSemitones);
+            evaluateCriterionAbs(getPitchErrorSemitones(playedNote, referenceNote), settings.pitchToleranceSemitones);
         const double velocityDbDifference = getVelocityDbDifference(playedNote, averageVelocity);
         noteJudgment.velocity = evaluateCriterionRange(
             velocityDbDifference,

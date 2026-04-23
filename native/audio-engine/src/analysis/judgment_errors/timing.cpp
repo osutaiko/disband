@@ -33,12 +33,12 @@ double smoothstep01(double t)
 }
 } // namespace
 
-double getAttackErrorMs(const ReferenceNote& referenceNote, const PlayedNote& playedNote)
+double getAttackErrorMs(const PlayedNote& playedNote, const ReferenceNote& referenceNote)
 {
     return playedNote.startMs - referenceNote.timestampMs;
 }
 
-double getReleaseErrorMs(const ReferenceNote& referenceNote, const PlayedNote& playedNote)
+double getReleaseErrorMs(const PlayedNote& playedNote, const ReferenceNote& referenceNote)
 {
     // Absolute release timestamp errors
     const double referenceReleaseMs = referenceNote.timestampMs + referenceNote.durationMs;
