@@ -28,6 +28,7 @@ struct PlayedNote
     int midi = -1;
     double confidence = 0.0;
     double velocity = 0.0;
+    std::vector<double> waveformProfile;
 };
 
 // Config used in segmentation
@@ -42,6 +43,7 @@ struct DetectionSettings
     double silenceDb = -40.0;            // below treated as silence
     double minNoteMs = 50.0;             // shortest length of note to detect
     double velocityAnalysisWindowMs = 20.0;
+    int waveformProfileCycleCount = 4;
     int minMidi = 24; // C1              // min MIDI value to detect
     int maxMidi = 96; // C7              // max MIDI value to detect
     double minPitchConfidence = 0.15;    // min confidence from aubio pitch detection to trust
@@ -103,7 +105,7 @@ struct JudgmentSettings
     double pitchToleranceSemitones = 0.3;
     double velocityToleranceDbLower = -4.4;
     double velocityToleranceDbUpper = 6.0;
-    double articulationToleranceMult = 0.5;
+    double articulationToleranceScore = 0.5;
 };
 
 CriterionJudgment evaluateCriterionAbs(double errorValue, double tolerance);

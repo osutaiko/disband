@@ -195,6 +195,15 @@ export const judgmentEntries: SettingsRowConfig<JudgmentSettings>[] = [
     },
   },
   {
+    type: 'field',
+    config: {
+      key: 'articulationToleranceScore',
+      id: 'articulation-tolerance-score',
+      label: 'Articulation Tolerance',
+      description: 'Error threshold for note articulation in raw score: 0 (perfect) to 1 (very different)',
+    },
+  },
+  {
     type: 'range',
     config: {
       id: 'velocity-tolerance-db',
@@ -204,15 +213,6 @@ export const judgmentEntries: SettingsRowConfig<JudgmentSettings>[] = [
       minId: 'velocity-tolerance-db-lower',
       maxKey: 'velocityToleranceDbUpper',
       maxId: 'velocity-tolerance-db-upper',
-    },
-  },
-  {
-    type: 'field',
-    config: {
-      key: 'articulationToleranceMult',
-      id: 'articulation-tolerance-mult',
-      label: 'Articulation Tolerance',
-      description: 'Multiplier tolerance for note articulation',
     },
   },
 ];

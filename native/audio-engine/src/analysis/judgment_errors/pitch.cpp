@@ -11,7 +11,7 @@ double frequencyToMidi(double hz);
 
 namespace disband::session
 {
-double getPitchErrorSemitones(const ReferenceNote& referenceNote, const PlayedNote& playedNote)
+double getPitchErrorSemitones(const PlayedNote& playedNote, const ReferenceNote& referenceNote)
 {
     if (referenceNote.midi < 0)
         return 0.0;

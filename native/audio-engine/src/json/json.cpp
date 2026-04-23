@@ -75,7 +75,7 @@ juce::String buildDefaultSettingsJson()
     judgmentObj->setProperty("pitchToleranceSemitones", judgmentDefaults.pitchToleranceSemitones);
     judgmentObj->setProperty("velocityToleranceDbLower", judgmentDefaults.velocityToleranceDbLower);
     judgmentObj->setProperty("velocityToleranceDbUpper", judgmentDefaults.velocityToleranceDbUpper);
-    judgmentObj->setProperty("articulationToleranceMult", judgmentDefaults.articulationToleranceMult);
+    judgmentObj->setProperty("articulationToleranceScore", judgmentDefaults.articulationToleranceScore);
     rootObj->setProperty("judgment", juce::var(judgmentObj));
 
     return juce::JSON::toString(root);
