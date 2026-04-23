@@ -118,7 +118,6 @@ juce::String buildAnalysisResultJson(
         criteria->setProperty("release", toCriterionVar(noteJudgment.release));
         criteria->setProperty("pitch", toCriterionVar(noteJudgment.pitch));
         criteria->setProperty("velocity", toCriterionVar(noteJudgment.velocity));
-        criteria->setProperty("muting", toCriterionVar(noteJudgment.muting));
         criteria->setProperty("articulation", toCriterionVar(noteJudgment.articulation));
         obj->setProperty("criteria", juce::var(criteria));
         jsonNoteJudgments.add(juce::var(obj));

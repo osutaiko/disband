@@ -75,7 +75,6 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
     const attackMiss = judged.filter((entry) => entry.kind === 'miss' && entry.noteJudgment.criteria.attack.pass === false).length;
     const pitchMiss = judged.filter((entry) => entry.kind === 'miss' && entry.noteJudgment.criteria.pitch.pass === false).length;
     const releaseFail = judged.filter((entry) => entry.noteJudgment.criteria.release.pass === false).length;
-    const mutingFail = judged.filter((entry) => entry.noteJudgment.criteria.muting.pass === false).length;
     const articulationFail = judged.filter((entry) => entry.noteJudgment.criteria.articulation.pass === false).length;
     const velocityFail = judged.filter((entry) => entry.noteJudgment.criteria.velocity.pass === false).length;
     const matchedAttackErrors = noteJudgmentsWithKind
@@ -97,9 +96,6 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
     const releaseErrors = judged
       .filter((entry) => entry.noteJudgment.criteria.release.pass === false)
       .map((entry) => entry.noteJudgment.criteria.release.error);
-    const mutingErrors = judged
-      .filter((entry) => entry.noteJudgment.criteria.muting.pass === false)
-      .map((entry) => entry.noteJudgment.criteria.muting.error);
     const articulationErrors = judged
       .filter((entry) => entry.noteJudgment.criteria.articulation.pass === false)
       .map((entry) => entry.noteJudgment.criteria.articulation.error);
@@ -120,7 +116,6 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
           miss: pitchMiss,
         },
         release: releaseFail,
-        muting: mutingFail,
         articulation: articulationFail,
         velocity: velocityFail,
       },
@@ -129,7 +124,6 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
         pitchMiss: getErrorStats(wrongPitchErrors),
         attackInaccurate: getErrorStats(inaccurateAttackErrors),
         release: getErrorStats(releaseErrors),
-        muting: getErrorStats(mutingErrors),
         articulation: getErrorStats(articulationErrors),
         velocity: getErrorStats(velocityErrors),
       },
@@ -224,15 +218,6 @@ function SessionPanel({ onOpenReview }: { onOpenReview: () => void }) {
           percent: formatBreakdownPercent(breakdownStats.release.count),
           average: formatMs(breakdownStats.release.average),
           worst: formatMs(breakdownStats.release.worst),
-        },
-        {
-          value: 'muting-fail',
-          name: 'Bad Muting',
-          description: 'Failure to mute properly with audible unintentionally ringing notes',
-          count: breakdownStats.muting.count,
-          percent: formatBreakdownPercent(breakdownStats.muting.count),
-          average: formatMs(breakdownStats.muting.average),
-          worst: formatMs(breakdownStats.muting.worst),
         },
         {
           value: 'articulation-fail',

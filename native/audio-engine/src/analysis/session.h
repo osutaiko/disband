@@ -77,7 +77,6 @@ struct NoteJudgment
     CriterionJudgment release;
     CriterionJudgment pitch;
     CriterionJudgment velocity;
-    CriterionJudgment muting;
     CriterionJudgment articulation;
 };
 

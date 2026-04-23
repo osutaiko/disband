@@ -24,7 +24,6 @@ export type NoteJudgment = {
     release: CriterionJudgment;
     pitch: CriterionJudgment;
     velocity: CriterionJudgment;
-    muting: CriterionJudgment;
     articulation: CriterionJudgment;
   };
 };

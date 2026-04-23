@@ -53,7 +53,6 @@ type ReviewRow = {
     release: { error: number | null; pass: boolean | null };
     pitch: { error: number | null; pass: boolean | null };
     velocity: { error: number | null; pass: boolean | null };
-    muting: { error: number | null; pass: boolean | null };
     articulation: { error: number | null; pass: boolean | null };
   };
 };
@@ -62,7 +61,6 @@ const CRITERION_COLUMNS = [
   { key: 'attack', label: 'att' },
   { key: 'pitch', label: 'pit' },
   { key: 'release', label: 'rel' },
-  { key: 'muting', label: 'mut' },
   { key: 'articulation', label: 'art' },
   { key: 'velocity', label: 'vel' },
 ] as const;
@@ -70,7 +68,7 @@ const CRITERION_COLUMNS = [
 const REFERENCE_COLUMN_WIDTH = '13rem';
 const RECORDED_COLUMN_WIDTH = '13rem';
 const STATE_COLUMN_WIDTH = '6rem';
-const CRITERION_COLUMN_WIDTH = 'calc((100% - 32rem) / 6)';
+const CRITERION_COLUMN_WIDTH = 'calc((100% - 32rem) / 5)';
 const STATE_COLUMN_CLASS = 'sticky top-0 px-0 text-center';
 const CRITERION_COLUMN_CLASS = 'sticky top-0 px-0 text-center text-muted-foreground';
 const CRITERION_CELL_CLASS = 'px-0 pr-1 text-right';
@@ -153,12 +151,11 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
     'inaccurate',
     'miss',
   ]);
-  const [selectedCriteria, setSelectedCriteria] = useState<Record<'attack' | 'pitch' | 'release' | 'velocity' | 'muting' | 'articulation', 'any' | 'ok' | 'inaccurate' | 'miss' | 'bad'>>({
+  const [selectedCriteria, setSelectedCriteria] = useState<Record<'attack' | 'pitch' | 'release' | 'velocity' | 'articulation', 'any' | 'ok' | 'inaccurate' | 'miss' | 'bad'>>({
     attack: 'any',
     pitch: 'any',
     release: 'any',
     velocity: 'any',
-    muting: 'any',
     articulation: 'any',
   });
   const selectionId = selectedTrackId === null
@@ -172,7 +169,7 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
     if (!hasNoteJudgmentSelection) return [];
 
     const matchesCriterion = (
-      criterion: 'attack' | 'pitch' | 'release' | 'velocity' | 'muting' | 'articulation',
+      criterion: 'attack' | 'pitch' | 'release' | 'velocity' | 'articulation',
       row: ReviewRow,
     ) => {
       const selection = selectedCriteria[criterion];
@@ -220,7 +217,7 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
       })
       .filter((row) => row.noteJudgmentKind !== 'unjudged')
       .filter((row) => selectedNoteJudgmentKinds.includes(row.noteJudgmentKind as Exclude<NoteJudgmentKind, 'unjudged'>))
-      .filter((row) => (['attack', 'pitch', 'release', 'velocity', 'muting', 'articulation'] as const)
+      .filter((row) => (['attack', 'pitch', 'release', 'velocity', 'articulation'] as const)
         .every((criterion) => matchesCriterion(criterion, row)));
   }, [noteMarkers, selectedCriteria, selectedNoteJudgmentKinds, sessionAnalysis]);
 
@@ -387,7 +384,7 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
                 ))}
               </section>
               <CollapsibleContent className="ml-4 grid gap-1">
-                {(['attack', 'pitch', 'release', 'velocity', 'muting', 'articulation'] as const).map((criterion) => (
+                {(['attack', 'pitch', 'release', 'velocity', 'articulation'] as const).map((criterion) => (
                   <div key={criterion} className="grid grid-cols-[100px_1fr] items-center gap-3">
                     <span className="text-sm capitalize">{criterion}</span>
                     <ToggleGroup

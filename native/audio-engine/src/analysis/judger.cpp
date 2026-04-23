@@ -14,7 +14,6 @@
 //   - inaccurate attack timing
 //   - at least two wiolations in:
 //     - release timing
-//     - muting quality
 //     - articulation
 //
 // Ok otherwise!
@@ -117,7 +116,6 @@ SessionNoteJudgmentResult judgeSession(
         noteJudgment.release = {};
         noteJudgment.pitch = {};
         noteJudgment.velocity = {};
-        noteJudgment.muting = {};
         noteJudgment.articulation = {};
 
         const auto playedIndex = result.referenceToPlayed[refIndex]; // might not exist
@@ -182,7 +180,6 @@ SessionNoteJudgmentResult judgeSession(
         // Count secondary criteria failures
         int secondaryFails = 0;
         secondaryFails += isExplicitFail(noteJudgment.release) ? 1 : 0;
-        secondaryFails += isExplicitFail(noteJudgment.muting) ? 1 : 0;
         secondaryFails += isExplicitFail(noteJudgment.articulation) ? 1 : 0;
 
         noteJudgment.kind = secondaryFails >= 2
