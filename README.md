@@ -23,34 +23,38 @@ C++
 - Basic UI layout
   - [X] Shell layout
   - [X] Panel UI setup
-- Tab display (AlphaTab)
+- Tab engine (AlphaTab)
   - [X] TabViewPanel layout
-  - [X] .gp* file parsing
   - [X] Tab rendering
+  - [X] .gp* file metadata parsing
   - [X] Hotkeys / navigation
 - Audio mixing (also partially AlphaTab)
   - [X] Track display
   - [X] Score track switching
   - [X] Volume/muting/solo control
-  - [ ] Recorded audio output & mixing
-- Native app (`disband-audio-engine.exe`)
-  - Audio capture (`--output <wavPath>`)
+  - [X] Recorded audio output & mixing
+  - [ ] Audio clip manipulation (cutting)
+- Native app
+  - Audio capture (`disband-audio-capture.exe --output <wavPath>`)
     - [X] JUCE setup
     - [X] Frontend UI
     - [X] Hook with frontend
     - [ ] Audio input selector
-  - Audio analysis (`--analyze-wav <wavPath>`)
+  - Audio analysis (`disband-audio-analyze.exe --analyze-wav <wavPath>`)
     - [X] aubio setup
     - [X] Waveform display
     - Note extraction
       - [X] Segmentation with envelope analysis
-      - [ ] Pitch detection
-      - [ ] Velocity detection
-      - [ ] Muting detection (articulation)
+      - [X] Pitch detection
+      - [X] Velocity detection
+      - [X] Note articulation detection
+      - [ ] Slide detection
       - [ ] Multi-note detection scheme (chords...)
-    - [ ] Note correspondence matching
+    - [X] Note correspondence matching - ref<->played
     - Note judgment
-      - [ ] Scoring / accuracy system
+      - [X] Scoring / accuracy system
       - [X] Frontend UI
     - Realtime analysis
+- Testing
+  - [ ] TODO
   
