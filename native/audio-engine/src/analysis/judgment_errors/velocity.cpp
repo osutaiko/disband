@@ -7,6 +7,7 @@
 
 namespace disband::session
 {
+// 20 log(vel / vel_ref)
 double getVelocityDbDifference(const PlayedNote& playedNote, double averageVelocity)
 {
     if (averageVelocity <= 0.0) return 0.0;

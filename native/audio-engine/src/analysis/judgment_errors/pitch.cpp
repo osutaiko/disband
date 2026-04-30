@@ -17,6 +17,9 @@ double getPitchErrorSemitones(const PlayedNote& playedNote, const ReferenceNote&
         return 0.0;
 
     double playedMidi = static_cast<double>(playedNote.midi);
+
+    // In case MIDI value didn't get caught in segmentation
+    // see note_extraction::detectNotes (segmentation.cpp)
     if (playedMidi < 0.0 && playedNote.frequencyHz > 0.0)
         playedMidi = note_extraction::frequencyToMidi(playedNote.frequencyHz);
 

@@ -10,6 +10,9 @@ namespace disband::session
 {
 namespace
 {
+// Calculate articulation score by Pearson correlation.
+// Returns -1 [waveform is the exact opposite of reference] ~ 1 [waveforms are the same]
+// corr(A,B) = cov(A,B) / sqrt(var(A)var(B))
 double calculateCorrelationScore(
     const std::vector<double>& playedProfile,
     const std::vector<double>& referenceProfile)
@@ -18,6 +21,7 @@ double calculateCorrelationScore(
     if (sampleCount == 0)
         return 0.0;
 
+    // Compute means
     double playedMean = 0.0;
     double referenceMean = 0.0;
     for (size_t i = 0; i < sampleCount; ++i)
@@ -28,9 +32,12 @@ double calculateCorrelationScore(
     playedMean /= static_cast<double>(sampleCount);
     referenceMean /= static_cast<double>(sampleCount);
 
+    // Compute covariances
     double covariance = 0.0;
     double playedVariance = 0.0;
     double referenceVariance = 0.0;
+
+    // variance(A) = mean((A_i - mean(A))^2)
     for (size_t i = 0; i < sampleCount; ++i)
     {
         const double playedCentered = playedProfile[i] - playedMean;
@@ -49,6 +56,8 @@ double calculateCorrelationScore(
 }
 } // namespace
 
+// Error score = (1 - corr(A,B)) / 2
+// Returns 0 [waveforms are the same] ~ 1
 double getArticulationErrorScore(
     const PlayedNote& playedNote,
     const std::vector<double>& referenceProfile)

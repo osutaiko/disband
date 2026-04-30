@@ -21,15 +21,20 @@ NoteWindowFeatures computeNoteWindowFeatures(
     const int endSample = std::min(startSample + sampleCount, mono.getNumSamples());
     if (endSample <= startSample) return analysis;
 
+    // Calculation for RMS (velocityRms)
     const float* samples = mono.getReadPointer(0);
     double sumSquares = 0.0;
     for (int i = startSample; i < endSample; ++i)
     {
+        // Aggregate squares...
         const double sample = static_cast<double>(samples[i]);
         sumSquares += sample * sample;
     }
 
     const int count = endSample - startSample;
+
+    // ... then sqrt
+    // Object only has velocityRms for now
     analysis.velocityRms = count > 0 ? std::sqrt(sumSquares / static_cast<double>(count)) : 0.0;
     return analysis;
 }
