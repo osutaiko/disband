@@ -1,5 +1,7 @@
 // Disband audio analyzer app entry point.
-// One-shot process: --analyze-wav <wavPath>
+//
+// One-shot process "--analyze-wav <wavPath>"
+// Optionally a quick "--print-default-settings" when requested from frontend config init
 
 #include <juce_core/juce_core.h>
 #include <juce_gui_basics/juce_gui_basics.h>
@@ -23,6 +25,7 @@ struct CommandLineOptions
     bool printDefaultSettings = false;
 };
 
+// Iterate through command line args and set flags in CommandLineOptions
 CommandLineOptions parseCommandLineOptions()
 {
     CommandLineOptions options;
@@ -49,12 +52,16 @@ public:
     void initialise(const juce::String&) override
     {
         const auto options = parseCommandLineOptions();
+
+        // --print-default-settings
         if (options.printDefaultSettings)
         {
             printDefaultSettings();
             quit();
             return;
         }
+
+        // --analyze-wav <MISSING wavPath>
         if (options.analysisPath.isEmpty())
         {
             disband::app::log("audio-analyze", "missing --analyze-wav path\n");
@@ -63,6 +70,7 @@ public:
             return;
         }
 
+        // --analyze-wav <wavPath>
         runBaselineAnalysis(options.analysisPath);
         quit();
     }
@@ -77,6 +85,10 @@ private:
         std::fflush(stdout);
     }
 
+    // 1. loadMonoWavFile() - load WAV file
+    // 2. extractMonophonicNotes() - extract notes from the WAV mono buffer
+    // 3. judgeSession() - get judgments per note
+    // 4. buildAnalysisResultJson() and output to stdout
     void runBaselineAnalysis(const juce::String& wavPath)
     {
         juce::AudioBuffer<float> monoBuffer;
@@ -91,6 +103,7 @@ private:
             return;
         }
 
+        // Only support one note at a time (monophonism) for now
         const auto played =
             disband::session::extractMonophonicNotes(monoBuffer, sampleRate);
 
