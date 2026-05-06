@@ -1,5 +1,10 @@
-// Disband audio capture app entry point.
-// Runs as a long-lived process controlled over stdin.
+// Disband audio capture app entry point controlled over stdin.
+//
+// "--list-devices" to output both input/output device list from OS
+// "--input-device" | "--output-device" to change device
+// 
+// Spawn separate thread to poll from stdin
+// Support "start <wavPath>" | "stop" | "quit"
 
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_audio_formats/juce_audio_formats.h>
@@ -29,6 +34,8 @@ juce::String decodeBase64Arg(const juce::String& encoded)
     if (!decoded.fromBase64Encoding(encoded))
         return {};
 
+    // Base64 keeps device names safe for non-ASCII names
+    // Must ensure base64 is encoded from frontend
     return juce::String::fromUTF8(static_cast<const char*>(decoded.getData()), static_cast<int>(decoded.getSize()));
 }
 
@@ -36,6 +43,7 @@ constexpr double kSampleRate = 48000.0;
 constexpr unsigned int kChannels = 1;
 constexpr int kBitsPerSample = 16;
 
+// Iterate through command line args and set flags in CommandLineOptions
 CommandLineOptions parseCommandLineOptions()
 {
     CommandLineOptions options;
@@ -56,11 +64,13 @@ CommandLineOptions parseCommandLineOptions()
 class DisbandAudioRecorder : public juce::AudioIODeviceCallback
 {
 public:
+    // Start disk writer
     DisbandAudioRecorder() : writerThread("DisbandAudioWriter")
     {
         writerThread.startThread();
     }
 
+    // Cleanup recorder - wait for juce::TimeSliceThread to terminate
     ~DisbandAudioRecorder() override
     {
         stopRecording();
@@ -106,6 +116,7 @@ public:
 
     void stopRecording()
     {
+        // Clear before destroying the writer so callback stops using it
         const juce::ScopedLock lock(writerLock);
         activeWriter = nullptr;
         threadedWriter.reset();
@@ -133,6 +144,7 @@ public:
             ++contributingChannels;
         }
 
+        // Record mono by averaging all available input channels.
         if (contributingChannels > 1)
             monoBuffer.applyGain(0, 0, numSamples, 1.0f / static_cast<float>(contributingChannels));
 
@@ -180,6 +192,8 @@ public:
         }
 
         deviceManager.addAudioCallback(&recorder);
+
+        // stdin polling loop
         controlThread = std::thread([this] { controlLoopServer(); });
         disband::app::log("audio-capture", "recording server ready\n");
     }
@@ -241,6 +255,7 @@ private:
 
     bool initialiseInputDevice(const CommandLineOptions& options)
     {
+        // Request input only here for now
         const auto initResult = deviceManager.initialise(1, 0, nullptr, true);
         if (initResult.isNotEmpty())
         {
@@ -268,6 +283,8 @@ private:
             setup.outputDeviceName = options.outputDeviceName;
         setup.sampleRate = kSampleRate;
         setup.bufferSize = 128;
+
+        // Commit changes in setup to deviceManager
         const auto result = deviceManager.setAudioDeviceSetup(setup, true);
         if (result.isNotEmpty())
             disband::app::log("audio-capture", "device setup failed: %s\n", result.toRawUTF8());
@@ -305,6 +322,7 @@ private:
             }
         }
 
+        // Post quit to JUCE message thread
         juce::MessageManager::callAsync([] {
             if (auto* app = juce::JUCEApplicationBase::getInstance())
                 app->systemRequestedQuit();
