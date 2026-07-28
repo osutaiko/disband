@@ -90,6 +90,7 @@ function TimelinePanel({
   const {
     hoveredReferenceIndex,
     setHoveredReferenceIndex,
+    sessionAnalysis,
     noteJudgmentKinds,
     noteJudgmentByIndex,
     noteMarkersToRender,
@@ -195,19 +196,26 @@ function TimelinePanel({
           <div className="relative w-full h-[48px] bg-muted py-2 z-20">
             {/* Note Markers */}
             {noteMarkersToRender.map((marker) => (
-              <NoteMarker
-                key={`note-${marker.timestamp}-${marker.length}-${marker.referenceIndex}`}
-                timestamp={marker.timestamp}
-                length={marker.length}
-                offsetBase={trackStartPadding}
-                pxPerMs={pxPerMsForCalc}
-                noteJudgmentKind={noteJudgmentKinds[marker.referenceIndex]}
-                midi={marker.midi}
-                judgment={noteJudgmentByIndex.get(marker.referenceIndex) ?? null}
-                isHovered={hoveredReferenceIndex === marker.referenceIndex}
-                onHoverChange={(hovered) => {
-                  setHoveredReferenceIndex(hovered ? marker.referenceIndex : null);
-                }}
+            <NoteMarker
+              key={`note-${marker.timestamp}-${marker.length}-${marker.referenceIndex}`}
+              timestamp={marker.timestamp}
+              length={marker.length}
+              offsetBase={trackStartPadding}
+              pxPerMs={pxPerMsForCalc}
+              noteJudgmentKind={noteJudgmentKinds[marker.referenceIndex]}
+              midi={marker.midi}
+              judgment={noteJudgmentByIndex.get(marker.referenceIndex) ?? null}
+              playedNote={
+                (() => {
+                  const judgment = noteJudgmentByIndex.get(marker.referenceIndex);
+                  if (!judgment || judgment.playedIndex === null) return null;
+                  return sessionAnalysis?.playedNotes[judgment.playedIndex] ?? null;
+                })()
+              }
+              isHovered={hoveredReferenceIndex === marker.referenceIndex}
+              onHoverChange={(hovered) => {
+                setHoveredReferenceIndex(hovered ? marker.referenceIndex : null);
+              }}
                 isCurrentlyPlaying={
                   currentMs * playbackSpeed >= marker.timestamp
                   && currentMs * playbackSpeed < marker.timestamp + marker.length

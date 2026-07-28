@@ -82,6 +82,7 @@ function useSessionAnalysisView({
   return {
     hoveredReferenceIndex,
     setHoveredReferenceIndex,
+    sessionAnalysis,
     noteJudgmentKinds,
     noteJudgmentByIndex,
     noteMarkersToRender,

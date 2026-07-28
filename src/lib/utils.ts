@@ -51,6 +51,23 @@ export function midiToNoteName(midi: number | null | undefined) {
   return `${names[pitchClass]}${octave}`;
 }
 
+export function midiToHz(midi: number | null | undefined) {
+  if (midi == null || !Number.isFinite(midi) || midi < 0) return null;
+  return 440 * (2 ** ((midi - 69) / 12));
+}
+
+export function hzToCentsDiff(playedHz: number | null | undefined, referenceHz: number | null | undefined) {
+  if (
+    playedHz == null
+    || referenceHz == null
+    || !Number.isFinite(playedHz)
+    || !Number.isFinite(referenceHz)
+    || playedHz <= 0
+    || referenceHz <= 0
+  ) return null;
+  return 1200 * Math.log2(playedHz / referenceHz);
+}
+
 // Consult judger.cpp in native/audio-engine/src for overall note judgment logic
 export function getCriterionJudgmentStatus({
   criterion,
