@@ -447,7 +447,7 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
             </div>
 
             <div className="flex flex-col overflow-hidden rounded-md">
-              <Table className="table-fixed min-w-[760px]">
+              <Table className="table-fixed mx-auto w-max min-w-[760px]">
                 <colgroup>
                   <col style={{ width: REFERENCE_COLUMN_WIDTH }} />
                   <col style={{ width: RECORDED_COLUMN_WIDTH }} />
@@ -480,7 +480,7 @@ function SessionReviewWindow({ onClose }: { onClose: () => void }) {
               </Table>
               <ScrollArea className="h-[250px] min-w-[760px]">
                 {reviewRows.length === 0 && <p className="p-2">Nothing to show here.</p>}
-                <Table className="table-fixed min-w-[760px]">
+                <Table className="table-fixed mx-auto w-max min-w-[760px]">
                   <colgroup>
                     <col style={{ width: REFERENCE_COLUMN_WIDTH }} />
                     <col style={{ width: RECORDED_COLUMN_WIDTH }} />
