@@ -65,11 +65,10 @@ function NoteMarker({
 
   const referenceMidi = midi ?? null;
   const playedMidi = playedNote?.midi ?? null;
-  const playedMidiNearest = playedMidi === null ? null : Math.round(playedMidi);
-  const referenceMidiNearest = referenceMidi === null ? null : Math.round(referenceMidi);
   const playedPitchDeltaCents = hzToCentsDiff(playedNote?.hz, midiToHz(playedMidi));
   const pitchDeltaCents = hzToCentsDiff(playedNote?.hz, midiToHz(referenceMidi));
-  const pitchDeltaText = playedMidiNearest === null || referenceMidiNearest === null || playedMidiNearest !== referenceMidiNearest
+  const playedPitchDeltaText = formatCentDelta(playedPitchDeltaCents);
+  const pitchDeltaText = playedMidi === null || referenceMidi === null || Math.round(playedMidi) !== Math.round(referenceMidi)
     ? '∅'
     : formatCentDelta(pitchDeltaCents);
   const velocityDiffDb = judgment?.criteria.velocity.error ?? null;
@@ -100,7 +99,7 @@ function NoteMarker({
     },
     {
       label: 'Pitch',
-      played: `${midiToNoteName(playedMidi)}${formatCentDelta(playedPitchDeltaCents) === '∅' ? '' : formatCentDelta(playedPitchDeltaCents)}`,
+      played: `${midiToNoteName(playedMidi)}${playedPitchDeltaText === '∅' ? '' : playedPitchDeltaText}`,
       delta: pitchDeltaText,
       reference: midiToNoteName(referenceMidi),
     },
@@ -140,10 +139,10 @@ function NoteMarker({
             <Table className="w-max">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Metric</TableHead>
-                  <TableHead>Played</TableHead>
-                  <TableHead>Δ</TableHead>
-                  <TableHead>Reference</TableHead>
+                  <TableHead className="text-background">Metric</TableHead>
+                  <TableHead className="text-center text-background">Played</TableHead>
+                  <TableHead className="text-center text-background">Δ</TableHead>
+                  <TableHead className="text-center text-background">Reference</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -151,13 +150,23 @@ function NoteMarker({
                   <TableRow key={row.label}>
                     <TableCell className="text-background/60 font-medium">{row.label}</TableCell>
                     {'value' in row ? (
-                      <TableCell className="text-background" colSpan={3}>
-                        {row.value}
-                      </TableCell>
+                      <>
+                        <TableCell />
+                        <TableCell>
+                          <span className="inline-flex min-w-16 items-center justify-center rounded-md bg-primary/15 px-2 py-0.5 font-semibold text-primary">
+                            {row.value}
+                          </span>
+                        </TableCell>
+                        <TableCell />
+                      </>
                     ) : (
                       <>
                         <TableCell>{row.played}</TableCell>
-                        <TableCell>{row.delta}</TableCell>
+                        <TableCell>
+                          <span className="inline-flex min-w-16 items-center justify-center rounded-md bg-primary/15 px-2 py-0.5 font-semibold text-primary">
+                            {row.delta}
+                          </span>
+                        </TableCell>
                         <TableCell>{row.reference}</TableCell>
                       </>
                     )}
