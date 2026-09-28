@@ -3,6 +3,8 @@ import WaveSurfer from 'wavesurfer.js';
 import type { SessionAnalysisResult } from '../../../../shared/types';
 import { getCssColor } from '@/lib/utils';
 import { useColorTheme } from '@/components/ui/color-theme-provider';
+import useConfigStore from '@/store/useConfigStore';
+import { getAudioOutputDevice } from '@/lib/audioOutputDevices';
 
 let waveSurferPlayback: WaveSurfer | null = null;
 let recordedTimelineStartMs = 0;
@@ -54,6 +56,7 @@ function useSessionWaveSurfer({
   }>;
   timelineStartMs: number;
 }) {
+  const outputDevice = useConfigStore((state) => state.settings?.audioDevice.output);
   const containerRef = useRef<HTMLDivElement>(null);
   const waveSurferRef = useRef<WaveSurfer | null>(null);
   const [durationMs, setDurationMs] = useState<number | null>(null);
@@ -86,6 +89,21 @@ function useSessionWaveSurfer({
       waveSurferRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    const waveSurfer = waveSurferRef.current;
+    if (!waveSurfer) return undefined;
+    let cancelled = false;
+    getAudioOutputDevice(outputDevice)
+      .then((device) => {
+        if (!cancelled) return waveSurfer.setSinkId(device?.deviceId ?? '');
+        return undefined;
+      })
+      .catch((error) => {
+        if (!cancelled) console.error('[wavesurfer] failed to set output device', error);
+      });
+    return () => { cancelled = true; };
+  }, [outputDevice]);
 
   useEffect(() => {
     const waveSurfer = waveSurferRef.current;

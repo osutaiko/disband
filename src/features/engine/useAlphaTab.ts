@@ -4,6 +4,7 @@ import { AlphaTabApi, Settings } from '@coderline/alphatab';
 import useLibraryStore from '@/store/useLibraryStore';
 import useEngineStore from '@/store/useEngineStore';
 import useConfigStore from '@/store/useConfigStore';
+import { getAudioOutputDevice } from '@/lib/audioOutputDevices';
 
 import {
   applyRebuiltAlphaTabSettings,
@@ -16,13 +17,32 @@ const useAlphaTab = (
 ) => {
   const { setTracks, selectedTrackId, setSelectedTrackId } = useLibraryStore();
   const {
-    setApi, setIsPlaying, setEndMs, setCurrentBar, setEndBar,
+    api: currentApi, setApi, setIsPlaying, setEndMs, setCurrentBar, setEndBar,
   } = useEngineStore();
   const { settings } = useConfigStore();
 
   const [isTabLoading, setIsTabLoading] = useState(false);
   const apiRef = useRef<AlphaTabApi | null>(null);
   const currentMsRef = useRef(0);
+
+  useEffect(() => {
+    if (!currentApi) return undefined;
+    let cancelled = false;
+    const applyOutput = async () => {
+      try {
+        const device = await getAudioOutputDevice(settings?.audioDevice.output);
+        if (!cancelled) await currentApi.setOutputDevice(device);
+      } catch (error) {
+        if (!cancelled) console.error('[alphatab] failed to set output device', error);
+      }
+    };
+    currentApi.playerReady.on(applyOutput);
+    if (currentApi.isReadyForPlayback) applyOutput();
+    return () => {
+      cancelled = true;
+      currentApi.playerReady.off(applyOutput);
+    };
+  }, [currentApi, settings?.audioDevice.output]);
 
   const onError = () => {
     setIsTabLoading(false);

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import useConfigStore from '@/store/useConfigStore';
+import { getAudioOutputDevices } from '@/lib/audioOutputDevices';
 import type {
   AppSettings,
   JudgmentSettings,
@@ -56,6 +57,7 @@ const colorThemeOptions = [
 function SettingsWindow() {
   const settings = useConfigStore((state) => state.settings);
   const setSettings = useConfigStore((state) => state.setSettings);
+  const [audioDeviceError, setAudioDeviceError] = useState('');
   const [draftSettings, setDraftSettings] = useState<AppSettings | null>(null);
   const [audioDevices, setAudioDevices] = useState<{ inputs: string[]; outputs: string[]; }>({
     inputs: [],
@@ -65,11 +67,17 @@ function SettingsWindow() {
   useEffect(() => {
     window.electron.getAudioDevices()
       .then((devices) => {
-        setAudioDevices(devices);
+        setAudioDevices((current) => ({ ...current, inputs: devices.inputs }));
       })
-      .catch(() => {
-        setAudioDevices({ inputs: [], outputs: [] });
-      });
+      .catch(() => setAudioDeviceError('Could not load input devices.'));
+    getAudioOutputDevices()
+      .then((devices) => {
+        setAudioDevices((current) => ({
+          ...current,
+          outputs: devices.map((device) => device.label),
+        }));
+      })
+      .catch(() => setAudioDeviceError('Could not load output devices.'));
   }, []);
 
   useEffect(() => {
@@ -202,6 +210,7 @@ function SettingsWindow() {
       <Separator orientation="vertical" />
       <ScrollArea className="min-h-0 min-w-0 flex-1 pr-3">
         <TabsContent value="audio-device" className={settingsTabContentClassName}>
+          {audioDeviceError && <p role="alert" className="text-destructive">{audioDeviceError}</p>}
           <FormItem
             htmlFor="audio-input-device"
             label="Input Device"

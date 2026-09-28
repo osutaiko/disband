@@ -39,7 +39,6 @@ function getConfiguredAudioDevices() {
   const settings = getSettings();
   return {
     inputDevice: settings.audioDevice.input,
-    outputDevice: settings.audioDevice.output,
   };
 }
 
@@ -283,7 +282,6 @@ ipcMain.handle('settings-set', async (_event, nextSettings: AppSettings) => {
     appRoot: process.env.APP_ROOT!,
     startRecording: false,
     inputDevice: savedSettings.audioDevice.input,
-    outputDevice: savedSettings.audioDevice.output,
   });
   broadcastSettingsChanged(savedSettings);
   return savedSettings;

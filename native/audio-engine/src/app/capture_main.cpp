@@ -1,7 +1,7 @@
 // Disband audio capture app entry point controlled over stdin.
 //
 // "--list-devices" to output both input/output device list from OS
-// "--input-device" | "--output-device" to change device
+// "--input-device" to change recording device
 // 
 // Spawn separate thread to poll from stdin
 // Support "start <wavPath>" | "stop" | "quit"
@@ -25,7 +25,6 @@ struct CommandLineOptions
 {
     bool listDevices = false;
     juce::String inputDeviceName;
-    juce::String outputDeviceName;
 };
 
 juce::String decodeBase64Arg(const juce::String& encoded)
@@ -54,8 +53,6 @@ CommandLineOptions parseCommandLineOptions()
             options.listDevices = true;
         else if (args[i] == "--input-device" && i + 1 < args.size())
             options.inputDeviceName = decodeBase64Arg(args[i + 1]);
-        else if (args[i] == "--output-device" && i + 1 < args.size())
-            options.outputDeviceName = decodeBase64Arg(args[i + 1]);
     }
     return options;
 }
@@ -279,8 +276,6 @@ private:
         deviceManager.getAudioDeviceSetup(setup);
         if (options.inputDeviceName.isNotEmpty())
             setup.inputDeviceName = options.inputDeviceName;
-        if (options.outputDeviceName.isNotEmpty())
-            setup.outputDeviceName = options.outputDeviceName;
         setup.sampleRate = kSampleRate;
         setup.bufferSize = 128;
 
