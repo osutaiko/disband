@@ -1,6 +1,15 @@
 import type { NoteJudgment, NoteJudgmentKind } from '../../../shared/types';
-import { getNoteJudgmentClass } from '@/lib/noteJudgmentClasses';
-import { formatMs, formatNumber, hzToCentsDiff, midiToHz, midiToNoteName } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { getNoteJudgmentClass, getCriterionJudgmentClass } from '@/lib/noteJudgmentClasses';
+import {
+  formatMs,
+  formatNumber,
+  getCriterionJudgmentStatus,
+  hzToCentsDiff,
+  midiToHz,
+  midiToNoteName,
+  type CriterionName,
+} from '@/lib/utils';
 import {
   Tooltip,
   TooltipContent,
@@ -63,12 +72,24 @@ function NoteMarker({
     return `${rounded >= 0 ? '+' : ''}${rounded}¢`;
   }
 
+  function getDeltaBadgeClass(criterion: CriterionName) {
+    return getCriterionJudgmentClass(
+      getCriterionJudgmentStatus({
+        criterion,
+        noteJudgmentKind,
+        pass: judgment?.criteria[criterion].pass ?? null,
+      }),
+    );
+  }
+
   const referenceMidi = midi ?? null;
   const playedMidi = playedNote?.midi ?? null;
   const playedPitchDeltaCents = hzToCentsDiff(playedNote?.hz, midiToHz(playedMidi));
   const pitchDeltaCents = hzToCentsDiff(playedNote?.hz, midiToHz(referenceMidi));
   const playedPitchDeltaText = formatCentDelta(playedPitchDeltaCents);
-  const pitchDeltaText = playedMidi === null || referenceMidi === null || Math.round(playedMidi) !== Math.round(referenceMidi)
+  const pitchDeltaText = playedMidi === null
+    || referenceMidi === null
+    || Math.round(playedMidi) !== Math.round(referenceMidi)
     ? '∅'
     : formatCentDelta(pitchDeltaCents);
   const velocityDiffDb = judgment?.criteria.velocity.error ?? null;
@@ -81,12 +102,14 @@ function NoteMarker({
       label: 'Attack',
       played: formatMs(playedNote?.startMs ?? null),
       delta: formatDeltaMs(judgment?.criteria.attack.error),
+      deltaClassName: getDeltaBadgeClass('attack'),
       reference: formatMs(timestamp),
     },
     {
       label: 'Release',
       played: formatMs(playedNote?.endMs ?? null),
       delta: formatDeltaMs(judgment?.criteria.release.error),
+      deltaClassName: getDeltaBadgeClass('release'),
       reference: formatMs(timestamp + length),
     },
     {
@@ -95,22 +118,25 @@ function NoteMarker({
       delta: formatDeltaMs(
         playedNote ? (playedNote.endMs - playedNote.startMs) - length : null,
       ),
+      deltaClassName: getDeltaBadgeClass('release'),
       reference: formatMs(length),
     },
     {
       label: 'Pitch',
-      played: `${midiToNoteName(playedMidi)}${playedPitchDeltaText === '∅' ? '' : playedPitchDeltaText}`,
+      played: `${midiToNoteName(playedMidi)}${playedPitchDeltaCents == null ? '' : ` ${playedPitchDeltaText}`}`,
       delta: pitchDeltaText,
+      deltaClassName: getDeltaBadgeClass('pitch'),
       reference: midiToNoteName(referenceMidi),
     },
     {
       label: 'Articulation',
-      value: formatNumber(judgment?.criteria.articulation.error, false, '', 3),
+      value: formatNumber(judgment?.criteria.articulation.error ?? null, false, '', 3),
     },
     {
       label: 'Velocity',
       played: formatNumber(playedNote?.velocity ?? null, false, 'dB', 1),
-      delta: formatDeltaMs(velocityDiffDb),
+      delta: formatNumber(velocityDiffDb, true, 'dB', 1),
+      deltaClassName: getDeltaBadgeClass('velocity'),
       reference: formatNumber(referenceVelocity ?? null, false, 'dB', 1),
     },
   ] : [];
@@ -134,40 +160,43 @@ function NoteMarker({
             onMouseLeave={() => onHoverChange?.(false)}
           />
         </TooltipTrigger>
-        <TooltipContent className="z-100 w-auto max-w-none">
+        <TooltipContent sideOffset={8} className="z-100 w-auto max-w-none rounded-lg px-3 py-2 shadow-lg">
           {tooltipRows.length > 0 ? (
-            <Table className="w-max">
+            <Table className="w-max text-xs tabular-nums [&_td]:px-3 [&_td]:py-1.5 [&_th]:h-8 [&_th]:px-3 [&_tr]:border-background/10 [&_tr]:hover:bg-transparent">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-background">Metric</TableHead>
-                  <TableHead className="text-center text-background">Played</TableHead>
-                  <TableHead className="text-center text-background">Δ</TableHead>
-                  <TableHead className="text-center text-background">Reference</TableHead>
+                  <TableHead className="text-background/60">Metric</TableHead>
+                  <TableHead className="text-right text-background/60">Played</TableHead>
+                  <TableHead className="text-center text-background/60">Δ</TableHead>
+                  <TableHead className="text-right text-background/60">Reference</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {tooltipRows.map((row) => (
                   <TableRow key={row.label}>
-                    <TableCell className="text-background/60 font-medium">{row.label}</TableCell>
+                    <TableCell className="text-background/80 font-medium">{row.label}</TableCell>
                     {'value' in row ? (
                       <>
                         <TableCell />
                         <TableCell>
-                          <span className="inline-flex min-w-16 items-center justify-center rounded-md bg-primary/15 px-2 py-0.5 font-semibold text-primary">
+                          <Badge variant="ghost" className="min-w-16 rounded-md bg-background/10 text-background">
                             {row.value}
-                          </span>
+                          </Badge>
                         </TableCell>
                         <TableCell />
                       </>
                     ) : (
                       <>
-                        <TableCell>{row.played}</TableCell>
+                        <TableCell className="text-right">{row.played}</TableCell>
                         <TableCell>
-                          <span className="inline-flex min-w-16 items-center justify-center rounded-md bg-primary/15 px-2 py-0.5 font-semibold text-primary">
+                          <Badge
+                            variant="outline"
+                            className={`min-w-16 rounded-md text-foreground ${row.deltaClassName}`}
+                          >
                             {row.delta}
-                          </span>
+                          </Badge>
                         </TableCell>
-                        <TableCell>{row.reference}</TableCell>
+                        <TableCell className="text-right text-background/60">{row.reference}</TableCell>
                       </>
                     )}
                   </TableRow>
