@@ -30,13 +30,13 @@ struct CommandLineOptions
 
 juce::String decodeBase64Arg(const juce::String& encoded)
 {
-    juce::MemoryBlock decoded;
-    if (!decoded.fromBase64Encoding(encoded))
+    juce::MemoryOutputStream decoded;
+    if (!juce::Base64::convertFromBase64(decoded, encoded))
         return {};
 
     // Base64 keeps device names safe for non-ASCII names
     // Must ensure base64 is encoded from frontend
-    return juce::String::fromUTF8(static_cast<const char*>(decoded.getData()), static_cast<int>(decoded.getSize()));
+    return decoded.toUTF8();
 }
 
 constexpr double kSampleRate = 48000.0;
